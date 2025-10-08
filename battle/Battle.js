@@ -525,6 +525,7 @@ export class Battle {
     let attacker_hit = attacker.hit;
     let attacker_damage = attacker.damage;
     let attacker_crit = attacker.crit;
+    let additional_dr = 0.0;
 
     if (
       target instanceof Fighter &&
@@ -566,7 +567,7 @@ export class Battle {
         console.log(
           "Bastion aura adds 25% damage reduction and 50% increased dodge ",
         );
-      target_defense = (1 - 0.25) * target_defense;
+      additional_dr = additional_dr + 0.25;
       target_dodge *= 1.5;
       this.bastion_aura = false;
     }
@@ -592,11 +593,11 @@ export class Battle {
       if (this.paladin_aura) {
         if (this.verbose >= 1)
           console.log("Paladin aura adds 15% damage reduction");
-        target_defense = (1 - 0.15) * target_defense;
+        additional_dr = additional_dr + 0.15;
         this.paladin_aura = false;
       }
 
-      let dmg_amount = target_defense * attacker_damage * damage_mult;
+      let dmg_amount = target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
       const rng_crit = Math.random();
       if (this.verbose >= 2)
         console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
