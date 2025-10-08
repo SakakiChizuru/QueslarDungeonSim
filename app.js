@@ -1,0 +1,834 @@
+import { FightersSquad } from "./squads/FightersSquad.js";
+import { MobsSquad } from "./squads/MobsSquad.js";
+import { Battle } from "./battle/Battle.js";
+import { Fighter, FighterClasses } from "./characters/Fighter.js";
+
+const fightersGridEl = document.getElementById("fightersGrid");
+const verboseEl = document.getElementById("verbose");
+const mobLevelEl = document.getElementById("mobLevel");
+const numBattlesEl = document.getElementById("numBattles");
+const outputEl = document.getElementById("output");
+const fightBtn = document.getElementById("fightBtn");
+const clearLogBtn = document.getElementById("clearLogBtn");
+
+const fighterModal = document.getElementById("fighterModal");
+const closeFighterModal = document.getElementById("closeFighterModal");
+const saveFighterBtn = document.getElementById("saveFighter");
+const fighterClassSelect = document.getElementById("fighterClass");
+const fighterNameInput = document.getElementById("fighterName");
+
+const benchGridEl = document.getElementById("benchGrid");
+const addToBenchBtn = document.getElementById("addToBench");
+
+const changelogLink = document.getElementById("changelogLink");
+const changelogModal = document.getElementById("changelogModal");
+const closeChangelog = document.getElementById("closeChangelog");
+const lastUpdatedEl = document.getElementById("lastUpdated");
+
+// Prepare class select
+for (const value of Object.values(FighterClasses)) {
+  const opt = document.createElement("option");
+  opt.value = value;
+  opt.textContent = value;
+  fighterClassSelect.appendChild(opt);
+}
+
+// Persistence Keys
+const LS_KEYS = {
+  grid: "dungeon:gridState:v1",
+  bench: "dungeon:benchState:v1",
+  mobLevel: "dungeon:mobLevel",
+  numBattles: "dungeon:numBattles",
+  verbose: "dungeon:verbose",
+};
+
+function serializeFighter(f) {
+  if (!f) return null;
+  // Save the raw input values that were stored when creating the fighter
+  const raw = f.__raw || {};
+  return {
+    fighter_class: f.fighter_class,
+    name: f.name,
+    fighter_health: raw.fighter_health || 0,
+    fighter_damage: raw.fighter_damage || 0,
+    fighter_hit: raw.fighter_hit || 0,
+    fighter_defense: raw.fighter_defense || 0,
+    fighter_crit: raw.fighter_crit || 0,
+    fighter_dodge: raw.fighter_dodge || 0,
+    object_health: raw.object_health || 0,
+    object_damage: raw.object_damage || 0,
+    object_hit: raw.object_hit || 0,
+    object_defense: raw.object_defense || 0,
+    object_crit: raw.object_crit || 0,
+    object_dodge: raw.object_dodge || 0,
+  };
+}
+
+function deserializeFighter(obj) {
+  if (!obj || !obj.fighter_class) return null;
+
+  // Ensure all required fields exist with default values
+  const data = {
+    name: obj.name,
+    fighter_health: obj.fighter_health || 0,
+    fighter_damage: obj.fighter_damage || 0,
+    fighter_hit: obj.fighter_hit || 0,
+    fighter_defense: obj.fighter_defense || 0,
+    fighter_crit: obj.fighter_crit || 0,
+    fighter_dodge: obj.fighter_dodge || 0,
+    object_health: obj.object_health || 0,
+    object_damage: obj.object_damage || 0,
+    object_hit: obj.object_hit || 0,
+    object_defense: obj.object_defense || 0,
+    object_crit: obj.object_crit || 0,
+    object_dodge: obj.object_dodge || 0,
+  };
+
+  try {
+    const fighter = new Fighter(obj.fighter_class, data);
+    // Store the raw input values for re-populating the form
+    fighter.__raw = { ...data };
+    return fighter;
+  } catch (error) {
+    console.warn("Failed to deserialize fighter:", obj, error);
+    return null;
+  }
+}
+
+function saveState() {
+  const raw = gridState.map((row) => row.map(serializeFighter));
+  const benchRaw = benchState.map(serializeFighter);
+  localStorage.setItem(LS_KEYS.grid, JSON.stringify(raw));
+  localStorage.setItem(LS_KEYS.bench, JSON.stringify(benchRaw));
+  localStorage.setItem(LS_KEYS.mobLevel, String(mobLevelEl.value || ""));
+  localStorage.setItem(LS_KEYS.numBattles, String(numBattlesEl.value || ""));
+  localStorage.setItem(LS_KEYS.verbose, verboseEl.checked ? "1" : "0");
+}
+
+function loadState() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS.grid) || "null");
+    if (Array.isArray(raw) && raw.length === 3) {
+      for (let i = 0; i < 3; i++) {
+        if (Array.isArray(raw[i]) && raw[i].length === 2) {
+          for (let j = 0; j < 2; j++) {
+            gridState[i][j] = deserializeFighter(raw[i][j]);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to load grid state:", error);
+    // Clear corrupted data
+    localStorage.removeItem(LS_KEYS.grid);
+  }
+
+  try {
+    const benchRaw = JSON.parse(localStorage.getItem(LS_KEYS.bench) || "[]");
+    if (Array.isArray(benchRaw)) {
+      benchState.length = 0; // Clear array
+      benchRaw.forEach((data) => {
+        const fighter = deserializeFighter(data);
+        if (fighter) {
+          benchState.push(fighter);
+        }
+      });
+    }
+  } catch (error) {
+    console.warn("Failed to load bench state:", error);
+    localStorage.removeItem(LS_KEYS.bench);
+  }
+
+  const mob = localStorage.getItem(LS_KEYS.mobLevel);
+  const num = localStorage.getItem(LS_KEYS.numBattles);
+  const ver = localStorage.getItem(LS_KEYS.verbose);
+  if (mob) mobLevelEl.value = mob;
+  if (num) numBattlesEl.value = num;
+  if (ver) verboseEl.checked = ver === "1";
+}
+
+// State: 3x2 fighters grid
+const gridState = Array.from({ length: 3 }, () =>
+  Array.from({ length: 2 }, () => null),
+);
+// State: bench fighters (dynamic array)
+const benchState = [];
+let editingCell = { i: 0, j: 0 };
+let editingBench = { index: -1, isAddNew: false };
+
+function renderGrid() {
+  fightersGridEl.innerHTML = "";
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 2; j++) {
+      const cell = document.createElement("div");
+      const fighter = gridState[i][j];
+
+      // Apply different styling for empty vs filled cells
+      if (fighter) {
+        cell.className = "fighter-cell";
+      } else {
+        cell.className = "fighter-cell empty";
+      }
+
+      // Add drag and drop attributes
+      cell.draggable = !!fighter;
+      cell.dataset.gridPosition = `${i},${j}`;
+
+      // Make the entire cell clickable to open editor
+      cell.addEventListener("click", (e) => {
+        // Prevent double-firing by checking if we clicked a button
+        if (e.target.tagName === "BUTTON") {
+          return;
+        }
+        openFighterEditor(i, j);
+      });
+
+      // Add drag over visual feedback
+      cell.addEventListener("dragenter", (e) => {
+        e.preventDefault();
+        if (draggedData && cell !== draggedElement) {
+          cell.classList.add("drag-over");
+        }
+      });
+
+      cell.addEventListener("dragleave", (e) => {
+        // Only remove if we're actually leaving the element
+        if (!cell.contains(e.relatedTarget)) {
+          cell.classList.remove("drag-over");
+        }
+      });
+
+      // Add drag and drop event listeners
+      if (fighter) {
+        cell.addEventListener("dragstart", handleDragStart);
+        cell.addEventListener("dragend", handleDragEnd);
+      }
+      cell.addEventListener("dragover", handleDragOver);
+      cell.addEventListener("drop", handleDrop);
+
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = fighter ? fighter.name : "Empty";
+      cell.appendChild(name);
+
+      if (fighter) {
+        const del = document.createElement("button");
+        del.className = "btn small delete";
+        del.textContent = "Delete";
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          gridState[i][j] = null;
+          saveState();
+          renderGrid();
+          renderBench();
+        });
+        cell.appendChild(del);
+      } else {
+        const add = document.createElement("button");
+        add.className = "btn small add";
+        add.textContent = "Add";
+        add.addEventListener("click", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          openFighterEditor(i, j);
+        });
+        cell.appendChild(add);
+      }
+      fightersGridEl.appendChild(cell);
+    }
+  }
+}
+
+function renderBench() {
+  benchGridEl.innerHTML = "";
+
+  // Add a placeholder when bench is empty to ensure drops work
+  if (benchState.length === 0) {
+    const placeholder = document.createElement("div");
+    placeholder.className = "bench-fighter";
+    placeholder.style.opacity = "0.3";
+    placeholder.style.border = "2px dashed #36405a";
+    placeholder.style.background = "transparent";
+    placeholder.textContent = "Drop fighters here";
+    placeholder.style.textAlign = "center";
+    placeholder.style.color = "#8892b0";
+    placeholder.style.fontSize = "0.9em";
+    placeholder.style.flex = "1 1 100%";
+    placeholder.style.minHeight = "60px";
+    placeholder.style.display = "flex";
+    placeholder.style.alignItems = "center";
+    placeholder.style.justifyContent = "center";
+    placeholder.style.borderRadius = "10px";
+    placeholder.style.padding = "0 0.66em";
+
+    // Make placeholder accept drops
+    placeholder.addEventListener("dragover", handleDragOver);
+    placeholder.addEventListener("drop", handleDrop);
+
+    benchGridEl.appendChild(placeholder);
+    return;
+  }
+
+  benchState.forEach((fighter, index) => {
+    const benchItem = document.createElement("div");
+    benchItem.className = "bench-fighter";
+    benchItem.draggable = true;
+    benchItem.dataset.benchIndex = index;
+
+    benchItem.addEventListener("dragstart", handleDragStart);
+    benchItem.addEventListener("dragend", handleDragEnd);
+    benchItem.addEventListener("dragover", handleDragOver);
+    benchItem.addEventListener("drop", handleDrop);
+
+    // Add drag over visual feedback
+    benchItem.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      if (draggedData && benchItem !== draggedElement) {
+        benchItem.classList.add("drag-over");
+      }
+    });
+
+    benchItem.addEventListener("dragleave", (e) => {
+      if (!benchItem.contains(e.relatedTarget)) {
+        benchItem.classList.remove("drag-over");
+      }
+    });
+
+    // Click to edit
+    benchItem.addEventListener("click", (e) => {
+      if (e.target.tagName === "BUTTON") {
+        return;
+      }
+      openBenchFighterEditor(index);
+    });
+
+    const nameContainer = document.createElement("div");
+    nameContainer.style.flex = "1";
+    nameContainer.style.display = "flex";
+    nameContainer.style.alignItems = "center";
+    nameContainer.style.justifyContent = "center";
+    nameContainer.style.minWidth = "0";
+
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = fighter.name;
+    name.style.textAlign = "center";
+    nameContainer.appendChild(name);
+
+    benchItem.appendChild(nameContainer);
+
+    const actions = document.createElement("div");
+    actions.style.display = "flex";
+    actions.style.gap = "0.3em";
+    actions.style.flexShrink = "0";
+
+    const del = document.createElement("button");
+    del.className = "btn small delete";
+    del.textContent = "×";
+    del.style.fontSize = "0.8em";
+    del.style.padding = "0.2em 0.4em";
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      benchState.splice(index, 1);
+      saveState();
+      renderBench();
+    });
+    actions.appendChild(del);
+
+    benchItem.appendChild(actions);
+    benchGridEl.appendChild(benchItem);
+  });
+}
+
+function openFighterEditor(i, j) {
+  editingCell = { i, j };
+  editingBench = { index: -1, isAddNew: false };
+  const fighter = gridState[i][j];
+  populateFighterModal(fighter);
+  fighterModal.style.display = "flex";
+}
+
+function openBenchFighterEditor(index) {
+  editingBench = { index, isAddNew: false };
+  editingCell = { i: -1, j: -1 };
+  const fighter = benchState[index];
+  populateFighterModal(fighter);
+  fighterModal.style.display = "flex";
+}
+
+function openAddToBenchEditor() {
+  editingBench = { index: -1, isAddNew: true };
+  editingCell = { i: -1, j: -1 };
+  populateFighterModal(null);
+  fighterModal.style.display = "flex";
+}
+
+function populateFighterModal(fighter) {
+  fighterClassSelect.value = fighter
+    ? fighter.fighter_class
+    : FighterClasses.NONE;
+
+  // Set the name field
+  fighterNameInput.value = fighter ? fighter.name : "";
+
+  const fields = [
+    "fighter_health",
+    "fighter_damage",
+    "fighter_hit",
+    "fighter_defense",
+    "fighter_crit",
+    "fighter_dodge",
+    "object_health",
+    "object_damage",
+    "object_hit",
+    "object_defense",
+    "object_crit",
+    "object_dodge",
+  ];
+  for (const id of fields) {
+    const el = document.getElementById(id);
+    // Always use the raw values for form population
+    const value =
+      fighter && fighter.__raw && typeof fighter.__raw[id] === "number"
+        ? fighter.__raw[id]
+        : 0;
+    el.value = value;
+  }
+
+  // Add event listener for class change to auto-update name
+  fighterClassSelect.onchange = function () {
+    const currentName = fighterNameInput.value.trim();
+    const newClass = fighterClassSelect.value;
+
+    // If name is empty or matches the old class, update it to the new class
+    if (
+      !currentName ||
+      (fighter && currentName === fighter.fighter_class) ||
+      (!fighter &&
+        (!currentName || Object.values(FighterClasses).includes(currentName)))
+    ) {
+      fighterNameInput.value = newClass;
+    }
+  };
+}
+
+function closeFighterEditor() {
+  // Clean up event listener to prevent memory leaks
+  fighterClassSelect.onchange = null;
+  editingCell = { i: -1, j: -1 };
+  editingBench = { index: -1, isAddNew: false };
+  fighterModal.style.display = "none";
+}
+
+saveFighterBtn.addEventListener("click", () => {
+  const fc = fighterClassSelect.value;
+  const fighterName = fighterNameInput.value.trim();
+
+  // Create fighter data from form inputs
+  const data = {};
+
+  // Add name to data, use class name as default if no name provided
+  data.name = fighterName || fc;
+
+  const fields = [
+    "fighter_health",
+    "fighter_damage",
+    "fighter_hit",
+    "fighter_defense",
+    "fighter_crit",
+    "fighter_dodge",
+    "object_health",
+    "object_damage",
+    "object_hit",
+    "object_defense",
+    "object_crit",
+    "object_dodge",
+  ];
+  for (const id of fields) {
+    const value = Number(document.getElementById(id).value || 0);
+    data[id] = value;
+  }
+
+  try {
+    // Create fighter with selected class (including "No Class")
+    const f = new Fighter(fc, data);
+    // Store raw inputs on instance for easy re-populating
+    f.__raw = { ...data };
+
+    // Determine where to save the fighter
+    if (editingCell.i >= 0 && editingCell.j >= 0) {
+      // Saving to main grid
+      gridState[editingCell.i][editingCell.j] = f;
+      renderGrid();
+    } else if (editingBench.isAddNew) {
+      // Adding new fighter to bench
+      benchState.push(f);
+      renderBench();
+    } else if (editingBench.index >= 0) {
+      // Editing existing bench fighter
+      benchState[editingBench.index] = f;
+      renderBench();
+    }
+  } catch (error) {
+    console.error("Failed to create fighter:", error);
+    alert("Failed to create fighter. Please check your input values.");
+    return;
+  }
+
+  saveState();
+  closeFighterEditor();
+});
+
+// Close modal when clicking the close button
+closeFighterModal.addEventListener("click", closeFighterEditor);
+
+// Close modal when clicking outside of it (on the backdrop)
+fighterModal.addEventListener("click", (e) => {
+  if (e.target === fighterModal) {
+    closeFighterEditor();
+  }
+});
+
+// Prevent modal from closing when clicking inside the modal content
+fighterModal.querySelector(".modal").addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+function buildFightersSquad() {
+  // Create fresh fighter instances for each battle to reset health and state
+  const createFreshFighter = (fighter) => {
+    if (!fighter) return null;
+    // Create new fighter instance with same data to reset current_health and hit_counter
+    const rawData = fighter.__raw || {};
+    // Preserve the fighter's name
+    rawData.name = fighter.name;
+    return new Fighter(fighter.fighter_class, rawData);
+  };
+
+  // Map gridState to constructor order [[0,0],[0,1]],[ [1,0],[1,1] ], [ [2,0],[2,1] ]
+  return new FightersSquad(
+    createFreshFighter(gridState[0][0]),
+    createFreshFighter(gridState[1][0]),
+    createFreshFighter(gridState[2][0]),
+    createFreshFighter(gridState[0][1]),
+    createFreshFighter(gridState[1][1]),
+    createFreshFighter(gridState[2][1]),
+  );
+}
+
+function runBattles() {
+  // Clear previous output immediately
+  outputEl.textContent = "";
+
+  const level = Number(mobLevelEl.value || 1);
+  const n = Number(numBattlesEl.value || 1);
+  const verbose = verboseEl.checked;
+  saveState();
+
+  // Reset battle statistics completely
+  let fighterWins = 0;
+  let lastBattleLog = [];
+  const originalConsoleLog = console.log;
+
+  // Only enable verbose logging if verbose is checked AND exactly one battle
+  const shouldLogVerbose = verbose && n === 1;
+
+  try {
+    if (shouldLogVerbose) {
+      console.log = (...args) => {
+        lastBattleLog.push(args.join(" "));
+        originalConsoleLog(...args);
+      };
+    }
+
+    for (let k = 0; k < n; k++) {
+      // Create completely fresh squads for each battle
+      const fighters = buildFightersSquad();
+      const mobs = new MobsSquad(level);
+
+      // Pass verbose flag only if we should log verbose
+      const battle = new Battle(fighters, mobs, shouldLogVerbose ? 1 : 0);
+      const [winner] = battle.battle();
+
+      if (winner === "fighters") {
+        fighterWins += 1;
+      }
+    }
+  } finally {
+    console.log = originalConsoleLog;
+  }
+
+  // Display results in the output field
+  if (shouldLogVerbose) {
+    outputEl.textContent = lastBattleLog.join("\n");
+  } else {
+    outputEl.textContent = `Fighters won ${fighterWins} out of ${n} battles.`;
+  }
+}
+
+fightBtn.addEventListener("click", runBattles);
+clearLogBtn.addEventListener("click", () => {
+  outputEl.textContent = "";
+});
+
+// Changelog functionality
+async function loadChangelog() {
+  try {
+    const response = await fetch("./changelog.txt");
+    const content = await response.text();
+    const lines = content
+      .trim()
+      .split("\n")
+      .filter((line) => line.trim());
+
+    let html = "";
+    let currentDate = "";
+    let latestDate = "";
+
+    for (const line of lines) {
+      // Check if line is a date (YYYY-MM-DD format)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(line.trim())) {
+        currentDate = line.trim();
+        if (!latestDate) latestDate = currentDate;
+        html += `<h4 style="margin-top: 1.5em; margin-bottom: 0.5em; color: #4fa3ff;">${currentDate}</h4>`;
+      } else if (line.startsWith("-")) {
+        // Convert hyphen to bullet point
+        const entry = line.substring(1).trim();
+        html += `<div style="margin-left: 1em; margin-bottom: 0.3em;">• ${entry}</div>`;
+      } else if (line.trim()) {
+        // Regular line
+        html += `<div style="margin-left: 1em; margin-bottom: 0.3em;">• ${line.trim()}</div>`;
+      }
+    }
+
+    // Update changelog modal content
+    const changelogContent = changelogModal.querySelector(
+      ".modal div:last-child",
+    );
+    changelogContent.innerHTML = html || "<p>No changelog entries found.</p>";
+
+    // Update last updated date in footer
+    if (latestDate && lastUpdatedEl) {
+      lastUpdatedEl.textContent = `Last updated: ${latestDate}`;
+    }
+  } catch (error) {
+    console.warn("Failed to load changelog:", error);
+    const changelogContent = changelogModal.querySelector(
+      ".modal div:last-child",
+    );
+    changelogContent.innerHTML = "<p>Unable to load changelog.</p>";
+  }
+}
+
+changelogLink.addEventListener("click", () => {
+  changelogModal.style.display = "flex";
+});
+closeChangelog.addEventListener("click", () => {
+  changelogModal.style.display = "none";
+});
+
+// Close changelog modal when clicking outside
+changelogModal.addEventListener("click", (e) => {
+  if (e.target === changelogModal) {
+    changelogModal.style.display = "none";
+  }
+});
+
+// Prevent changelog modal from closing when clicking inside
+changelogModal.querySelector(".modal").addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+// Inputs persistence
+mobLevelEl.addEventListener("change", saveState);
+numBattlesEl.addEventListener("change", saveState);
+verboseEl.addEventListener("change", saveState);
+
+// Drag and drop functionality
+let draggedElement = null;
+let draggedData = null;
+
+function handleDragStart(e) {
+  draggedElement = e.target;
+  e.target.classList.add("dragging");
+
+  // Determine what we're dragging
+  if (e.target.dataset.gridPosition) {
+    const [i, j] = e.target.dataset.gridPosition.split(",").map(Number);
+    draggedData = {
+      type: "grid",
+      position: { i, j },
+      fighter: gridState[i][j],
+    };
+  } else if (e.target.dataset.benchIndex !== undefined) {
+    const index = parseInt(e.target.dataset.benchIndex);
+    draggedData = {
+      type: "bench",
+      index: index,
+      fighter: benchState[index],
+    };
+  }
+
+  e.dataTransfer.effectAllowed = "move";
+}
+
+function handleDragEnd(e) {
+  e.target.classList.remove("dragging");
+  // Remove drag-over class from all elements
+  document.querySelectorAll(".drag-over").forEach((el) => {
+    el.classList.remove("drag-over");
+  });
+  draggedElement = null;
+  draggedData = null;
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+
+  if (!draggedData) return;
+
+  const dropTarget = e.currentTarget;
+  dropTarget.classList.remove("drag-over");
+
+  // Determine drop target
+  let targetType = null;
+  let targetData = null;
+
+  if (dropTarget.dataset.gridPosition) {
+    const [i, j] = dropTarget.dataset.gridPosition.split(",").map(Number);
+    targetType = "grid";
+    targetData = { i, j, fighter: gridState[i][j] };
+  } else if (dropTarget.dataset.benchIndex !== undefined) {
+    const index = parseInt(dropTarget.dataset.benchIndex);
+    targetType = "bench";
+    targetData = { index, fighter: benchState[index] };
+  } else if (
+    dropTarget === benchGridEl ||
+    dropTarget.textContent === "Drop fighters here"
+  ) {
+    // Dropping on empty bench area or placeholder
+    targetType = "benchEmpty";
+    targetData = null;
+  }
+
+  // Handle the drop based on source and target
+  if (draggedData.type === "grid" && targetType === "grid") {
+    // Grid to grid - swap fighters
+    const sourceFighter =
+      gridState[draggedData.position.i][draggedData.position.j];
+    const targetFighter = gridState[targetData.i][targetData.j];
+
+    gridState[draggedData.position.i][draggedData.position.j] = targetFighter;
+    gridState[targetData.i][targetData.j] = sourceFighter;
+
+    renderGrid();
+  } else if (
+    draggedData.type === "grid" &&
+    (targetType === "bench" || targetType === "benchEmpty")
+  ) {
+    // Grid to bench - move fighter to bench, leave grid empty
+    const sourceFighter =
+      gridState[draggedData.position.i][draggedData.position.j];
+    gridState[draggedData.position.i][draggedData.position.j] = null;
+
+    if (targetType === "bench") {
+      // Insert at target position in bench
+      benchState.splice(targetData.index, 0, sourceFighter);
+    } else {
+      // Add to end of bench if dropping on empty area
+      benchState.push(sourceFighter);
+    }
+
+    renderGrid();
+    renderBench();
+  } else if (draggedData.type === "bench" && targetType === "grid") {
+    // Bench to grid - move fighter to grid, remove from bench
+    const sourceFighter = benchState[draggedData.index];
+    const targetFighter = targetData.fighter;
+
+    // Remove from bench
+    benchState.splice(draggedData.index, 1);
+
+    // If target grid position has a fighter, add it to the bench at the same position
+    if (targetFighter) {
+      benchState.splice(draggedData.index, 0, targetFighter);
+    }
+
+    // Place the dragged fighter in the grid
+    gridState[targetData.i][targetData.j] = sourceFighter;
+
+    renderGrid();
+    renderBench();
+  } else if (draggedData.type === "bench" && targetType === "bench") {
+    // Bench to bench - reorder
+    if (draggedData.index !== targetData.index) {
+      const sourceFighter = benchState[draggedData.index];
+      benchState.splice(draggedData.index, 1);
+      benchState.splice(targetData.index, 0, sourceFighter);
+      renderBench();
+    }
+  }
+
+  saveState();
+}
+
+// Add visual feedback for bench grid when dragging from grid
+benchGridEl.addEventListener("dragenter", (e) => {
+  e.preventDefault();
+  if (draggedData && draggedData.type === "grid") {
+    benchGridEl.style.border = "2px dashed #4fa3ff";
+    benchGridEl.style.backgroundColor = "rgba(79, 163, 255, 0.1)";
+  }
+});
+
+benchGridEl.addEventListener("dragleave", (e) => {
+  if (!benchGridEl.contains(e.relatedTarget)) {
+    benchGridEl.style.border = "";
+    benchGridEl.style.backgroundColor = "";
+  }
+});
+
+// Add drop handling to bench grid container for empty area drops
+benchGridEl.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+});
+
+benchGridEl.addEventListener("drop", (e) => {
+  e.preventDefault();
+
+  // Reset visual feedback
+  benchGridEl.style.border = "";
+  benchGridEl.style.backgroundColor = "";
+
+  if (!draggedData) return;
+
+  // Only handle drops from grid to bench (adding to end)
+  if (draggedData.type === "grid") {
+    const sourceFighter =
+      gridState[draggedData.position.i][draggedData.position.j];
+    gridState[draggedData.position.i][draggedData.position.j] = null;
+
+    // Add to end of bench
+    benchState.push(sourceFighter);
+
+    renderGrid();
+    renderBench();
+    saveState();
+  }
+});
+
+// Add to bench button event
+addToBenchBtn.addEventListener("click", openAddToBenchEditor);
+
+loadState();
+renderGrid();
+renderBench();
+loadChangelog();
