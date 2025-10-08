@@ -48,7 +48,8 @@ export class Fighter {
     this.current_health = this.total_health;
     this.damage = Math.ceil(100 + 25 * fighter_damage) + object_damage;
     this.hit = Math.ceil(50 + 50 * fighter_hit) + object_hit;
-    this.defense = calculateDefense(25 + 10 * fighter_defense, object_defense);
+    this.defense_pre = 25 + 10 * fighter_defense + object_defense;
+    this.defense = calculateDefense(this.defense_pre);
     this.crit = (0.0 + 0.25 * fighter_crit + object_crit) / 100.0;
     this.dodge = Math.ceil(50.0 + 50.0 * fighter_dodge) + object_dodge;
 

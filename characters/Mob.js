@@ -31,7 +31,7 @@ export class Mob {
         this.current_health = this.total_health;
         this.damage = getMobStatValue(25, 50, this.level);
         this.hit = getMobStatValue(0, 50, this.level);
-        this.defense = calculateDefense(getMobStatValue(5, 10, this.level), 0);
+        this.defense = calculateDefense(getMobStatValue(5, 10, this.level));
         this.crit = this.level / 100000.0;
         this.dodge = getMobStatValue(0, 50, this.level);
 

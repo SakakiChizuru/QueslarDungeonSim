@@ -1,5 +1,7 @@
 import { Fighter, FighterClasses } from "../characters/Fighter.js";
 import { Mob } from "../characters/Mob.js";
+import { calculateDefense } from '../utils/utils.js';
+
 
 function getAdjacent(i, j) {
   const rows = 3,
@@ -521,6 +523,7 @@ export class Battle {
     else throw new Error("Invalid target");
 
     let target_defense = (1 - target.defense);
+    let target_defense_pre = target.defense_pre
     let target_dodge = target.dodge;
     let attacker_hit = attacker.hit;
     let attacker_damage = attacker.damage;
@@ -531,7 +534,8 @@ export class Battle {
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.CRUSADER
     ) {
-      target_defense = (1 + 0.2 * this.dead_fighters.length) * target_defense;
+      target_defense_pre = (1 + 0.2 * this.dead_fighters.length) * target.defense_pre;
+      target_defense = (1 - calculateDefense(target_defense_pre))
       target_dodge = (1 + 0.2 * this.dead_fighters.length) * target_dodge;
     }
 

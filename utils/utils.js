@@ -67,8 +67,7 @@ export function demillify(n) {
     throw new Error(`Number format ${n} not recognized`);
 }
 
-export function calculateDefense(personalDefense, objectDefense) {
-    const defense = personalDefense + objectDefense;
+export function calculateDefense(defense) {
     const capped = Math.min(20000, defense);
     return Math.min(1 - 1 / Math.pow(1 + (defense + capped * 9) / 50000, 0.25), 0.95);
 }
