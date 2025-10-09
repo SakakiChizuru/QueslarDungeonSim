@@ -11,6 +11,16 @@ const outputEl = document.getElementById("output");
 const fightBtn = document.getElementById("fightBtn");
 const clearLogBtn = document.getElementById("clearLogBtn");
 
+const apiKeyEl = document.getElementById("apiKey");
+const importBtn = document.getElementById("importBtn");
+
+const importConfirmModal = document.getElementById("importConfirmModal");
+const confirmImportBtn = document.getElementById("confirmImport");
+const cancelImportBtn = document.getElementById("cancelImport");
+const dontShowImportWarningEl = document.getElementById(
+  "dontShowImportWarning",
+);
+
 const fighterModal = document.getElementById("fighterModal");
 const closeFighterModal = document.getElementById("closeFighterModal");
 const saveFighterBtn = document.getElementById("saveFighter");
@@ -40,6 +50,8 @@ const LS_KEYS = {
   mobLevel: "dungeon:mobLevel",
   numBattles: "dungeon:numBattles",
   verbose: "dungeon:verbose",
+  apiKey: "dungeon:apiKey",
+  dontShowImportWarning: "dungeon:dontShowImportWarning",
 };
 
 function serializeFighter(f) {
@@ -103,6 +115,11 @@ function saveState() {
   localStorage.setItem(LS_KEYS.mobLevel, String(mobLevelEl.value || ""));
   localStorage.setItem(LS_KEYS.numBattles, String(numBattlesEl.value || ""));
   localStorage.setItem(LS_KEYS.verbose, verboseEl.checked ? "1" : "0");
+  localStorage.setItem(LS_KEYS.apiKey, String(apiKeyEl.value || ""));
+  localStorage.setItem(
+    LS_KEYS.dontShowImportWarning,
+    dontShowImportWarningEl.checked ? "1" : "0",
+  );
 }
 
 function loadState() {
@@ -142,9 +159,14 @@ function loadState() {
   const mob = localStorage.getItem(LS_KEYS.mobLevel);
   const num = localStorage.getItem(LS_KEYS.numBattles);
   const ver = localStorage.getItem(LS_KEYS.verbose);
+  const api = localStorage.getItem(LS_KEYS.apiKey);
   if (mob) mobLevelEl.value = mob;
   if (num) numBattlesEl.value = num;
   if (ver) verboseEl.checked = ver === "1";
+  if (api) apiKeyEl.value = api;
+
+  const dontShow = localStorage.getItem(LS_KEYS.dontShowImportWarning);
+  if (dontShow) dontShowImportWarningEl.checked = dontShow === "1";
 }
 
 // State: 3x2 fighters grid
@@ -573,6 +595,375 @@ clearLogBtn.addEventListener("click", () => {
   outputEl.textContent = "";
 });
 
+// API Import functionality
+importBtn.addEventListener("click", () => {
+  const apiKey = apiKeyEl.value.trim();
+
+  if (!apiKey) {
+    alert("Please enter an API key before importing.");
+    return;
+  }
+
+  // Check if user has opted to skip the warning
+  const dontShow = localStorage.getItem(LS_KEYS.dontShowImportWarning);
+  if (dontShow === "1") {
+    // Skip confirmation modal and proceed directly
+    performImport(apiKey);
+  } else {
+    // Show confirmation modal
+    importConfirmModal.style.display = "flex";
+  }
+});
+
+// Confirmation modal event handlers
+confirmImportBtn.addEventListener("click", () => {
+  // Save the "don't show anymore" preference
+  if (dontShowImportWarningEl.checked) {
+    localStorage.setItem(LS_KEYS.dontShowImportWarning, "1");
+  }
+
+  // Hide modal and proceed with import
+  importConfirmModal.style.display = "none";
+  const apiKey = apiKeyEl.value.trim();
+  performImport(apiKey);
+});
+
+cancelImportBtn.addEventListener("click", () => {
+  importConfirmModal.style.display = "none";
+});
+
+// Close modal when clicking outside of it (on the backdrop)
+importConfirmModal.addEventListener("click", (e) => {
+  if (e.target === importConfirmModal) {
+    importConfirmModal.style.display = "none";
+  }
+});
+
+// Prevent modal from closing when clicking inside
+importConfirmModal.querySelector(".modal").addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+// Perform the actual API import
+async function performImport(apiKey) {
+  try {
+    importBtn.disabled = true;
+    importBtn.textContent = "Importing...";
+
+    const response = await fetch(
+      "https://http.v2.queslar.com/api/character/fighter/presets",
+      {
+        method: "GET",
+        headers: {
+          "QUESLAR-API-KEY": apiKey,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("API Data received:", data);
+
+    // Process the imported data
+    const result = processImportedData(data);
+    if (result.success) {
+      console.log(`Successfully imported ${result.fightersCount} fighters`);
+      alert(
+        `Successfully imported ${result.fightersCount} fighters from dungeon preset!`,
+      );
+    } else {
+      console.warn("Import failed:", result.message);
+      alert(result.message);
+    }
+  } catch (error) {
+    console.error("Import failed:", error);
+    alert(`Import failed: ${error.message}`);
+  } finally {
+    importBtn.disabled = false;
+    importBtn.textContent = "Import";
+  }
+}
+
+// Process imported API data
+function processImportedData(apiData) {
+  try {
+    // Check if output exists and is an array
+    if (!apiData.output || !Array.isArray(apiData.output)) {
+      return {
+        success: false,
+        message:
+          "Invalid API response format: missing or invalid 'output' array.",
+      };
+    }
+
+    // Find the preset with assignment = "dungeon"
+    console.log(
+      "Searching for dungeon preset in",
+      apiData.output.length,
+      "items",
+    );
+    const dungeonPreset = apiData.output.find(
+      (item) => item.preset && item.preset.assignment === "dungeon",
+    );
+
+    if (!dungeonPreset) {
+      console.warn(
+        "Available presets:",
+        apiData.output.map((item) => ({
+          name: item.preset?.name,
+          assignment: item.preset?.assignment,
+        })),
+      );
+      return {
+        success: false,
+        message:
+          "No preset found with assignment 'dungeon'. Nothing was imported.",
+      };
+    }
+
+    console.log(
+      "Found dungeon preset:",
+      dungeonPreset.preset.name,
+      "with",
+      dungeonPreset.fighters?.length || 0,
+      "fighters",
+    );
+
+    // Clear current grid state
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 2; j++) {
+        gridState[i][j] = null;
+      }
+    }
+
+    // Import fighters from the dungeon preset
+    const fighters = dungeonPreset.fighters || [];
+    let importedCount = 0;
+
+    fighters.forEach((fighterData) => {
+      try {
+        console.log(
+          "Processing fighter:",
+          fighterData.name,
+          "class:",
+          fighterData.class,
+        );
+        const fighter = createFighterFromApiData(fighterData);
+        if (fighter) {
+          // Place fighter according to placement data, or find next available spot
+          const placement = fighterData.placement;
+          let placed = false;
+
+          if (
+            placement &&
+            placement.row !== undefined &&
+            placement.column !== undefined
+          ) {
+            const row = placement.row;
+            const col = placement.column;
+            console.log(
+              "Attempting to place",
+              fighterData.name,
+              "at position",
+              row,
+              col,
+            );
+
+            // Validate placement bounds (0-2 rows, 0-1 columns)
+            if (
+              row >= 0 &&
+              row < 3 &&
+              col >= 0 &&
+              col < 2 &&
+              !gridState[row][col]
+            ) {
+              gridState[row][col] = fighter;
+              placed = true;
+              importedCount++;
+              console.log("Placed", fighterData.name, "at", row, col);
+            } else {
+              console.log(
+                "Cannot place at",
+                row,
+                col,
+                "- out of bounds or occupied",
+              );
+            }
+          }
+
+          // If placement failed or wasn't specified, find first available spot
+          if (!placed) {
+            for (let i = 0; i < 3 && !placed; i++) {
+              for (let j = 0; j < 2 && !placed; j++) {
+                if (!gridState[i][j]) {
+                  gridState[i][j] = fighter;
+                  placed = true;
+                  importedCount++;
+                }
+              }
+            }
+          }
+
+          if (!placed) {
+            console.warn(
+              "Could not place fighter:",
+              fighterData.name,
+              "- grid is full",
+            );
+          }
+        }
+      } catch (error) {
+        console.warn(
+          "Failed to import fighter:",
+          fighterData.name,
+          error.message,
+        );
+      }
+    });
+
+    // Save state and re-render
+    saveState();
+    renderGrid();
+    renderBench();
+
+    return {
+      success: true,
+      fightersCount: importedCount,
+    };
+  } catch (error) {
+    console.error("Error processing imported data:", error);
+    return {
+      success: false,
+      message: `Error processing imported data: ${error.message}`,
+    };
+  }
+}
+
+// Create Fighter instance from API data
+function createFighterFromApiData(apiData) {
+  try {
+    // Validate basic required data
+    if (!apiData || typeof apiData !== "object") {
+      throw new Error("Invalid fighter data: not an object");
+    }
+
+    if (!apiData.class || typeof apiData.class !== "string") {
+      throw new Error("Invalid or missing fighter class");
+    }
+
+    // Map API class names to our class names
+    const classMapping = {
+      assassin: "Assassin",
+      brawler: "Brawler",
+      hunter: "Hunter",
+      mage: "Mage",
+      priest: "Priest",
+      shadow_dancer: "Shadow Dancer",
+      berserker: "Berserker",
+      paladin: "Paladin",
+      crusader: "Crusader",
+      sentinel: "Sentinel",
+      bastion: "Bastion",
+    };
+
+    const fighterClass =
+      classMapping[apiData.class.toLowerCase()] || "No Class";
+    const stats = apiData.stats || {};
+    const equipment = apiData.equipment || {};
+    const equipmentStats = equipment.stats || [];
+
+    // Calculate equipment stat bonuses
+    let equipmentBonuses = {
+      health: 0,
+      damage: 0,
+      hit: 0,
+      defense: 0,
+      critDamage: 0,
+      dodge: 0,
+    };
+
+    equipmentStats.forEach((stat) => {
+      if (!stat || typeof stat !== "object" || !stat.type) return;
+
+      const value = Math.max(0, parseInt(stat.value) || 0); // Ensure positive integer
+
+      switch (stat.type) {
+        case "health":
+          equipmentBonuses.health += value;
+          break;
+        case "damage":
+          equipmentBonuses.damage += value;
+          break;
+        case "hit":
+          equipmentBonuses.hit += value;
+          break;
+        case "defense":
+          equipmentBonuses.defense += value;
+          break;
+        case "critDamage":
+          equipmentBonuses.critDamage += value;
+          break;
+        case "dodge":
+          equipmentBonuses.dodge += value;
+          break;
+      }
+    });
+
+    // Create fighter data object for our Fighter constructor
+    // Convert API stats (which appear to be allocations) to our fighter stat format
+    const fighterData = {
+      name: (apiData.name || fighterClass).trim() || fighterClass,
+      // Convert API stats (which appear to be allocations) to our fighter stat format
+      // Ensure values are within reasonable bounds (0-20 allocation points)
+      fighter_health: Math.max(
+        0,
+        Math.min(20, Math.round((stats.health || 0) / 50)),
+      ),
+      fighter_damage: Math.max(
+        0,
+        Math.min(20, Math.round((stats.damage || 0) / 50)),
+      ),
+      fighter_hit: Math.max(0, Math.min(20, Math.round((stats.hit || 0) / 50))),
+      fighter_defense: Math.max(
+        0,
+        Math.min(20, Math.round((stats.defense || 0) / 50)),
+      ),
+      fighter_crit: Math.max(
+        0,
+        Math.min(20, Math.round((stats.critDamage || 0) / 50)),
+      ),
+      fighter_dodge: Math.max(
+        0,
+        Math.min(20, Math.round((stats.dodge || 0) / 50)),
+      ),
+      // Equipment bonuses (ensure they are non-negative)
+      object_health: Math.max(0, equipmentBonuses.health),
+      object_damage: Math.max(0, equipmentBonuses.damage),
+      object_hit: Math.max(0, equipmentBonuses.hit),
+      object_defense: Math.max(0, equipmentBonuses.defense),
+      object_crit: Math.max(0, equipmentBonuses.critDamage),
+      object_dodge: Math.max(0, equipmentBonuses.dodge),
+    };
+
+    console.log("Created fighter data for", apiData.name, ":", {
+      class: fighterClass,
+      stats: `H:${fighterData.fighter_health} D:${fighterData.fighter_damage} Hi:${fighterData.fighter_hit} Def:${fighterData.fighter_defense} C:${fighterData.fighter_crit} Do:${fighterData.fighter_dodge}`,
+      equipment: `H:${fighterData.object_health} D:${fighterData.object_damage} Hi:${fighterData.object_hit} Def:${fighterData.object_defense} C:${fighterData.object_crit} Do:${fighterData.object_dodge}`,
+    });
+
+    const fighter = new Fighter(fighterClass, fighterData);
+    fighter.__raw = { ...fighterData }; // Store raw data for form re-population
+
+    return fighter;
+  } catch (error) {
+    console.error("Error creating fighter from API data:", error, apiData);
+    throw error;
+  }
+}
+
 // Changelog functionality
 async function loadChangelog() {
   try {
@@ -642,9 +1033,11 @@ changelogModal.querySelector(".modal").addEventListener("click", (e) => {
 });
 
 // Inputs persistence
-mobLevelEl.addEventListener("change", saveState);
-numBattlesEl.addEventListener("change", saveState);
-verboseEl.addEventListener("change", saveState);
+mobLevelEl.addEventListener("input", saveState);
+numBattlesEl.addEventListener("input", saveState);
+verboseEl.addEventListener("input", saveState);
+apiKeyEl.addEventListener("input", saveState);
+dontShowImportWarningEl.addEventListener("change", saveState);
 
 // Drag and drop functionality
 let draggedElement = null;

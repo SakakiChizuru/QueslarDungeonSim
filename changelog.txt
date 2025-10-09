@@ -1,3 +1,6 @@
+2025-10-09
+- Added API import
+
 2025-10-08
 - Corrected Crusader defense calculation
 - Corrected damage reduction calculation
