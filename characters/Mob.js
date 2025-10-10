@@ -6,12 +6,12 @@ export const MobClasses = Object.freeze({
 });
 
 export function getMobStatValue(baseValue, baseIncrement, level) {
-    if (level <= 60000) {
+    if (level <= 600) {
         return baseValue + baseIncrement * level;
     }
 
-    let totalValue = baseValue + baseIncrement * 60000;
-    let currentLevel = level - 60000;
+    let totalValue = baseValue + baseIncrement * 600;
+    let currentLevel = level - 600;
     let increment = 2 * baseIncrement;
     while (currentLevel > 200) {
         totalValue += increment * 200;
