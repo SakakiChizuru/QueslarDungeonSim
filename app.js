@@ -37,18 +37,25 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 
 // Fighter class descriptions for tooltips
 const classDescriptions = {
-  Assassin: "Prioritises the back column first",
-  Brawler: "15% chance to attack twice",
-  Hunter: "Attacks a row dealing 75% damage to every enemy",
-  Mage: "Attacks a column dealing 50% damage to every enemy",
-  Priest: "10% chance to resurrect a random dead ally each round",
+  Assassin: "The assassin prioritises the back column first",
+  Brawler: "The brawler has 15% chance to attack twice",
+  Hunter:
+    "The hunter attacks hits a row dealing 75% damage to every enemy fighter",
+  Mage: "The mage attacks hits a column dealing 50% damage to every enemy fighter",
+  Priest:
+    "While alive the priest has a 10% chance to resurrect a random dead fighter on your team every round",
   "Shadow Dancer":
-    "25% dodge chance, next attack after dodge deals 200% damage",
-  Berserker: "Gains 25% damage per 25% health lost, undodgeable below 25%",
-  Paladin: "Provides 15% damage reduction aura to allies in same row",
-  Crusader: "Gains +20% to all stats for each dead ally",
-  Sentinel: "Intercepts all attacks against allies below 25% health",
-  Bastion: "Adjacent allies gain +50% dodge and 25% damage reduction",
+    "The shadow dancer has a 25% chance to evade an attack completely. After any dodge, the next attack deals 200% damage",
+  Berserker:
+    "The berserker gains 25% damage for each 25% health lost. When below 25% health, berserker attacks cannot be dodged",
+  Paladin:
+    "The paladin provides a 15% damage reduction aura to all allied fighters in the same row",
+  Crusader:
+    "The crusader becomes more powerful as allies fall. Gains +20% to all stats for each dead ally",
+  Sentinel:
+    "The sentinel protects weakened allies, intercepting all attacks against allies below 25% health",
+  Bastion:
+    "Allies in adjacent position to the bastion gain +50% dodge and 25% damage reduction",
   "No Class": "No special abilities",
 };
 
