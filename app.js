@@ -674,6 +674,18 @@ function populateFighterModal(fighter) {
   // Set the name field
   fighterNameInput.value = fighter ? fighter.name : "";
 
+  // Update the custom dropdown button to match the selected value
+  const customDropdown = fighterClassSelect.nextElementSibling;
+  if (customDropdown) {
+    const dropdownButton = customDropdown.querySelector("button");
+    if (dropdownButton) {
+      const selectedClass = fighter
+        ? fighter.fighter_class
+        : FighterClasses.NONE;
+      dropdownButton.innerHTML = `${selectedClass} <span style="float: right;">▼</span>`;
+    }
+  }
+
   const fields = [
     "fighter_health",
     "fighter_damage",
@@ -697,6 +709,9 @@ function populateFighterModal(fighter) {
         : 0;
     el.value = value;
   }
+
+  // Remove any existing event listeners to prevent stacking
+  fighterClassSelect.onchange = null;
 
   // Add event listener for class change to auto-update name
   fighterClassSelect.onchange = function () {
