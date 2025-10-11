@@ -247,6 +247,24 @@ fighterClassSelect.parentNode.insertBefore(
   fighterClassSelect.nextSibling,
 );
 
+// Helper function to duplicate a fighter
+function duplicateFighter(originalFighter) {
+  if (!originalFighter) return null;
+
+  // Create new fighter data with same stats
+  const originalData = originalFighter.__raw || {};
+  const duplicateData = { ...originalData };
+
+  // Update the name
+  duplicateData.name = `Duplicate of ${originalFighter.name}`;
+
+  // Create the duplicate fighter
+  const duplicate = new Fighter(originalFighter.fighter_class, duplicateData);
+  duplicate.__raw = { ...duplicateData };
+
+  return duplicate;
+}
+
 // Persistence Keys
 const LS_KEYS = {
   grid: "dungeon:gridState:v1",
@@ -283,21 +301,21 @@ function serializeFighter(f) {
 function deserializeFighter(obj) {
   if (!obj || !obj.fighter_class) return null;
 
-  // Ensure all required fields exist with default values
+  // Ensure all required fields exist with default values and are non-negative
   const data = {
     name: obj.name,
-    fighter_health: obj.fighter_health || 0,
-    fighter_damage: obj.fighter_damage || 0,
-    fighter_hit: obj.fighter_hit || 0,
-    fighter_defense: obj.fighter_defense || 0,
-    fighter_crit: obj.fighter_crit || 0,
-    fighter_dodge: obj.fighter_dodge || 0,
-    object_health: obj.object_health || 0,
-    object_damage: obj.object_damage || 0,
-    object_hit: obj.object_hit || 0,
-    object_defense: obj.object_defense || 0,
-    object_crit: obj.object_crit || 0,
-    object_dodge: obj.object_dodge || 0,
+    fighter_health: Math.max(0, obj.fighter_health || 0),
+    fighter_damage: Math.max(0, obj.fighter_damage || 0),
+    fighter_hit: Math.max(0, obj.fighter_hit || 0),
+    fighter_defense: Math.max(0, obj.fighter_defense || 0),
+    fighter_crit: Math.max(0, obj.fighter_crit || 0),
+    fighter_dodge: Math.max(0, obj.fighter_dodge || 0),
+    object_health: Math.max(0, obj.object_health || 0),
+    object_damage: Math.max(0, obj.object_damage || 0),
+    object_hit: Math.max(0, obj.object_hit || 0),
+    object_defense: Math.max(0, obj.object_defense || 0),
+    object_crit: Math.max(0, obj.object_crit || 0),
+    object_dodge: Math.max(0, obj.object_dodge || 0),
   };
 
   try {
@@ -364,8 +382,16 @@ function loadState() {
   const num = localStorage.getItem(LS_KEYS.numBattles);
   const ver = localStorage.getItem(LS_KEYS.verbose);
   const api = localStorage.getItem(LS_KEYS.apiKey);
-  if (mob) mobLevelEl.value = mob;
-  if (num) numBattlesEl.value = num;
+
+  if (mob) {
+    const mobValue = Math.max(1, parseInt(mob) || 1);
+    mobLevelEl.value = mobValue;
+  }
+  if (num) {
+    let numValue = Math.max(1, parseInt(num) || 1);
+    if (numValue > 1000000) numValue = 1000000;
+    numBattlesEl.value = numValue;
+  }
   if (ver) verboseEl.checked = ver === "1";
   if (api) apiKeyEl.value = api;
 
@@ -438,6 +464,9 @@ function renderGrid() {
       cell.appendChild(name);
 
       if (fighter) {
+        const buttonContainer = document.createElement("div");
+        buttonContainer.className = "fighter-buttons";
+
         const del = document.createElement("button");
         del.className = "btn small delete";
         del.textContent = "Delete";
@@ -449,7 +478,24 @@ function renderGrid() {
           renderGrid();
           renderBench();
         });
-        cell.appendChild(del);
+
+        const duplicate = document.createElement("button");
+        duplicate.className = "btn small duplicate";
+        duplicate.textContent = "Duplicate";
+        duplicate.addEventListener("click", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const duplicatedFighter = duplicateFighter(fighter);
+          if (duplicatedFighter) {
+            benchState.push(duplicatedFighter);
+            saveState();
+            renderBench();
+          }
+        });
+
+        buttonContainer.appendChild(del);
+        buttonContainer.appendChild(duplicate);
+        cell.appendChild(buttonContainer);
       } else {
         const add = document.createElement("button");
         add.className = "btn small add";
@@ -546,14 +592,20 @@ function renderBench() {
 
     const actions = document.createElement("div");
     actions.style.display = "flex";
-    actions.style.gap = "0.3em";
+    actions.style.flexDirection = "column";
+    actions.style.gap = "0.1em";
     actions.style.flexShrink = "0";
 
     const del = document.createElement("button");
     del.className = "btn small delete";
     del.textContent = "×";
-    del.style.fontSize = "0.8em";
-    del.style.padding = "0.2em 0.4em";
+    del.style.fontSize = "0.7em";
+    del.style.padding = "0.2em";
+    del.style.width = "20px";
+    del.style.height = "20px";
+    del.style.display = "flex";
+    del.style.alignItems = "center";
+    del.style.justifyContent = "center";
     del.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -561,7 +613,30 @@ function renderBench() {
       saveState();
       renderBench();
     });
+
+    const duplicate = document.createElement("button");
+    duplicate.className = "btn small duplicate";
+    duplicate.textContent = "D";
+    duplicate.style.fontSize = "0.7em";
+    duplicate.style.padding = "0.2em";
+    duplicate.style.width = "20px";
+    duplicate.style.height = "20px";
+    duplicate.style.display = "flex";
+    duplicate.style.alignItems = "center";
+    duplicate.style.justifyContent = "center";
+    duplicate.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const duplicatedFighter = duplicateFighter(fighter);
+      if (duplicatedFighter) {
+        benchState.push(duplicatedFighter);
+        saveState();
+        renderBench();
+      }
+    });
+
     actions.appendChild(del);
+    actions.appendChild(duplicate);
 
     benchItem.appendChild(actions);
     benchGridEl.appendChild(benchItem);
@@ -672,10 +747,15 @@ saveFighterBtn.addEventListener("click", () => {
     "object_crit",
     "object_dodge",
   ];
-  for (const id of fields) {
-    const value = Number(document.getElementById(id).value || 0);
-    data[id] = value;
-  }
+
+  fields.forEach((field) => {
+    const input = document.getElementById(field);
+    if (input) {
+      const value = Math.max(0, parseInt(input.value) || 0);
+      data[field] = value;
+      input.value = value; // Update display to show corrected value
+    }
+  });
 
   try {
     // Create fighter with selected class (including "No Class")
@@ -748,8 +828,19 @@ function runBattles() {
   // Clear previous output immediately
   outputEl.textContent = "";
 
-  const level = Number(mobLevelEl.value || 1);
-  const n = Number(numBattlesEl.value || 1);
+  let level = Math.max(1, parseInt(mobLevelEl.value) || 1);
+  let n = Math.max(1, parseInt(numBattlesEl.value) || 1);
+
+  // Cap number of battles at 1,000,000
+  if (n > 1000000) {
+    n = 1000000;
+    numBattlesEl.value = 1000000;
+  }
+
+  // Update display with corrected values
+  mobLevelEl.value = level;
+  numBattlesEl.value = n;
+
   const verbose = verboseEl.checked;
   saveState();
 
@@ -1236,9 +1327,26 @@ changelogModal.querySelector(".modal").addEventListener("click", (e) => {
   e.stopPropagation();
 });
 
-// Inputs persistence
-mobLevelEl.addEventListener("input", saveState);
-numBattlesEl.addEventListener("input", saveState);
+// Input validation and persistence
+mobLevelEl.addEventListener("input", () => {
+  let value = Math.max(1, parseInt(mobLevelEl.value) || 1);
+  if (mobLevelEl.value != value) {
+    mobLevelEl.value = value;
+  }
+  saveState();
+});
+
+numBattlesEl.addEventListener("input", () => {
+  let value = Math.max(1, parseInt(numBattlesEl.value) || 1);
+  if (value > 1000000) {
+    value = 1000000;
+  }
+  if (numBattlesEl.value != value) {
+    numBattlesEl.value = value;
+  }
+  saveState();
+});
+
 verboseEl.addEventListener("input", saveState);
 apiKeyEl.addEventListener("input", saveState);
 dontShowImportWarningEl.addEventListener("change", saveState);
@@ -1424,6 +1532,84 @@ benchGridEl.addEventListener("drop", (e) => {
 
 // Add to bench button event
 addToBenchBtn.addEventListener("click", openAddToBenchEditor);
+
+// Add comprehensive validation to all fighter stat inputs
+const statInputIds = [
+  "fighter_health",
+  "fighter_damage",
+  "fighter_hit",
+  "fighter_defense",
+  "fighter_crit",
+  "fighter_dodge",
+  "object_health",
+  "object_damage",
+  "object_hit",
+  "object_defense",
+  "object_crit",
+  "object_dodge",
+];
+
+function validateStatInput(input) {
+  let value = Math.max(0, parseInt(input.value) || 0);
+  if (input.value != value) {
+    input.value = value;
+  }
+}
+
+statInputIds.forEach((inputId) => {
+  const input = document.getElementById(inputId);
+  if (input) {
+    // Real-time validation
+    input.addEventListener("input", () => validateStatInput(input));
+
+    // Validation on paste
+    input.addEventListener("paste", () => {
+      setTimeout(() => validateStatInput(input), 0);
+    });
+
+    // Validation on blur (when user leaves the field)
+    input.addEventListener("blur", () => validateStatInput(input));
+  }
+});
+
+// Also add validation for mob level and number of battles on blur and paste
+mobLevelEl.addEventListener("blur", () => {
+  let value = Math.max(1, parseInt(mobLevelEl.value) || 1);
+  if (mobLevelEl.value != value) {
+    mobLevelEl.value = value;
+  }
+});
+
+mobLevelEl.addEventListener("paste", () => {
+  setTimeout(() => {
+    let value = Math.max(1, parseInt(mobLevelEl.value) || 1);
+    if (mobLevelEl.value != value) {
+      mobLevelEl.value = value;
+    }
+  }, 0);
+});
+
+numBattlesEl.addEventListener("blur", () => {
+  let value = Math.max(1, parseInt(numBattlesEl.value) || 1);
+  if (value > 1000000) {
+    value = 1000000;
+  }
+  if (numBattlesEl.value != value) {
+    numBattlesEl.value = value;
+  }
+});
+
+numBattlesEl.addEventListener("paste", () => {
+  setTimeout(() => {
+    let value = Math.max(1, parseInt(numBattlesEl.value) || 1);
+    if (value > 1000000) {
+      value = 1000000;
+    }
+    if (numBattlesEl.value != value) {
+      numBattlesEl.value = value;
+    }
+  }, 0);
+});
 
 loadState();
 renderGrid();

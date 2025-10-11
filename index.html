@@ -236,6 +236,14 @@
             .btn.delete:hover {
                 background: #b91c1c;
             }
+            .btn.duplicate {
+                background: #3b82f6;
+                color: white;
+                border-color: #2563eb;
+            }
+            .btn.duplicate:hover {
+                background: #2563eb;
+            }
 
             .fighters-grid {
                 display: grid;
@@ -250,19 +258,21 @@
                 border: 1px solid #2c3242;
                 border-radius: 10px;
                 display: flex;
+                flex-direction: row;
                 align-items: center;
+                justify-content: space-between;
                 cursor: grab;
                 transition: all 0.2s;
-                justify-content: center;
-                gap: 0.6em;
+                gap: 0.4em;
                 user-select: none;
                 color: #e6eaf3;
-                padding: 0 0.66em;
+                padding: 0.4em 0.6em;
                 min-height: 60px;
             }
             .fighter-cell.empty {
                 background: transparent;
                 border: 2px dashed #2c3242;
+                justify-content: center;
             }
             .fighter-cell:hover:not(.dragging) {
                 outline: 2px solid #4a5a7c;
@@ -275,9 +285,29 @@
                 text-align: center;
             }
             .btn.small {
-                padding: 0.35em 0.6em;
+                padding: 0.24em 0.48em;
+                font-size: 0.84em;
+                border-radius: 3px;
+                margin: 0.03em 0;
+                box-sizing: border-box;
+                min-width: 20px;
+            }
+            .btn.small.duplicate {
+                min-width: 20px;
+            }
+            .fighter-cell .name {
+                flex: 1;
+                text-align: left;
                 font-size: 0.9em;
-                border-radius: 6px;
+                margin: 0;
+            }
+            .fighter-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 0.03em;
+                width: 75px;
+                flex-shrink: 0;
+                margin-right: 8px;
             }
 
             .output {
@@ -570,14 +600,18 @@
                 </div>
 
                 <div class="card" style="margin-top: -0.6em">
-                    <label class="label">API Key       <span
-                    style="
-                        color: #ff4444;
-                        font-size: 1em;
-                        vertical-align: center;
-                    "
-                    > (Temporarily Unavailable)</span
-                ></label>
+                    <label class="label"
+                        >API Key
+                        <span
+                            style="
+                                color: #ff4444;
+                                font-size: 1em;
+                                vertical-align: center;
+                            "
+                        >
+                            (Temporarily Unavailable)</span
+                        ></label
+                    >
                     <div class="row" style="gap: 0.8em; align-items: center">
                         <input
                             id="apiKey"

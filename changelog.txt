@@ -1,4 +1,5 @@
 2025-10-11
+- Added duplicate fighter button
 - Added fighter classes tooltip description
 
 2025-10-10
