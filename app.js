@@ -35,13 +35,210 @@ const changelogModal = document.getElementById("changelogModal");
 const closeChangelog = document.getElementById("closeChangelog");
 const lastUpdatedEl = document.getElementById("lastUpdated");
 
-// Prepare class select
+// Fighter class descriptions for tooltips
+const classDescriptions = {
+  Assassin: "Prioritises the back column first",
+  Brawler: "15% chance to attack twice",
+  Hunter: "Attacks a row dealing 75% damage to every enemy",
+  Mage: "Attacks a column dealing 50% damage to every enemy",
+  Priest: "10% chance to resurrect a random dead ally each round",
+  "Shadow Dancer":
+    "25% dodge chance, next attack after dodge deals 200% damage",
+  Berserker: "Gains 25% damage per 25% health lost, undodgeable below 25%",
+  Paladin: "Provides 15% damage reduction aura to allies in same row",
+  Crusader: "Gains +20% to all stats for each dead ally",
+  Sentinel: "Intercepts all attacks against allies below 25% health",
+  Bastion: "Adjacent allies gain +50% dodge and 25% damage reduction",
+  "No Class": "No special abilities",
+};
+
+// Create tooltip element
+const classTooltip = document.createElement("div");
+classTooltip.id = "classTooltip";
+classTooltip.style.cssText = `
+  position: absolute;
+  background: linear-gradient(135deg, #2c3242 0%, #1a1e28 100%);
+  color: #e6eaf3;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  max-width: 280px;
+  min-width: 200px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  transform: translateY(-5px);
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
+  backdrop-filter: blur(4px);
+  word-wrap: break-word;
+`;
+document.body.appendChild(classTooltip);
+
+// Populate the original select for form compatibility
 for (const value of Object.values(FighterClasses)) {
   const opt = document.createElement("option");
   opt.value = value;
   opt.textContent = value;
   fighterClassSelect.appendChild(opt);
 }
+
+// Hide the original select and create custom dropdown
+fighterClassSelect.style.display = "none";
+
+// Create custom dropdown container
+const customDropdown = document.createElement("div");
+customDropdown.style.cssText = `
+  position: relative;
+  width: 100%;
+`;
+
+// Create custom dropdown button
+const dropdownButton = document.createElement("button");
+dropdownButton.type = "button";
+dropdownButton.style.cssText = `
+  width: 100%;
+  padding: 0.5em 0.7em;
+  border-radius: 6px;
+  border: 1px solid #2c3242;
+  background: #181c24;
+  color: #e6eaf3;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+`;
+dropdownButton.innerHTML = `${FighterClasses.NONE} <span style="float: right; transform: rotate(0deg); transition: transform 0.2s ease;">▼</span>`;
+
+dropdownButton.addEventListener("mouseenter", () => {
+  dropdownButton.style.borderColor = "#4a5568";
+});
+
+dropdownButton.addEventListener("mouseleave", () => {
+  dropdownButton.style.borderColor = "#2c3242";
+});
+
+// Create dropdown options container
+const dropdownOptions = document.createElement("div");
+dropdownOptions.style.cssText = `
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #181c24;
+  border: 1px solid #4a5568;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  z-index: 100;
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+`;
+
+// Create options
+Object.values(FighterClasses).forEach((className) => {
+  const option = document.createElement("div");
+  option.style.cssText = `
+    padding: 0.5em 0.7em;
+    cursor: pointer;
+    color: #e6eaf3;
+    border-bottom: 1px solid #2c3242;
+    transition: background-color 0.15s ease;
+  `;
+  option.textContent = className;
+  option.dataset.value = className;
+
+  // Hover effects
+  option.addEventListener("mouseenter", (e) => {
+    option.style.background = "#2c3242";
+    const description = classDescriptions[className];
+    if (description) {
+      classTooltip.textContent = description;
+      classTooltip.style.left = e.pageX + 10 + "px";
+      classTooltip.style.top = e.pageY - 30 + "px";
+      classTooltip.style.opacity = "1";
+      classTooltip.style.visibility = "visible";
+      classTooltip.style.transform = "translateY(0)";
+    }
+  });
+
+  option.addEventListener("mousemove", (e) => {
+    if (classTooltip.style.opacity === "1") {
+      classTooltip.style.left = e.pageX + 10 + "px";
+      classTooltip.style.top = e.pageY - 30 + "px";
+    }
+  });
+
+  option.addEventListener("mouseleave", () => {
+    option.style.background = "transparent";
+    classTooltip.style.opacity = "0";
+    classTooltip.style.visibility = "hidden";
+    classTooltip.style.transform = "translateY(-5px)";
+  });
+
+  option.addEventListener("click", () => {
+    fighterClassSelect.value = className;
+    dropdownButton.innerHTML = `${className} <span style="float: right;">▼</span>`;
+    dropdownOptions.style.display = "none";
+    dropdownButton.style.borderRadius = "6px";
+
+    // Hide tooltip
+    classTooltip.style.opacity = "0";
+    classTooltip.style.visibility = "hidden";
+    classTooltip.style.transform = "translateY(-5px)";
+
+    // Trigger change event
+    const event = new Event("change");
+    fighterClassSelect.dispatchEvent(event);
+  });
+
+  dropdownOptions.appendChild(option);
+});
+
+// Toggle dropdown
+dropdownButton.addEventListener("click", () => {
+  const isOpen = dropdownOptions.style.display === "block";
+  const arrow = dropdownButton.querySelector("span");
+  if (isOpen) {
+    dropdownOptions.style.display = "none";
+    dropdownButton.style.borderRadius = "6px";
+    dropdownButton.style.borderColor = "#2c3242";
+    arrow.style.transform = "rotate(0deg)";
+  } else {
+    dropdownOptions.style.display = "block";
+    dropdownButton.style.borderRadius = "6px 6px 0 0";
+    dropdownButton.style.borderColor = "#4a5568";
+    arrow.style.transform = "rotate(180deg)";
+  }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener("click", (e) => {
+  if (!customDropdown.contains(e.target)) {
+    const arrow = dropdownButton.querySelector("span");
+    dropdownOptions.style.display = "none";
+    dropdownButton.style.borderRadius = "6px";
+    dropdownButton.style.borderColor = "#2c3242";
+    arrow.style.transform = "rotate(0deg)";
+    classTooltip.style.opacity = "0";
+    classTooltip.style.visibility = "hidden";
+    classTooltip.style.transform = "translateY(-5px)";
+  }
+});
+
+customDropdown.appendChild(dropdownButton);
+customDropdown.appendChild(dropdownOptions);
+
+// Insert custom dropdown after the original select
+fighterClassSelect.parentNode.insertBefore(
+  customDropdown,
+  fighterClassSelect.nextSibling,
+);
 
 // Persistence Keys
 const LS_KEYS = {
