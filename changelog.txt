@@ -1,4 +1,5 @@
 2025-10-13
+- Released API
 - Changed Shadow Dancer to only deal double damage after evade (not after dodge)
 - Changed "Object" to "Item" and added an info tooltip at Fighter creation
 

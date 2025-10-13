@@ -854,7 +854,7 @@ function runBattles() {
 
   // Update display with corrected values
   mobLevelEl.value = level;
-  numBattlesEl.value = n;
+  // Don't update numBattlesEl.value here - keep user's input visible
 
   const verbose = verboseEl.checked;
   saveState();
@@ -864,18 +864,19 @@ function runBattles() {
   let lastBattleLog = [];
   const originalConsoleLog = console.log;
 
-  // Only enable verbose logging if verbose is checked AND exactly one battle
-  const shouldLogVerbose = verbose && n === 1;
+  // If verbose is checked, always run only 1 battle with verbose output
+  // Otherwise use the number from the field
+  const actualBattlesToRun = verbose ? 1 : n;
+  const shouldLogVerbose = verbose;
 
   try {
     if (shouldLogVerbose) {
       console.log = (...args) => {
         lastBattleLog.push(args.join(" "));
-        originalConsoleLog(...args);
       };
     }
 
-    for (let k = 0; k < n; k++) {
+    for (let k = 0; k < actualBattlesToRun; k++) {
       // Create completely fresh squads for each battle
       const fighters = buildFightersSquad();
       const mobs = new MobsSquad(level);
@@ -896,7 +897,7 @@ function runBattles() {
   if (shouldLogVerbose) {
     outputEl.textContent = lastBattleLog.join("\n");
   } else {
-    outputEl.textContent = `Fighters won ${fighterWins} out of ${n} battles.`;
+    outputEl.textContent = `Fighters won ${fighterWins} out of ${actualBattlesToRun} battles.`;
   }
 }
 
@@ -969,22 +970,16 @@ async function performImport(apiKey) {
         },
       },
     );
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("API Data received:", data);
 
     // Process the imported data
     const result = processImportedData(data);
-    if (result.success) {
-      console.log(`Successfully imported ${result.fightersCount} fighters`);
-      alert(
-        `Successfully imported ${result.fightersCount} fighters from dungeon preset!`,
-      );
-    } else {
+    if (!result.success) {
       console.warn("Import failed:", result.message);
       alert(result.message);
     }
@@ -1009,12 +1004,6 @@ function processImportedData(apiData) {
       };
     }
 
-    // Find the preset with assignment = "dungeon"
-    console.log(
-      "Searching for dungeon preset in",
-      apiData.output.length,
-      "items",
-    );
     const dungeonPreset = apiData.output.find(
       (item) => item.preset && item.preset.assignment === "dungeon",
     );
@@ -1034,14 +1023,6 @@ function processImportedData(apiData) {
       };
     }
 
-    console.log(
-      "Found dungeon preset:",
-      dungeonPreset.preset.name,
-      "with",
-      dungeonPreset.fighters?.length || 0,
-      "fighters",
-    );
-
     // Clear current grid state
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 2; j++) {
@@ -1055,12 +1036,6 @@ function processImportedData(apiData) {
 
     fighters.forEach((fighterData) => {
       try {
-        console.log(
-          "Processing fighter:",
-          fighterData.name,
-          "class:",
-          fighterData.class,
-        );
         const fighter = createFighterFromApiData(fighterData);
         if (fighter) {
           // Place fighter according to placement data, or find next available spot
@@ -1072,15 +1047,9 @@ function processImportedData(apiData) {
             placement.row !== undefined &&
             placement.column !== undefined
           ) {
-            const row = placement.row;
-            const col = placement.column;
-            console.log(
-              "Attempting to place",
-              fighterData.name,
-              "at position",
-              row,
-              col,
-            );
+            // Temporarily invert row and column due to API bug
+            const row = placement.column;
+            const col = placement.row;
 
             // Validate placement bounds (0-2 rows, 0-1 columns)
             if (
@@ -1093,14 +1062,6 @@ function processImportedData(apiData) {
               gridState[row][col] = fighter;
               placed = true;
               importedCount++;
-              console.log("Placed", fighterData.name, "at", row, col);
-            } else {
-              console.log(
-                "Cannot place at",
-                row,
-                col,
-                "- out of bounds or occupied",
-              );
             }
           }
 
@@ -1172,6 +1133,8 @@ function createFighterFromApiData(apiData) {
       mage: "Mage",
       priest: "Priest",
       shadow_dancer: "Shadow Dancer",
+      shadowDancer: "Shadow Dancer", // Handle camelCase variant
+      shadowdancer: "Shadow Dancer", // Handle lowercase variant
       berserker: "Berserker",
       paladin: "Paladin",
       crusader: "Crusader",
@@ -1195,12 +1158,37 @@ function createFighterFromApiData(apiData) {
       dodge: 0,
     };
 
+    // Tier multipliers for equipment stats
+    const tierMultipliers = {
+      1: 1.1,
+      2: 1.2,
+      3: 1.3,
+      4: 1.4,
+      5: 1.5,
+      6: 1.75,
+      7: 2,
+      8: 2.25,
+      9: 2.5,
+      10: 2.75,
+      11: 3,
+      12: 3.5,
+    };
+
     equipmentStats.forEach((stat) => {
       if (!stat || typeof stat !== "object" || !stat.type) return;
 
-      const value = Math.max(0, parseInt(stat.value) || 0); // Ensure positive integer
+      const baseValue = Math.max(0, parseInt(stat.value) || 0); // Ensure positive integer
+      const tier = Math.max(1, parseInt(stat.tier) || 1); // Ensure tier is at least 1
+      const multiplier = tierMultipliers[tier] || 1.0; // Default to 1.0 if tier not found
+      const value = Math.round(baseValue * multiplier); // Apply tier multiplier and round
 
-      switch (stat.type) {
+      if (tier > 12) {
+        console.warn(
+          `Equipment stat has tier ${tier} which is above max (12), using default multiplier 1.0`,
+        );
+      }
+
+      switch (stat.type.toLowerCase()) {
         case "health":
           equipmentBonuses.health += value;
           break;
@@ -1211,13 +1199,25 @@ function createFighterFromApiData(apiData) {
           equipmentBonuses.hit += value;
           break;
         case "defense":
+        case "defence": // Handle both spellings
           equipmentBonuses.defense += value;
           break;
-        case "critDamage":
+        case "critdamage":
+        case "crit_damage":
+        case "critical_damage":
           equipmentBonuses.critDamage += value;
           break;
         case "dodge":
+        case "evasion": // Alternative name for dodge
           equipmentBonuses.dodge += value;
+          break;
+        default:
+          console.warn(
+            "Unknown equipment stat type:",
+            stat.type,
+            "with value:",
+            value,
+          );
           break;
       }
     });
@@ -1226,29 +1226,14 @@ function createFighterFromApiData(apiData) {
     // Convert API stats (which appear to be allocations) to our fighter stat format
     const fighterData = {
       name: (apiData.name || fighterClass).trim() || fighterClass,
-      // Convert API stats (which appear to be allocations) to our fighter stat format
+      // Convert API stats to allocation points (direct values, not divided by 50)
       // Ensure values are within reasonable bounds (0-20 allocation points)
-      fighter_health: Math.max(
-        0,
-        Math.min(20, Math.round((stats.health || 0) / 50)),
-      ),
-      fighter_damage: Math.max(
-        0,
-        Math.min(20, Math.round((stats.damage || 0) / 50)),
-      ),
-      fighter_hit: Math.max(0, Math.min(20, Math.round((stats.hit || 0) / 50))),
-      fighter_defense: Math.max(
-        0,
-        Math.min(20, Math.round((stats.defense || 0) / 50)),
-      ),
-      fighter_crit: Math.max(
-        0,
-        Math.min(20, Math.round((stats.critDamage || 0) / 50)),
-      ),
-      fighter_dodge: Math.max(
-        0,
-        Math.min(20, Math.round((stats.dodge || 0) / 50)),
-      ),
+      fighter_health: Math.max(0, Math.min(20, parseInt(stats.health || 0))),
+      fighter_damage: Math.max(0, Math.min(20, parseInt(stats.damage || 0))),
+      fighter_hit: Math.max(0, Math.min(20, parseInt(stats.hit || 0))),
+      fighter_defense: Math.max(0, Math.min(20, parseInt(stats.defense || 0))),
+      fighter_crit: Math.max(0, Math.min(20, parseInt(stats.critDamage || 0))),
+      fighter_dodge: Math.max(0, Math.min(20, parseInt(stats.dodge || 0))),
       // Equipment bonuses (ensure they are non-negative)
       object_health: Math.max(0, equipmentBonuses.health),
       object_damage: Math.max(0, equipmentBonuses.damage),
@@ -1257,12 +1242,6 @@ function createFighterFromApiData(apiData) {
       object_crit: Math.max(0, equipmentBonuses.critDamage),
       object_dodge: Math.max(0, equipmentBonuses.dodge),
     };
-
-    console.log("Created fighter data for", apiData.name, ":", {
-      class: fighterClass,
-      stats: `H:${fighterData.fighter_health} D:${fighterData.fighter_damage} Hi:${fighterData.fighter_hit} Def:${fighterData.fighter_defense} C:${fighterData.fighter_crit} Do:${fighterData.fighter_dodge}`,
-      equipment: `H:${fighterData.object_health} D:${fighterData.object_damage} Hi:${fighterData.object_hit} Def:${fighterData.object_defense} C:${fighterData.object_crit} Do:${fighterData.object_dodge}`,
-    });
 
     const fighter = new Fighter(fighterClass, fighterData);
     fighter.__raw = { ...fighterData }; // Store raw data for form re-population

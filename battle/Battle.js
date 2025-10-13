@@ -1,7 +1,6 @@
 import { Fighter, FighterClasses } from "../characters/Fighter.js";
 import { Mob } from "../characters/Mob.js";
-import { calculateDefense } from '../utils/utils.js';
-
+import { calculateDefense } from "../utils/utils.js";
 
 function getAdjacent(i, j) {
   const rows = 3,
@@ -328,79 +327,6 @@ export class Battle {
     }
   }
 
-  // _draw_health_table(i, j, att_type) {
-  //     const fighters = this.fighters.all_fighters;
-  //     const mobs = this.mobs.mobs;
-
-  //     const formattedString = (selI, selJ, selType, x, y, type) => {
-  //         if (type === 'fighters' && !fighters[x][y]) return '';
-  //         if (type === 'mobs' && !mobs[x][y]) return '';
-  //         let line1 = type === 'fighters' ? `${fighters[x][y].fighter_class}` : `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
-  //         if (selI === x && selJ === y && att_type === type) line1 += ' *';
-  //         let line2;
-  //         if (type === 'fighters') {
-  //             const f = fighters[x][y];
-  //             if (f.fighter_class === FighterClasses.CRUSADER) {
-  //                 line2 = `${Math.trunc(f.current_health)}/${Math.trunc(f.total_health * (1 + 0.2 * this.dead_fighters.length))}`;
-  //             } else {
-  //                 line2 = `${Math.trunc(f.current_health)}/${Math.trunc(f.total_health)}`;
-  //             }
-  //         } else {
-  //             const m = mobs[x][y];
-  //             line2 = `${Math.trunc(m.current_health)}/${Math.trunc(m.total_health)}`;
-  //         }
-  //         return `${line1}\n${line2}`;
-  //     };
-
-  //     // Build simple text table with 4 columns: Mobs Back | Mobs Front | Fighters Front | Fighters Back
-  //     const col1_row1 = formattedString(i, j, att_type, 0, 1, 'mobs');
-  //     const col2_row1 = formattedString(i, j, att_type, 0, 0, 'mobs');
-  //     const col3_row1 = formattedString(i, j, att_type, 0, 0, 'fighters');
-  //     const col4_row1 = formattedString(i, j, att_type, 0, 1, 'fighters');
-
-  //     const col1_row2 = formattedString(i, j, att_type, 1, 1, 'mobs');
-  //     const col2_row2 = formattedString(i, j, att_type, 1, 0, 'mobs');
-  //     const col3_row2 = formattedString(i, j, att_type, 1, 0, 'fighters');
-  //     const col4_row2 = formattedString(i, j, att_type, 1, 1, 'fighters');
-
-  //     const col1_row3 = formattedString(i, j, att_type, 2, 1, 'mobs');
-  //     const col2_row3 = formattedString(i, j, att_type, 2, 0, 'mobs');
-  //     const col3_row3 = formattedString(i, j, att_type, 2, 0, 'fighters');
-  //     const col4_row3 = formattedString(i, j, att_type, 2, 1, 'fighters');
-
-  //     const header = ['Mobs Back', 'Mobs Front', 'Fighters Front', 'Fighters Back'];
-
-  //     const pad = (s, w) => {
-  //         const lines = (s || '').split('\n');
-  //         const maxLen = Math.max(...lines.map(l => l.length));
-  //         const width = Math.max(w, maxLen);
-  //         return lines.map(l => l.padEnd(width, ' ')).join('\n');
-  //     };
-
-  //     const colWidth = 26;
-  //     const gap = '';
-  //     const col1 = [col1_row1, gap, col1_row2, gap, col1_row3].map(x => pad(x, colWidth)).join('\n');
-  //     const col2 = [col2_row1, gap, col2_row2, gap, col2_row3].map(x => pad(x, colWidth)).join('\n');
-  //     const col3 = [col3_row1, gap, col3_row2, gap, col3_row3].map(x => pad(x, colWidth)).join('\n');
-  //     const col4 = [col4_row1, gap, col4_row2, gap, col4_row3].map(x => pad(x, colWidth)).join('\n');
-
-  //     const headerLine = header.map(h => pad(h, colWidth)).join(' | ');
-  //     const separator = '-'.repeat(headerLine.length);
-  //     const rows = [];
-  //     const col1Lines = col1.split('\n');
-  //     const col2Lines = col2.split('\n');
-  //     const col3Lines = col3.split('\n');
-  //     const col4Lines = col4.split('\n');
-  //     const numLines = Math.max(col1Lines.length, col2Lines.length, col3Lines.length, col4Lines.length);
-  //     for (let idx = 0; idx < numLines; idx++) {
-  //         rows.push(`${(col1Lines[idx]||'').padEnd(colWidth,' ')} | ${(col2Lines[idx]||'').padEnd(colWidth,' ')} | ${(col3Lines[idx]||'').padEnd(colWidth,' ')} | ${(col4Lines[idx]||'').padEnd(colWidth,' ')}`);
-  //     }
-  //     console.log(headerLine);
-  //     console.log(separator);
-  //     for (const r of rows) console.log(r);
-  //     console.log('');
-  // }
-
   _draw_health_table(i, j, att_type) {
     const fighters = this.fighters.all_fighters;
     const mobs = this.mobs.mobs;
@@ -522,8 +448,8 @@ export class Battle {
     else if (target instanceof Fighter) target_name = target.fighter_class;
     else throw new Error("Invalid target");
 
-    let target_defense = (1 - target.defense);
-    let target_defense_pre = target.defense_pre
+    let target_defense = 1 - target.defense;
+    let target_defense_pre = target.defense_pre;
     let target_dodge = target.dodge;
     let attacker_hit = attacker.hit;
     let attacker_damage = attacker.damage;
@@ -534,8 +460,9 @@ export class Battle {
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.CRUSADER
     ) {
-      target_defense_pre = (1 + 0.2 * this.dead_fighters.length) * target.defense_pre;
-      target_defense = (1 - calculateDefense(target_defense_pre))
+      target_defense_pre =
+        (1 + 0.2 * this.dead_fighters.length) * target.defense_pre;
+      target_defense = 1 - calculateDefense(target_defense_pre);
       target_dodge = (1 + 0.2 * this.dead_fighters.length) * target_dodge;
     }
 
@@ -601,7 +528,8 @@ export class Battle {
         this.paladin_aura = false;
       }
 
-      let dmg_amount = target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
+      let dmg_amount =
+        target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
       const rng_crit = Math.random();
       if (this.verbose >= 2)
         console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
