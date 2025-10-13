@@ -346,7 +346,7 @@
                 color: white;
                 text-align: center;
                 line-height: 16px;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: bold;
                 margin-left: 0.3em;
                 cursor: help;
@@ -357,7 +357,7 @@
             }
             .info-icon:hover::after,
             .info-icon:focus::after {
-                content: "Verbose will only be effective with exactly one battle";
+                content: attr(data-tooltip);
                 position: absolute;
                 bottom: 25px;
                 left: 50%;
@@ -367,7 +367,7 @@
                 padding: 0.5em;
                 border-radius: 4px;
                 white-space: nowrap;
-                font-size: 11px;
+                font-size: 14px;
                 z-index: 1001;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
                 border: 1px solid #36405a;
@@ -579,6 +579,7 @@
                             >Number of battles<span
                                 class="info-icon"
                                 tabindex="0"
+                                data-tooltip="Verbose will only be effective with exactly one battle"
                             ></span
                         ></label>
                         <div
@@ -695,7 +696,13 @@
                         margin-bottom: 0.4em;
                     "
                 >
-                    <h3>Edit Fighter</h3>
+                    <h3>
+                        Edit Fighter<span
+                            class="info-icon"
+                            tabindex="0"
+                            data-tooltip="On the left column, insert the number of upgrades for each stats. On the right column, the final values of the Fighter Item"
+                        ></span>
+                    </h3>
                     <button id="closeFighterModal" class="btn secondary">
                         Close
                     </button>
@@ -787,7 +794,7 @@
                     </div>
                     <div>
                         <label
-                            >Object Health
+                            >Item Health
                             <input
                                 id="object_health"
                                 type="number"
@@ -795,7 +802,7 @@
                                 step="1"
                         /></label>
                         <label
-                            >Object Damage
+                            >Item Damage
                             <input
                                 id="object_damage"
                                 type="number"
@@ -803,7 +810,7 @@
                                 step="1"
                         /></label>
                         <label
-                            >Object Hit
+                            >Item Hit
                             <input
                                 id="object_hit"
                                 type="number"
@@ -811,7 +818,7 @@
                                 step="1"
                         /></label>
                         <label
-                            >Object Dodge
+                            >Item Dodge
                             <input
                                 id="object_dodge"
                                 type="number"
@@ -819,7 +826,7 @@
                                 step="1"
                         /></label>
                         <label
-                            >Object Defense
+                            >Item Defense
                             <input
                                 id="object_defense"
                                 type="number"
@@ -827,7 +834,7 @@
                                 step="1"
                         /></label>
                         <label
-                            >Object Crit
+                            >Item Crit
                             <input
                                 id="object_crit"
                                 type="number"

@@ -1,3 +1,6 @@
+2025-10-13
+- Changed "Object" to "Item" and added an info tooltip at Fighter creation
+
 2025-10-12
 - Changed mob squad formation to reflect dungeon better
 
