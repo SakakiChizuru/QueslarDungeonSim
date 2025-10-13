@@ -625,10 +625,9 @@ export class Battle {
         target instanceof Fighter &&
         target.fighter_class === FighterClasses.SHADOW_DANCER
       ) {
-        this.shadow_dancer_double_damage = true;
         if (this.verbose >= 1)
           console.log(
-            "Shadow dancer has dodged (not evaded). Next attack will deal double damage",
+            "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
           );
       }
     }
