@@ -2,6 +2,7 @@ import { FightersSquad } from "./squads/FightersSquad.js";
 import { MobsSquad } from "./squads/MobsSquad.js";
 import { Battle } from "./battle/Battle.js";
 import { Fighter, FighterClasses } from "./characters/Fighter.js";
+import { I18nManager, formatString } from './utils/i18n.js';
 
 const fightersGridEl = document.getElementById("fightersGrid");
 const verboseEl = document.getElementById("verbose");
@@ -35,8 +36,25 @@ const changelogModal = document.getElementById("changelogModal");
 const closeChangelog = document.getElementById("closeChangelog");
 const lastUpdatedEl = document.getElementById("lastUpdated");
 
+//Create i18n Manager
+const I18N = new I18nManager;
+let classDescriptions = null;
+await I18N.initPromise;
+
+console.log(`I18N Init with lang : ${I18N.currentLang}`);
+console.log(I18N);
+
+// Now We Use I18nManager to load Descriptions ;D
+I18N.initPromise.then(() => {
+    classDescriptions = I18N.getClassDescription();
+});
+
+I18N.on('languageChanged', (event) => {
+    classDescriptions = I18N.getClassDescription();
+});
+
 // Fighter class descriptions for tooltips
-const classDescriptions = {
+/* const classDescriptions = {
   Assassin: "The assassin prioritises the back column first",
   Brawler: "The brawler has 15% chance to attack twice",
   Hunter:
@@ -57,7 +75,7 @@ const classDescriptions = {
   Bastion:
     "Allies in adjacent position to the bastion gain +50% dodge and 25% damage reduction",
   "No Class": "No special abilities",
-};
+}; */
 
 // Create tooltip element
 const classTooltip = document.createElement("div");
@@ -90,7 +108,8 @@ document.body.appendChild(classTooltip);
 for (const value of Object.values(FighterClasses)) {
   const opt = document.createElement("option");
   opt.value = value;
-  opt.textContent = value;
+  opt.textContent = I18N.getFighterName(value.replace(' ', '_'));
+  //opt.textContent = value;
   fighterClassSelect.appendChild(opt);
 }
 
@@ -119,7 +138,7 @@ dropdownButton.style.cssText = `
   position: relative;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 `;
-dropdownButton.innerHTML = `${FighterClasses.NONE} <span style="float: right; transform: rotate(0deg); transition: transform 0.2s ease;">▼</span>`;
+dropdownButton.innerHTML = `${I18N.getFighterName(FighterClasses.NONE)} <span style="float: right; transform: rotate(0deg); transition: transform 0.2s ease;">▼</span>`;
 
 dropdownButton.addEventListener("mouseenter", () => {
   dropdownButton.style.borderColor = "#4a5568";
@@ -157,7 +176,8 @@ Object.values(FighterClasses).forEach((className) => {
     border-bottom: 1px solid #2c3242;
     transition: background-color 0.15s ease;
   `;
-  option.textContent = className;
+  option.textContent = I18N.getFighterName(className.replace(' ', '_').toUpperCase());
+  option.dataset.i18n = `FighterName.${className.replace(' ', '_').toUpperCase()}`
   option.dataset.value = className;
 
   // Hover effects
@@ -256,7 +276,8 @@ function duplicateFighter(originalFighter) {
   const duplicateData = { ...originalData };
 
   // Update the name
-  duplicateData.name = `Duplicate of ${originalFighter.name}`;
+  duplicateData.name = formatString(I18N.getUIElement("DUPLICATE_NAME"), originalFighter.name);
+  //duplicateData.name = `Duplicate of ${originalFighter.name}`;
 
   // Create the duplicate fighter
   const duplicate = new Fighter(originalFighter.fighter_class, duplicateData);
@@ -324,7 +345,7 @@ function deserializeFighter(obj) {
     fighter.__raw = { ...data };
     return fighter;
   } catch (error) {
-    console.warn("Failed to deserialize fighter:", obj, error);
+    console.warn("Failed to deserialize fighter:", obj, error); //ERR_FAIL_LOAD_FIGHTER
     return null;
   }
 }
@@ -357,7 +378,7 @@ function loadState() {
       }
     }
   } catch (error) {
-    console.warn("Failed to load grid state:", error);
+    console.warn("Failed to load grid state:", error); //ERR_FAIL_LOAD_GRID
     // Clear corrupted data
     localStorage.removeItem(LS_KEYS.grid);
   }
@@ -374,7 +395,7 @@ function loadState() {
       });
     }
   } catch (error) {
-    console.warn("Failed to load bench state:", error);
+    console.warn("Failed to load bench state:", error); //ERR_FAIL_LOAD_BENCH
     localStorage.removeItem(LS_KEYS.bench);
   }
 
@@ -460,7 +481,9 @@ function renderGrid() {
 
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = fighter ? fighter.name : "Empty";
+      name.dataset.i18n = `FighterName.${fighter ? fighter.fighter_class.toUpperCase() : "EMPTY"}`;
+      //name.textContent = fighter ? fighter.name : "Empty";
+      name.textContent = I18N.getFighterName(fighter ? fighter.fighter_class : "Empty");
       cell.appendChild(name);
 
       if (fighter) {
@@ -469,7 +492,9 @@ function renderGrid() {
 
         const del = document.createElement("button");
         del.className = "btn small delete";
-        del.textContent = "Delete";
+        del.dataset.i18n = `UIElement.DELETE`;
+        //del.textContent = "Delete";
+        del.textContent = I18N.getUIElement("Delete");
         del.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -481,7 +506,8 @@ function renderGrid() {
 
         const duplicate = document.createElement("button");
         duplicate.className = "btn small duplicate";
-        duplicate.textContent = "Duplicate";
+        duplicate.dataset.i18n = `UIElement.DUPLICATE`;
+        duplicate.textContent = I18N.getUIElement("Duplicate");
         duplicate.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -499,7 +525,8 @@ function renderGrid() {
       } else {
         const add = document.createElement("button");
         add.className = "btn small add";
-        add.textContent = "Add";
+        add.dataset.i18n = "UIElement.ADD";
+        add.textContent = I18N.getUIElement("Add");
         add.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -522,7 +549,8 @@ function renderBench() {
     placeholder.style.opacity = "0.3";
     placeholder.style.border = "2px dashed #36405a";
     placeholder.style.background = "transparent";
-    placeholder.textContent = "Drop fighters here";
+    placeholder.dataset.i18n = "UIElement.DROP_FIGHTER_HERE"
+    placeholder.textContent = I18N.getUIElement("DROP_FIGHTER_HERE");
     placeholder.style.textAlign = "center";
     placeholder.style.color = "#8892b0";
     placeholder.style.fontSize = "0.9em";
@@ -584,7 +612,8 @@ function renderBench() {
 
     const name = document.createElement("span");
     name.className = "name";
-    name.textContent = fighter.name;
+    name.dataset.i18n = `FighterName.${fighter.fighter_class.toUpperCase()}`;
+    name.textContent = I18N.getFighterName(fighter.name);
     name.style.textAlign = "center";
     nameContainer.appendChild(name);
 
@@ -682,7 +711,7 @@ function populateFighterModal(fighter) {
       const selectedClass = fighter
         ? fighter.fighter_class
         : FighterClasses.NONE;
-      dropdownButton.innerHTML = `${selectedClass} <span style="float: right;">▼</span>`;
+      dropdownButton.innerHTML = `${I18N.getFighterName(selectedClass.replace(' ','_'))} <span style="float: right;">▼</span>`;
     }
   }
 
@@ -793,8 +822,8 @@ saveFighterBtn.addEventListener("click", () => {
       renderBench();
     }
   } catch (error) {
-    console.error("Failed to create fighter:", error);
-    alert("Failed to create fighter. Please check your input values.");
+    console.error(I18N.getConsoleMsg("ERR_FAIL_CREA_FIGHTER"), error); // ConsoleMessages.ERR_FAIL_CREA_FIGHTER
+    alert(I18N.getAlertMsg("ERR_FAIL_CREA_FIGHTER")); // Alerts.ERR_FAIL_CREA_FIGHTER
     return;
   }
 
@@ -896,7 +925,8 @@ function runBattles() {
   if (shouldLogVerbose) {
     outputEl.textContent = lastBattleLog.join("\n");
   } else {
-    outputEl.textContent = `Fighters won ${fighterWins} out of ${n} battles.`;
+    outputEl.textContent = formatString(I18N.getUIElement("TOTAL_WONS"), fighterWins, n); // TOTAL_WONS
+    //outputEl.textContent = `Fighters won ${fighterWins} out of ${n} battles.`;
   }
 }
 
@@ -910,7 +940,7 @@ importBtn.addEventListener("click", () => {
   const apiKey = apiKeyEl.value.trim();
 
   if (!apiKey) {
-    alert("Please enter an API key before importing.");
+    alert(I18N.getAlertMsg("ERR_NULL_API"));
     return;
   }
 
@@ -957,8 +987,8 @@ importConfirmModal.querySelector(".modal").addEventListener("click", (e) => {
 // Perform the actual API import
 async function performImport(apiKey) {
   try {
-    importBtn.disabled = true;
-    importBtn.textContent = "Importing...";
+    importBtn.disabled = true;    
+    importBtn.textContent = I18N.getUIElement("IMPORTING");
 
     const response = await fetch(
       "https://http.v2.queslar.com/api/character/fighter/presets",
@@ -971,7 +1001,8 @@ async function performImport(apiKey) {
     );
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(formatString(I18N.getAlertMsg("ERR_HTTP_ERROR"), response.status)); //Alert.ERR_HTTP_ERROR
+      //throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
@@ -980,20 +1011,21 @@ async function performImport(apiKey) {
     // Process the imported data
     const result = processImportedData(data);
     if (result.success) {
-      console.log(`Successfully imported ${result.fightersCount} fighters`);
+      console.log(formatString(I18N.getConsoleMsg("SUCC_IMPORT_FIGHTER"))); // SUCC_IMPORT_FIGHTER
       alert(
-        `Successfully imported ${result.fightersCount} fighters from dungeon preset!`,
+        formatString(I18N.getAlertMsg("SUCC_IMPORT_FIGHTER")),
       );
     } else {
-      console.warn("Import failed:", result.message);
+      console.warn(I18N.getConsoleMsg("ERR_IMPORT_FAIL"), result.message);
       alert(result.message);
     }
   } catch (error) {
-    console.error("Import failed:", error);
-    alert(`Import failed: ${error.message}`);
+    console.error(I18N.getConsoleMsg("ERR_IMPORT_FAIL"), error);
+    alert(formatString(I18N.getAlertMsg("ERR_IMPORT_FAIL"), error.message));
+    //alert(`Import failed: ${error.message}`);
   } finally {
     importBtn.disabled = false;
-    importBtn.textContent = "Import";
+    importBtn.textContent = I18N.getTranslation("import_button");
   }
 }
 
@@ -1005,15 +1037,12 @@ function processImportedData(apiData) {
       return {
         success: false,
         message:
-          "Invalid API response format: missing or invalid 'output' array.",
+          I18N.getConsoleMsg("IVLD_API_FORMAT"),
       };
     }
 
     // Find the preset with assignment = "dungeon"
-    console.log(
-      "Searching for dungeon preset in",
-      apiData.output.length,
-      "items",
+    console.log(formatString(I18N.getConsoleMsg("INFO_SEARCH_IN_ITEMS"), apiData.output.length),
     );
     const dungeonPreset = apiData.output.find(
       (item) => item.preset && item.preset.assignment === "dungeon",
@@ -1021,7 +1050,7 @@ function processImportedData(apiData) {
 
     if (!dungeonPreset) {
       console.warn(
-        "Available presets:",
+        I18N.getConsoleMsg("INFO_AVIL_PRESET"),
         apiData.output.map((item) => ({
           name: item.preset?.name,
           assignment: item.preset?.assignment,
@@ -1030,16 +1059,14 @@ function processImportedData(apiData) {
       return {
         success: false,
         message:
-          "No preset found with assignment 'dungeon'. Nothing was imported.",
+          I18N.getConsoleMsg("INFO_NO_AVIL_PRESET"),
       };
     }
 
-    console.log(
-      "Found dungeon preset:",
-      dungeonPreset.preset.name,
-      "with",
-      dungeonPreset.fighters?.length || 0,
-      "fighters",
+    console.log(formatString(I18N.getConsoleMsg("INFO_PRESET_FOUND"),
+                dungeonPreset.preset.name,
+                dungeonPreset.fighters?.length || 0
+              ),
     );
 
     // Clear current grid state
@@ -1055,11 +1082,9 @@ function processImportedData(apiData) {
 
     fighters.forEach((fighterData) => {
       try {
-        console.log(
-          "Processing fighter:",
-          fighterData.name,
-          "class:",
-          fighterData.class,
+        console.log( formatString(I18N.getConsoleMsg("INFO_PROC_FIGHTER"),
+                  fighterData.name,
+                  fighterData.class),
         );
         const fighter = createFighterFromApiData(fighterData);
         if (fighter) {
@@ -1147,7 +1172,8 @@ function processImportedData(apiData) {
     console.error("Error processing imported data:", error);
     return {
       success: false,
-      message: `Error processing imported data: ${error.message}`,
+      // message: `Error processing imported data: ${error.message}`,
+      message: formatString(I18N.getConsoleMsg("ERR_PROC_IMPORT_DATA"), error.message),
     };
   }
 }
@@ -1157,11 +1183,13 @@ function createFighterFromApiData(apiData) {
   try {
     // Validate basic required data
     if (!apiData || typeof apiData !== "object") {
-      throw new Error("Invalid fighter data: not an object");
+      throw new Error(I18N.getConsoleMsg("ERR_IVLD_FIGHTER_DATA"));
+      //throw new Error("Invalid fighter data: not an object");
     }
 
     if (!apiData.class || typeof apiData.class !== "string") {
-      throw new Error("Invalid or missing fighter class");
+      throw new Error(I18N.getConsoleMsg("ERR_IVLD_FIGHTER_CLS"));
+      //throw new Error("Invalid or missing fighter class");
     }
 
     // Map API class names to our class names
@@ -1624,6 +1652,10 @@ numBattlesEl.addEventListener("paste", () => {
       numBattlesEl.value = value;
     }
   }, 0);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.i18nManager = I18N;
 });
 
 loadState();

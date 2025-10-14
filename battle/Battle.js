@@ -34,6 +34,8 @@ export class Battle {
     this.cannot_be_dodged = false;
     this.paladin_aura = false;
     this.bastion_aura = false;
+
+    this.I18N = window.i18nManager;
   }
 
   battle() {
