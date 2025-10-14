@@ -222,18 +222,6 @@ export class Battle {
 
       if (
         attacker instanceof Fighter &&
-        attacker.fighter_class === FighterClasses.SHADOW_DANCER
-      ) {
-        if (this.shadow_dancer_double_damage) {
-          this._do_standard_attack(attacker, target, 2.0);
-          this.shadow_dancer_double_damage = false;
-          this._print_debug(i, j, row.type, current_attack);
-          continue;
-        }
-      }
-
-      if (
-        attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.BERSERKER
       ) {
         const health_ratio = attacker.current_health / attacker.total_health;
@@ -520,6 +508,17 @@ export class Battle {
 
     if (rng_attack < attacker_chance) {
       attacker.hit_counter += 1;
+
+      if (
+        attacker instanceof Fighter &&
+        attacker.fighter_class === FighterClasses.SHADOW_DANCER &&
+        this.shadow_dancer_double_damage
+      ) {
+        if (this.verbose >= 1)
+          console.log("Shadow Dancer applies double damage");
+        attacker_damage = attacker_damage * 2;
+        this.shadow_dancer_double_damage = false;
+      }
 
       if (this.paladin_aura) {
         if (this.verbose >= 1)

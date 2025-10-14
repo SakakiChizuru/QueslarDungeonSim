@@ -1,3 +1,6 @@
+2025-10-14
+- Shadow Dancer double damage attack will stay until a successful hit
+
 2025-10-13
 - Released API
 - Changed Shadow Dancer to only deal double damage after evade (not after dodge)
