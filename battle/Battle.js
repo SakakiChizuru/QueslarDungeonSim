@@ -594,7 +594,8 @@ export class Battle {
       this.bastion_aura = false;
     }
 
-    const attacker_chance = 0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75;
+    const attacker_chance =
+      0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75;
     let rng_attack;
     if (this.cannot_be_dodged) {
       rng_attack = -1.0;
@@ -700,7 +701,8 @@ export class Battle {
         target instanceof Fighter &&
         target.fighter_class === FighterClasses.SHADOW_DANCER
       ) {
-        if (this.verbose >= 1) this._draw_table_head("SP_SD_DODGED");
+        if (this.verbose >= 1)
+          this._draw_table_head(this.I18N.getBattleMsg("SP_SD_DODGED"));
         /*           console.log(
             "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
           ); */
