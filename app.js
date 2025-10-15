@@ -41,9 +41,6 @@ const I18N = new I18nManager;
 let classDescriptions = null;
 await I18N.initPromise;
 
-console.log(`I18N Init with lang : ${I18N.currentLang}`);
-console.log(I18N);
-
 // Now We Use I18nManager to load Descriptions ;D
 I18N.initPromise.then(() => {
     classDescriptions = I18N.getClassDescription();
@@ -52,6 +49,9 @@ I18N.initPromise.then(() => {
 I18N.on('languageChanged', (event) => {
     classDescriptions = I18N.getClassDescription();
 });
+
+// First register i18n Manager to global because other module may use it.
+window.i18nManager = I18N;
 
 // Fighter class descriptions for tooltips
 /* const classDescriptions = {
@@ -924,7 +924,9 @@ function runBattles() {
 
   // Display results in the output field
   if (shouldLogVerbose) {
-    outputEl.textContent = lastBattleLog.join("\n");
+    //outputEl.textContent = lastBattleLog.join("\n");
+    outputEl.innerHTML = lastBattleLog.join("\n");
+    //console.warn(lastBattleLog.join("\n"));
   } else {
     outputEl.textContent = formatString(I18N.getUIElement("TOTAL_WONS"), fighterWins, actualBattlesToRun); // TOTAL_WONS
     //outputEl.textContent = `Fighters won ${fighterWins} out of ${n} battles.`;
@@ -1640,9 +1642,7 @@ numBattlesEl.addEventListener("paste", () => {
   }, 0);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.i18nManager = I18N;
-});
+
 
 loadState();
 renderGrid();

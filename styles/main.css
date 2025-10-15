@@ -309,7 +309,7 @@ input[type="checkbox"] {
     border-radius: 10px;
     padding: 0.8em;
     min-height: 140px;
-    white-space: pre; /* preserve spaces exactly */
+    /* white-space: pre; preserve spaces exactly */
     color: #e6eaf3;
     font-family:
         "Courier New", Consolas, "Lucida Console", monospace; /* FIXED-WIDTH FONT */
@@ -626,4 +626,17 @@ footer {
         font-size: 0.6em;
         padding: 0 6px;
     }
+}
+
+.battle-table {
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 100%;
+    text-align: center;
+}
+
+.battle-table th,
+.battle-table td {
+    border: 1px solid black;
+    padding: 8px;
 }

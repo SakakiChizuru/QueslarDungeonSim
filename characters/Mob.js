@@ -24,7 +24,8 @@ export function getMobStatValue(baseValue, baseIncrement, level) {
 
 export class Mob {
     constructor(level) {
-        this.mob_class = MobClasses.MOB;
+        //this.mob_class = MobClasses.MOB;
+        this.mob_class = window.i18nManager ? window.i18nManager.getMobInfo().MOB : MobClasses.MOB;
         this.level = level;
 
         this.total_health = getMobStatValue(100, 400, this.level);

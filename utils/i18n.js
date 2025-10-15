@@ -1,4 +1,6 @@
-// i18n.js - 国际化支持 (ES6 模块)
+/**
+ * i18n.js Localization Class 
+ */
 export class I18nManager {
     constructor(toggleId = 'languageToggle') {
         this.currentLang = 'en';
@@ -110,74 +112,115 @@ export class I18nManager {
         }
     }
 
+
+    /**
+     * 
+     * @param {string} name Fighter Class_Name
+     * @returns Localized Fighter Name
+     */
     getFighterName(name) {
-        return this.getTranslation(`FighterName.${name.toUpperCase()}`);
+        if (!name) return name;
+        return this.getTranslation(`FighterName.${(name).toUpperCase().replace(' ','_')}`);
     }
 
+    /**
+     * 
+     * @param {*} name UI element's data-i18n key
+     * @returns Localized Content
+     */
     getUIElement(name) {
         return this.getTranslation(`UIElement.${name.toUpperCase()}`);
     }
 
+    /**
+     * 
+     * @param {*} id UniqueID for all console/returning messages. If with {0} {1} placeholders, using 'formatString' to process.
+     * @returns Localized Messages
+     */
     getConsoleMsg(id) {
         return this.getTranslation(`ConsoleMessages.${id.toUpperCase()}`);
     }
 
+    /**
+     * 
+     * @param {*} id UniqueID for popup/alert/thrown error messages. If with {0} {1} placeholders, using 'formatString' to process.
+     * @returns Localized Messages
+     */
     getAlertMsg(id) {
         return this.getTranslation(`Alerts.${id.toUpperCase()}`);
     }
 
-    isInclude(key) {
+    /**
+     * 
+     * @param {*} id 
+     * @returns Localized
+     */
+    getBattleMsg(id){
+        return this.getTranslation(`BattleInfo.${id.toUpperCase()}`);
+    }
+
+    getMobInfo() {
+        return this.getTranslation(`MobInfo`);
+    }
+
+    /**
+     * 
+     * @param {string} key Key to indentify localize resources, support '.' eg: 'ConsoleMessages.SUCC_IMPORT_FIGHTER'
+     * @returns The key is exists: true/false
+     */
+    isInclude(key = null) {
         if (!key) return false;
-        // 如果键包含点符号，尝试解析嵌套结构
         if (key.includes('.')) {
             const keys = key.split('.');
             let current = this.translations[this.currentLang];        
             
-            // 遍历嵌套键
             for (const k of keys) {
                 if (current && typeof current === 'object' && k in current) {
                     current = current[k];
                 } else {
-                    // 如果找不到任何一级键，返回原始键
                     return false;
                 }
             }
             return current;
         }
 
-        // 普通键的直接查找
         return this.translations[this.currentLang] && this.translations[this.currentLang][key] 
             ? true
             : false;
     }
 
-    getTranslation(key) {
+    /**
+     * 
+     * @param {string} key Key to indentify localize resources, support '.' eg: 'ConsoleMessages.SUCC_IMPORT_FIGHTER'
+     * @returns Localized Content, if not localized will return original key.
+     */
+    getTranslation(key = null) {
         if (!key) return key;
-        // 如果键包含点符号，尝试解析嵌套结构
         if (key.includes('.')) {
             const keys = key.split('.');
             let current = this.translations[this.currentLang];
         
-            
-            // 遍历嵌套键
             for (const k of keys) {
                 if (current && typeof current === 'object' && k in current) {
                     current = current[k];
                 } else {
-                    // 如果找不到任何一级键，返回原始键
                     return key;
                 }
             }
             return current;
         }
         
-        // 普通键的直接查找
         return this.translations[this.currentLang] && this.translations[this.currentLang][key] 
             ? this.translations[this.currentLang][key] 
             : key;
     }
 
-    // 获取职业描述
+    
+    /**
+     * Get Fighters' description
+     * @param {string} className Fighter's classname
+     * @returns Localized fighter name. All as a object if className is null.
+     */
     getClassDescription(className = null) {
         // 如果没有提供类名，返回所有职业描述
         if (className === null || className === undefined) {
@@ -185,14 +228,14 @@ export class I18nManager {
             if (this.translations[this.currentLang] && this.translations[this.currentLang].class_descriptions) {
                 const translatedDescriptions = {};
                 
-                // 遍历英文职业描述来构建完整的职业列表
-                Object.keys(this.translations[this.currentLang].class_descriptions).forEach(classKey => {
+                // Enum keys from defaultLanguage(EN)
+                Object.keys(this._defaultLanguage.class_descriptions).forEach(classKey => {
                     // 将键转换为显示名称（如 "assassin" -> "Assassin"）
                     const displayName = classKey.split('_').map(word => 
                         word.charAt(0).toUpperCase() + word.slice(1)
                     ).join(' ');
                     
-                    // 使用当前语言的描述，如果没有则使用英文描述
+                    // Try using localized name or load from default.
                     if (this.translations[this.currentLang].class_descriptions[classKey]) {
                         translatedDescriptions[displayName] = this.translations[this.currentLang].class_descriptions[classKey];
                     } else {
@@ -206,7 +249,6 @@ export class I18nManager {
             return null;
         }
         
-        // 如果提供了类名，返回单个职业描述
         const classKey = className.toLowerCase().replace(/\s+/g, '_');
 
         if (this.translations[this.currentLang] && 
@@ -215,22 +257,25 @@ export class I18nManager {
             return this.translations[this.currentLang].class_descriptions[classKey];
         }
         
-        // 如果都找不到，返回默认消息
         return "No description available";
     }
 
-    // 添加事件监听器
     on(event, callback) {
         this.eventTarget.addEventListener(event, callback);
     }
 
-    // 移除事件监听器
     off(event, callback) {
         this.eventTarget.removeEventListener(event, callback);
     }
 }
 
 // formatting string like : {0} wins battle after {1} rounds.
+/**
+ * 
+ * @param {string} str Strings need to be formatted with digital placeholders. {0}/{1}
+ * @param  {...any} args Could be any, string/digital/object, object will be process by JSON.stringify.
+ * @returns Formatted string.
+ */
 export function formatString (str, ...args) {
   return str.replace(/{(\d+)}/g, (match, index) => {
     const idx = Number(index);

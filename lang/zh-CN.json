@@ -7,7 +7,7 @@
     "dungeon_level": "地下城等级",
     "number_of_battles": "战斗次数<span class=\"info-icon\" tabindex=\"0\" data-tooltip=\"详细模式只在战斗次数为1时生效\"></span>",
     "verbose": "详细",
-    "api_key": "API 密钥 <span style=\"color: #ff4444; font-size: 1em; vertical-align: center;\">(暂时不可用)</span>",
+    "api_key": "API 秘钥\n <span class=\"info-icon\" tabindex=\"0\" data-tooltip=\"你可以在 设置 > API 里找到你的秘钥\"></span>",
     "api_key_placeholder": "输入您的 Queslar API 密钥",
     "import_button": "导入",
     "battle_formation": "战斗阵型",
@@ -70,7 +70,8 @@
         "HUNTER": "猎人",
         "MAGE": "法师",
         "PRIEST": "牧师",
-        "SHADOW_DANCER": "暗夜舞者",
+        "SHADOW_DANCER": "暗影舞者",
+        "SHADOWDANCER": "暗影舞者",
         "BERSERKER": "狂战士",
         "PALADIN": "圣骑士",
         "CRUSADER": "十字军",
@@ -115,7 +116,43 @@
         "ERR_FAIL_CREA_FIGHTER": "创建佣兵失败,请检查你输入的数值.",
         "ERR_NULL_API": "导入前请先输入API秘钥",
         "ERR_HTTP_ERROR": "HTTP 错误! 状态: {0}",
-        "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters from dungeon preset!",
-        "ERR_IMPORT_FAIL": "Import failed: {0}"
+        "ERR_IMPORT_FAIL": "导入失败，原因: {0}",
+        "SUCC_IMPORT_FIGHTER": "成功从预设中导入 {0} 个佣兵信息"
+    },
+
+    "BattleInfo" : {
+        "MOB": "怪物",
+        "FIGHTER": "佣兵",
+
+        "MOB_ATK_NAME": "等级 {0} 的 {1}",
+        "MOB_TGT_NAME": "等级 {0} 的 {1}",
+
+        "HEADERS": [
+            "后排怪物",
+            "前排怪物",
+            "前排佣兵",
+            "后排佣兵"
+        ],        
+        "LOSE_DUE_TO_EXHAUST": "佣兵因疲劳输掉战斗！",
+        "HEALTH_0": "血量为 0",
+        "HEALTH_TABLE_LINE": "{0} 等级 {1}",
+
+        "ROUND_INFO": "轮次: {0}, 攻击回合: {1}",
+        "FINAL_ROUND": "轮次最终情况",
+
+        "DAMAGE_INFO": "{0} 命中 {1} 造成 {2} 伤害",
+        "ATK_MISS": "{0} 的攻击未命中 {1}.",
+
+        "SP_SD_DOGED": "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
+        "SP_BR_DOUBLE": "格斗家造成了两次伤害！",
+
+        "ERR_IVLD_TGT_ID": "{0} 的攻击没有有效目标",
+        "ERR_IVLD_ATKR": "无效的攻击者",
+        "ERR_IVLD_TGT": "无效的目标"
+    },
+    
+    "MobInfo" : {
+        "MOB" : "怪物",
+        "BOSS" : "Boss"
     }
 }

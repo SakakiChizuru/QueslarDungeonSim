@@ -1,6 +1,7 @@
 import { Fighter, FighterClasses } from "../characters/Fighter.js";
 import { Mob } from "../characters/Mob.js";
 import { calculateDefense } from "../utils/utils.js";
+import { formatString } from "../utils/i18n.js";
 
 function getAdjacent(i, j) {
   const rows = 3,
@@ -34,6 +35,7 @@ export class Battle {
     this.paladin_aura = false;
     this.bastion_aura = false;
 
+    // Imports i18nManager from global;
     this.I18N = window.i18nManager;
   }
 
@@ -50,13 +52,13 @@ export class Battle {
       return [
         "mobs",
         this.current_round,
-        "Fighters lost the battle due to exhaustion!",
+        this.I18N.getBattleMsg("LOSE_DUE_TO_EXHAUST"),
         tot_mob_health,
       ];
     }
 
     const winner = this._check_battle_is_over();
-    return [winner, this.current_round, "Health reached 0", tot_mob_health];
+    return [winner, this.current_round, this.I18N.getBattleMsg("HEALTH_0"), tot_mob_health];
   }
 
   _sumMobsHealth() {
@@ -145,7 +147,7 @@ export class Battle {
         if (this.verbose >= 2)
           console.log(`\nRNG brawler: ${rng_brawler} < 0.15`);
         if (rng_brawler < 0.15) {
-          if (this.verbose >= 1) console.log("Brawler attacked twice!");
+          if (this.verbose >= 1) this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true); //console.log("Brawler attacked twice!");
           this._do_standard_attack(attacker, target);
           target = this._find_target("mobs");
           if (target === null) {
@@ -315,21 +317,46 @@ export class Battle {
     }
 
     if (this.verbose >= 1) {
-      console.log("Final Round Situation");
+      //console.log("Final Round Situation");
+      //this._draw_table_head("Final Round Situation");
+      this._draw_table_head(this.I18N.getBattleMsg("FINAL_ROUND"));
       this._draw_health_table(null, null, null);
-      console.log("");
+      console.log("<br/><br/>");
     }
     this.current_round += 1;
   }
 
+  /**
+   * Print table head for Round information.
+   * @param {*} content 
+   * @param {boolean} sigle If needs display a sigle info
+   */
+  _draw_table_head(content, sigle = false) {
+    let head = `<table style="border: 1px solid white; border-collapse: collapse; width: 100%; text-align: center; background:#778899">\n`;
+    head += `<thead><tr><th colspan="4" style="border: 1px solid white; padding: 16px;"> ${content} </th></tr></thead>${((sigle) ? "</table>" : "")}`;
+    console.log(head);
+  }
+
+  /**
+   * Print row for special moves/passive effect.
+   * @param {*} content 
+   */
+  _draw_table_row(content) {
+    let row = `<tr><th colspan="4" style="border: 1px solid white; padding: 16px;"> ${content} </th></tr>`;
+    console.log(row);
+  }
+
+
+
   _print_debug(i, j, type, current_attack) {
     if (this.verbose >= 1) {
-      console.log(`Round: ${this.current_round}, Attack: ${current_attack}\n`);
+      //console.log(`Round: ${this.current_round}, Attack: ${current_attack}\n`);
+      this._draw_table_row(formatString(this.I18N.getBattleMsg("ROUND_INFO"), this.current_round, current_attack));
       this._draw_health_table(i, j, type);
     }
   }
 
-  _draw_health_table(i, j, att_type) {
+  _draw_health_table(i, j, att_type, test = false) {
     const fighters = this.fighters.all_fighters;
     const mobs = this.mobs.mobs;
 
@@ -339,8 +366,10 @@ export class Battle {
 
       let label =
         type === "fighters"
-          ? fighters[x][y].fighter_class
-          : `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
+          ? this.I18N.getFighterName(fighters[x][y].fighter_class)
+          //? fighters[x][y].fighter_class
+          : formatString(this.I18N.getBattleMsg("HEALTH_TABLE_LINE"), mobs[x][y].mob_class, mobs[x][y].level);
+          //: `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
       if (selI === x && selJ === y && att_type === type) label += " *";
 
       let current, total;
@@ -369,60 +398,92 @@ export class Battle {
       formattedString(i, j, att_type, x, 1, "fighters"),
     ]);
 
+    /*     
     const headers = [
       "Mobs Back",
       "Mobs Front",
       "Fighters Front",
       "Fighters Back",
-    ];
+    ]; */
+    const headers = this.I18N.getBattleMsg("headers");
 
     // Calculate column widths
     const allCells = [headers, ...rows];
-    const colWidths = headers.map((_, ci) =>
-      Math.max(
-        ...allCells.map((r) =>
-          (r[ci] || "").split("\n").reduce((a, l) => Math.max(a, l.length), 0),
-        ),
-      ),
-    );
 
-    // Helper to pad multiline cells
-    const padCell = (content, width) => {
-      const lines = (content || "").split("\n");
-      const paddedLines = lines.map((line) => line.padEnd(width, " "));
-      return paddedLines.join("\n");
-    };
-
-    // Build the table text
-    const separator = colWidths.map((w) => "-".repeat(w)).join("-+-");
-    const headerLine = headers
-      .map((h, i) => h.padEnd(colWidths[i], " "))
-      .join(" | ");
-    const tableLines = [headerLine, separator];
-
-    // Add rows (multi-line cell alignment)
+    // Build HTML table
+    // Table body, table head process with this._draw_table_head
+    let output = '<tbody>'
+    output += '<tr>';
+    headers.forEach(headerline => {
+        output += `<td style="border: 1px solid white; padding: 8px;">${headerline}</td>`;
+    });
+    output += '</tr>';
     for (const row of rows) {
-      const cellLines = row.map((cell, ci) =>
-        padCell(cell, colWidths[ci]).split("\n"),
-      );
-      const maxLines = Math.max(...cellLines.map((l) => l.length));
-      for (let li = 0; li < maxLines; li++) {
-        const line = cellLines
-          .map((l) =>
-            (l[li] || "").padEnd(colWidths[cellLines.indexOf(l)], " "),
-          )
-          .join(" | ");
-        tableLines.push(line);
-      }
-      tableLines.push(separator);
+        output += '<tr>';
+        row.forEach(cell => {
+            // Handle multi-line cells by replacing newlines with <br>
+            const cellContent = (cell || "").split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0)
+                .join('<br>');
+            
+            output += `<td style="border: 1px solid white; padding: 8px; ${((cellContent.indexOf("*") > 0) ? "background: #A0522D;" : "" )} ">${cellContent.replace("EMPTY", "")}</td>`;
+        });
+        output += '</tr>';
     }
+    output += '</tbody></table>';
 
-    const output = tableLines.join("\n") + "\n\n";
+    /*
+      const colWidths = headers.map((_, ci) =>
+        Math.max(
+          ...allCells.map((r) =>
+            (r[ci] || "").split("\n").reduce((a, l) => Math.max(a, l.length), 0),
+          ),
+        ),
+      );
+
+      // Helper to pad multiline cells
+      const padCell = (content, width) => {
+        const lines = (content || "").split("\n");
+        const paddedLines = lines.map((line) => line.padEnd(width, " "));
+        return paddedLines.join("\n");
+      };
+
+      // Build the table text
+      const separator = colWidths.map((w) => "-".repeat(w)).join("-+-");
+      const headerLine = headers
+        .map((h, i) => h.padEnd(colWidths[i], " "))
+        .join(" | ");
+      const tableLines = [headerLine, separator];
+
+      // Add rows (multi-line cell alignment)
+      for (const row of rows) {
+        const cellLines = row.map((cell, ci) =>
+          padCell(cell, colWidths[ci]).split("\n"),
+        );
+        const maxLines = Math.max(...cellLines.map((l) => l.length));
+        for (let li = 0; li < maxLines; li++) {
+          const line = cellLines
+            .map((l) =>
+              (l[li] || "").padEnd(colWidths[cellLines.indexOf(l)], " "),
+            )
+            .join(" | ");
+          tableLines.push(line);
+        }
+        tableLines.push(separator);
+      }
+
+      const output = tableLines.join("\n") + "\n\n"; 
+    */
 
     // Print to HTML <pre> element
     const outputEl = document.getElementById("battle-output");
+
+    if (test) console.warn(JSON.stringify(output));
+
     if (outputEl) {
       outputEl.textContent = output;
+      //outputEl.innerHTML = output;
     } else {
       console.log(output); // fallback if no element exists
     }
@@ -433,22 +494,33 @@ export class Battle {
     // Add safety check for null/undefined targets
     if (!target) {
       if (this.verbose >= 1)
+        console.log(formatString(this.I18N.getBattleMsg("ERR_IVLD_TGT_ID"), attacker instanceof Mob ? 
+            this.I18N.getBattleMsg("mob") : 
+            this.I18N.getBattleMsg("fighter")
+          )
+        );
+        /*
         console.log(
           `No valid target found for ${attacker instanceof Mob ? "mob" : "fighter"} attack`,
         );
+        */
       return;
     }
 
     if (attacker instanceof Mob)
-      attacker_name = `level ${attacker.level} ${attacker.mob_class}`;
+      attacker_name = formatString(this.I18N.getBattleMsg("MOB_ATK_NAME"), attacker.level, attacker.mob_class);
+      //attacker_name = `level ${attacker.level} ${attacker.mob_class}`;
     else if (attacker instanceof Fighter)
-      attacker_name = attacker.fighter_class;
-    else throw new Error("Invalid attacker");
+      attacker_name = this.I18N.getFighterName(attacker.fighter_class);
+    else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_ATKR"));
+    //else throw new Error("Invalid attacker");
 
     if (target instanceof Mob)
-      target_name = `level ${target.level} ${target.mob_class}`;
-    else if (target instanceof Fighter) target_name = target.fighter_class;
-    else throw new Error("Invalid target");
+      target_name = formatString(this.I18N.getBattleMsg("MOB_TGT_NAME"), target.level, target.mob_class);
+      //target_name = `level ${target.level} ${target.mob_class}`;
+    else if (target instanceof Fighter) target_name = this.I18N.getFighterName(target.fighter_class);
+    else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_TGT"));
+    //else throw new Error("Invalid target");
 
     let target_defense = 1 - target.defense;
     let target_defense_pre = target.defense_pre;
@@ -541,24 +613,37 @@ export class Battle {
       const dmg_final = Math.floor(dmg_amount);
       const dmg_applied = Math.max(dmg_final, 0.0);
       if (this.verbose >= 1)
-        console.log(
-          `${attacker_name} hits ${target_name} and deals ${dmg_applied} damage.`,
+        this._draw_table_head(
+          formatString(
+            this.I18N.getBattleMsg("DAMAGE_INFO"), attacker_name, target_name, dmg_applied
+          )
         );
+/*         console.log(
+          `${attacker_name} hits ${target_name} and deals ${dmg_applied} damage.`,
+        ); */
       target.current_health = Math.max(
         0.0,
         target.current_health - dmg_applied,
       );
     } else {
       if (this.verbose >= 1)
-        console.log(`${attacker_name} misses attacking ${target_name}.`);
+        this._draw_table_head(
+          formatString(
+            this.I18N.getBattleMsg("ATK_MISS"),
+            attacker_name,
+            target_name
+          )      
+        );
+        //console.log(`${attacker_name} misses attacking ${target_name}.`);
       if (
         target instanceof Fighter &&
         target.fighter_class === FighterClasses.SHADOW_DANCER
       ) {
         if (this.verbose >= 1)
-          console.log(
+          this._draw_table_head("SP_SD_DODGED");
+/*           console.log(
             "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
-          );
+          ); */
       }
     }
   }
