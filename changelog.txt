@@ -1,4 +1,5 @@
 2025-10-15
+- Corrected hit chance formula to the correct value
 - Reworked the verbose display (thanks Sakaki Chizuru)
 - Added Chinese localization (all done by Sakaki Chizuru)
 

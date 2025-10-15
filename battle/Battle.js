@@ -594,7 +594,7 @@ export class Battle {
       this.bastion_aura = false;
     }
 
-    const attacker_chance = attacker_hit / (attacker_hit + target_dodge);
+    const attacker_chance = 0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75;
     let rng_attack;
     if (this.cannot_be_dodged) {
       rng_attack = -1.0;
