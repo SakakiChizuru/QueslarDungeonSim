@@ -90,23 +90,29 @@ function createDuplicateIcon() {
   svg.setAttribute("stroke-width", "2");
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
-  
+
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute("d", "M15 3H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z");
-  
+  path1.setAttribute(
+    "d",
+    "M15 3H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z",
+  );
+
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path2.setAttribute("d", "M19 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2");
-  
+  path2.setAttribute(
+    "d",
+    "M19 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2",
+  );
+
   svg.appendChild(path1);
   svg.appendChild(path2);
-  
+
   return svg;
 }
 
 // 在文件顶部附近添加辅助函数
 function getNextDuplicateIndex() {
   let maxIndex = 0;
-  
+
   // 检查战斗区的所有佣兵
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 2; j++) {
@@ -118,19 +124,18 @@ function getNextDuplicateIndex() {
       }
     }
   }
-  
+
   // 检查替补区的所有佣兵
-  benchState.forEach(fighter => {
+  benchState.forEach((fighter) => {
     if (fighter && fighter.poolIndex) {
       if (fighter.poolIndex > maxIndex) {
         maxIndex = fighter.poolIndex;
       }
     }
   });
-  
+
   return maxIndex + 1;
 }
-
 
 // Create tooltip element
 const classTooltip = document.createElement("div");
@@ -357,9 +362,9 @@ function duplicateFighter(originalFighter) {
   duplicateData.isDuplicate = true;
   duplicateData.base = {
     name: originalFighter.name,
-    fighter_class: originalFighter.fighter_class
+    fighter_class: originalFighter.fighter_class,
   };
-  
+
   // 设置复制体的 poolIndex
   duplicateData.poolIndex = nextIndex;
 
@@ -403,7 +408,7 @@ function serializeFighter(f) {
     // 新增属性
     isDuplicate: f.isDuplicate || false,
     base: f.base || null,
-    poolIndex: f.poolIndex || null
+    poolIndex: f.poolIndex || null,
   };
 }
 
@@ -428,7 +433,7 @@ function deserializeFighter(obj) {
     // 新增属性
     isDuplicate: obj.isDuplicate || false,
     base: obj.base || null,
-    poolIndex: obj.poolIndex || null
+    poolIndex: obj.poolIndex || null,
   };
 
   try {
@@ -585,27 +590,25 @@ function renderGrid() {
       name.className = "name";
 
       if (fighter) {
+        const fighterName = document.createElement("div");
+        fighterName.textContent = fighter.name;
+
+        const fighterDetails = document.createElement("div");
+        fighterDetails.style.fontSize = "0.8em";
+        fighterDetails.style.opacity = "0.7";
+
         if (fighter.isDuplicate && fighter.base) {
-          // Duplicated fighter display two lines: class and localized "copy of" text
           const duplicateText = formatString(
             I18N.getUIElement("DUPLICATE_NAME"),
-            fighter.base.name
+            fighter.base.name,
           );
-          name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText} #${fighter.poolIndex}D</small>`;
+          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText} #${fighter.poolIndex}`;
         } else {
-          // Normally display with index
-          name.textContent = fighter.name;
-          // 为原始佣兵也设置 poolIndex（如果还没有的话）
-          if (!fighter.poolIndex) {
-            const index = getNextDuplicateIndex();
-            fighter.poolIndex = index;
-          }
-          const indexSpan = document.createElement("span");
-          indexSpan.textContent = ` #${fighter.poolIndex}`;
-          indexSpan.style.opacity = "0.6";
-          indexSpan.style.fontSize = "0.8em";
-          name.appendChild(indexSpan);
+          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} #${fighter.poolIndex}`;
         }
+
+        name.appendChild(fighterName);
+        name.appendChild(fighterDetails);
       } else {
         name.textContent = I18N.getFighterName("Empty");
       }
@@ -620,6 +623,7 @@ function renderGrid() {
         del.className = "btn small delete";
         del.dataset.i18n = `UIElement.DELETE`;
         del.textContent = I18N.getUIElement("Delete");
+        del.style.width = "55px";
         del.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -633,12 +637,13 @@ function renderGrid() {
         duplicate.className = "btn small duplicate";
         duplicate.dataset.i18n = `UIElement.DUPLICATE`;
         duplicate.title = I18N.getUIElement("Duplicate");
-        
+        duplicate.style.width = "55px";
+
         // 添加SVG图标
         duplicate.innerHTML = "";
         const duplicateIcon = createDuplicateIcon();
         duplicate.appendChild(duplicateIcon);
-        
+
         duplicate.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -747,27 +752,29 @@ function renderBench() {
     name.className = "name";
     name.style.textAlign = "center";
     name.style.width = "100%"; // 文本占满空间
-    
-    if (fighter.isDuplicate && fighter.base) {
-      // Duplicated fighter display two lines: class and localized "copy of" text
-      const duplicateText = formatString(
-        I18N.getUIElement("DUPLICATE_NAME"),
-        fighter.base.name
-      );
-      name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText} #${fighter.poolIndex}D</small>`;
-    } else {
-      // Normally display with index
-      name.textContent = fighter.name;
-      // 为原始佣兵也设置 poolIndex（如果还没有的话）
-      if (!fighter.poolIndex) {
-        const currentIndex = getNextDuplicateIndex();
-        fighter.poolIndex = currentIndex;
+
+    if (fighter) {
+      const fighterName = document.createElement("div");
+      fighterName.textContent = fighter.name;
+
+      const fighterDetails = document.createElement("div");
+      fighterDetails.style.fontSize = "0.8em";
+      fighterDetails.style.opacity = "0.7";
+
+      if (fighter.isDuplicate && fighter.base) {
+        const duplicateText = formatString(
+          I18N.getUIElement("DUPLICATE_NAME"),
+          fighter.base.name,
+        );
+        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText} #${fighter.poolIndex}`;
+      } else {
+        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} #${fighter.poolIndex}`;
       }
-      const indexSpan = document.createElement("span");
-      indexSpan.textContent = ` #${fighter.poolIndex}`;
-      indexSpan.style.opacity = "0.6";
-      indexSpan.style.fontSize = "0.8em";
-      name.appendChild(indexSpan);
+
+      name.appendChild(fighterName);
+      name.appendChild(fighterDetails);
+    } else {
+      name.textContent = I18N.getFighterName("Empty");
     }
 
     nameContainer.appendChild(name);
@@ -972,10 +979,14 @@ saveFighterBtn.addEventListener("click", () => {
     // Check if we're editing a duplicate fighter and the class has changed
     let isDuplicate = false;
     let base = null;
-    
+
     if (editingCell.i >= 0 && editingCell.j >= 0) {
       const originalFighter = gridState[editingCell.i][editingCell.j];
-      if (originalFighter && originalFighter.isDuplicate && originalFighter.fighter_class !== fc) {
+      if (
+        originalFighter &&
+        originalFighter.isDuplicate &&
+        originalFighter.fighter_class !== fc
+      ) {
         // Class changed, reset duplicate status
         isDuplicate = false;
         base = null;
@@ -986,7 +997,11 @@ saveFighterBtn.addEventListener("click", () => {
       }
     } else if (editingBench.index >= 0) {
       const originalFighter = benchState[editingBench.index];
-      if (originalFighter && originalFighter.isDuplicate && originalFighter.fighter_class !== fc) {
+      if (
+        originalFighter &&
+        originalFighter.isDuplicate &&
+        originalFighter.fighter_class !== fc
+      ) {
         // Class changed, reset duplicate status
         isDuplicate = false;
         base = null;
@@ -996,7 +1011,7 @@ saveFighterBtn.addEventListener("click", () => {
         base = originalFighter.base;
       }
     }
-    
+
     // Add duplicate flag and base fighter if applicable
     if (isDuplicate) {
       data.isDuplicate = true;
@@ -1486,6 +1501,8 @@ function createFighterFromApiData(apiData) {
       object_defense: Math.max(0, equipmentBonuses.defense),
       object_crit: Math.max(0, equipmentBonuses.critDamage),
       object_dodge: Math.max(0, equipmentBonuses.dodge),
+      // Assign pool ID for imported fighter
+      poolIndex: getNextDuplicateIndex(),
     };
 
     const fighter = new Fighter(fighterClass, fighterData);

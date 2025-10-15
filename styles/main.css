@@ -52,15 +52,15 @@ header {
     display: contents;
 }
 .bench-grid {
-  display: flex;
-  flex-direction: column; /* 改为列布局 */
-  gap: 0.5em;
-  max-height: 800px;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 0.5em;
-  align-content: flex-start;
-  justify-content: flex-start;
+    display: flex;
+    flex-direction: column; /* 改为列布局 */
+    gap: 0.5em;
+    max-height: 800px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5em;
+    align-content: flex-start;
+    justify-content: flex-start;
 }
 .bench-grid::-webkit-scrollbar {
     width: 6px;
@@ -77,20 +77,20 @@ header {
     background: #4a5568;
 }
 .bench-fighter {
-  background: #36405a;
-  border: 1px solid #2c3242;
-  border-radius: 10px;
-  padding: 0 0.66em;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: grab;
-  transition: background-color 0.2s;
-  min-height: 60px;
-  width: 100%; /* 占满整行 */
-  min-width: 0;
-  gap: 0.6em;
-  box-sizing: border-box;
+    background: #36405a;
+    border: 1px solid #2c3242;
+    border-radius: 10px;
+    padding: 0 0.66em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: grab;
+    transition: background-color 0.2s;
+    min-height: 60px;
+    width: 100%; /* 占满整行 */
+    min-width: 0;
+    gap: 0.6em;
+    box-sizing: border-box;
 }
 .bench-fighter:hover {
     background: #3e4659;
@@ -220,6 +220,10 @@ input[type="checkbox"] {
 .btn.add:hover {
     background: #16a34a;
 }
+
+.fighter-cell.empty .btn.add {
+    margin-right: 20px;
+}
 .btn.delete {
     background: #dc2626;
     color: white;
@@ -258,7 +262,7 @@ input[type="checkbox"] {
     gap: 0.4em;
     user-select: none;
     color: #e6eaf3;
-    padding: 0.4em 0.6em;
+    padding: 0.4em 0.2em 0.4em 0.6em;
     min-height: 60px;
 }
 .fighter-cell.empty {
@@ -299,7 +303,9 @@ input[type="checkbox"] {
     gap: 0.03em;
     width: 75px;
     flex-shrink: 0;
-    margin-right: 8px;
+    margin-right: 0px;
+    margin-left: auto;
+    padding-right: 0px;
 }
 
 .output {
@@ -556,7 +562,7 @@ footer {
     right: 0;
     bottom: 0;
     background-color: #36405a;
-    transition: .4s;
+    transition: 0.4s;
     border-radius: 34px;
     border: 1px solid #2c3242;
 }
@@ -569,7 +575,7 @@ footer {
     left: 4px;
     bottom: 3px;
     background-color: white;
-    transition: .4s;
+    transition: 0.4s;
     border-radius: 50%;
     z-index: 2;
 }
@@ -604,23 +610,23 @@ footer {
     .language-switcher {
         margin-right: 10px;
     }
-    
+
     .language-slider {
         width: 50px;
         height: 26px;
     }
-    
+
     .slider:before {
         height: 18px;
         width: 18px;
         bottom: 3px;
         left: 3px;
     }
-    
+
     .language-checkbox:checked + .slider:before {
         transform: translateX(24px);
     }
-    
+
     .slider-labels {
         font-size: 0.6em;
         padding: 0 6px;
