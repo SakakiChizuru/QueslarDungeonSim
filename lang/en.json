@@ -140,7 +140,6 @@
             "Fighters Back"
         ],
 
-
         "LOSE_DUE_TO_EXHAUST": "Fighters lost the battle due to exhaustion!",
         "HEALTH_0": "Health reached 0",
         "HEALTH_TABLE_LINE": "{0} lvl {1}",
@@ -150,9 +149,15 @@
 
         "DAMAGE_INFO": "{0} hits {1} and deals {2} damage.",
         "ATK_MISS": "{0} misses attacking {1}.",
+        "CRT_RNG_INFO": "Crit rng: {0}} < 0.1",
+        "ATK_CANNOT_DODGE": "{0} attack cannot be dodged",
+        "ATK_RNG_SUCC": "Successful attack rng: {0} < {1}",
 
-        "SP_SD_DOGED": "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
+        "SP_SD_EVADED": "Shadow dancer has evaded. Next attack will be double damage",
+        "SP_SD_APL_DOUBLEDMG": "Shadow Dancer applies double damage",
         "SP_BR_DOUBLE": "Brawler attacked twice!",
+        "SP_PL_DMG_REDUCTION": "Paladin aura adds 15% damage reduction",
+        "SP_BS_DMG_DODGE": "Bastion aura adds 25% damage reduction and 50% increased dodge",
 
         "ERR_IVLD_TGT_ID": "No valid target found for {0} attack",
         "ERR_IVLD_ATKR": "Invalid attacker",

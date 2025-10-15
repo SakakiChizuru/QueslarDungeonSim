@@ -546,9 +546,13 @@ export class Battle {
         console.log(`Shadow dancer evade rng: ${rng_evade.toFixed(3)} < 0.25`);
       if (rng_evade < 0.25) {
         if (this.verbose >= 1)
-          console.log(
+          this._draw_table_head(
+            this.I18N.getBattleMsg("SP_SD_EVADED"),
+            true
+          );            
+/*           console.log(
             "Shadow dancer has evaded. Next attack will be double damage",
-          );
+          ); */
         this.shadow_dancer_double_damage = true;
         attacker.hit_counter += 1;
         return;
@@ -557,9 +561,13 @@ export class Battle {
 
     if (this.bastion_aura) {
       if (this.verbose >= 1)
-        console.log(
+          this._draw_table_head(
+            this.I18N.getBattleMsg("SP_BS_DMG_DODGE"),
+            true
+          );        
+/*         console.log(
           "Bastion aura adds 25% damage reduction and 50% increased dodge ",
-        );
+        ); */
       additional_dr = additional_dr + 0.25;
       target_dodge *= 1.5;
       this.bastion_aura = false;
@@ -570,14 +578,29 @@ export class Battle {
     if (this.cannot_be_dodged) {
       rng_attack = -1.0;
       if (this.verbose >= 1)
-        console.log(`${attacker_name} attack cannot be dodged`);
+        this._draw_table_head(
+          formatString(
+            this.I18N.getBattleMsg("ATK_CANNOT_DODGE"),
+            attacker_name
+          ),
+          true
+        );
+        //console.log(`${attacker_name} attack cannot be dodged`);
       this.cannot_be_dodged = false;
     } else {
       rng_attack = Math.random();
       if (this.verbose >= 2)
-        console.log(
-          `Successful attack rng: ${rng_attack.toFixed(3)} < ${attacker_chance.toFixed(3)}`,
+        this._draw_table_head(
+          formatString(
+            this.I18N.getBattleMsg("ATK_RNG_SUCC"),
+            rng_attack.toFixed(3),
+            attacker_chance.toFixed(3)
+          ),
+          true
         );
+/*         console.log(
+          `Successful attack rng: ${rng_attack.toFixed(3)} < ${attacker_chance.toFixed(3)}`,
+        ); */
     }
 
     if (rng_attack < attacker_chance) {
@@ -589,14 +612,22 @@ export class Battle {
         this.shadow_dancer_double_damage
       ) {
         if (this.verbose >= 1)
-          console.log("Shadow Dancer applies double damage");
+          this._draw_table_head(
+            this.I18N.getBattleMsg("SP_SD_APL_DOUBLEDMG"),
+            true
+          );
+          //console.log("Shadow Dancer applies double damage");
         attacker_damage = attacker_damage * 2;
         this.shadow_dancer_double_damage = false;
       }
 
       if (this.paladin_aura) {
         if (this.verbose >= 1)
-          console.log("Paladin aura adds 15% damage reduction");
+          this._draw_table_head(
+            this.I18N.getBattleMsg("SP_PL_DMG_REDUCTION"),
+            true
+          );
+          //console.log("Paladin aura adds 15% damage reduction");
         additional_dr = additional_dr + 0.15;
         this.paladin_aura = false;
       }
@@ -605,7 +636,14 @@ export class Battle {
         target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
       const rng_crit = Math.random();
       if (this.verbose >= 2)
-        console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
+        this._draw_table_head(
+          formatString(
+            this.I18N.getBattleMsg("CRT_RNG_INFO"),
+            rng_attack.toFixed(3)
+          ),
+          true
+        );
+        //console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
       if (rng_crit < 0.1) {
         dmg_amount = dmg_amount * (1 + attacker_crit);
       }

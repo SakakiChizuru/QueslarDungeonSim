@@ -97,19 +97,25 @@
     },
 
     "ConsoleMessages": {
-        "ERR_FAIL_LOAD_FIGHTER": "Failed to deserialize fighter:",
-        "ERR_FAIL_LOAD_GRID": "Failed to load grid state:",
-        "ERR_FAIL_LOAD_BENCH": "Failed to load bench state:",
-        "ERR_FAIL_CREA_FIGHTER": "",
-        "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters",
-        "ERR_IMPORT_FAIL": "Import failed:",
+        "SUCC_IMPORT_FIGHTER": "已成功导入 {0} 名佣兵",
 
-        "IVLD_API_FORMAT": "Invalid API response format: missing or invalid 'output' array.",
+        "ERR_FAIL_LOAD_FIGHTER": "无法反序列化佣兵：",
+        "ERR_FAIL_LOAD_GRID": "加载战斗阵列状态失败：",
+        "ERR_FAIL_LOAD_BENCH": "加载后备席状态失败：",
+        "ERR_FAIL_CREA_FIGHTER": "创建佣兵失败：",
+        "ERR_IMPORT_FAIL": "导入失败：",
+        "ERR_PROC_IMPORT_DATA": "处理导入数据时出错：{0}",
 
-        "INFO_SEARCH_IN_ITEMS": "Searching for dungeon preset in {0} items",
-        "INFO_AVIL_PRESET": "Available presets:",
-        "INFO_NO_AVIL_PRESET": "No preset found with assignment 'dungeon'. Nothing was imported.",
-        "INFO_PRESET_FOUND" : "Found dungeon preset: {0} with {1} fighteres"
+        "ERR_IVLD_FIGHTER_DATA": "无效的佣兵数据：目标不是对象",
+        "ERR_IVLD_FIGHTER_CLS": "无效或缺失的佣兵职业",
+        "ERR_IVLD_FIGHTER_CLS_PLH": "{0} 不是有效的职业，请检查输入。",
+        "ERR_IVLD_API_FORMAT": "无效的 API 响应格式：缺少或错误的 'output' 数组。",
+
+        "INFO_SEARCH_IN_ITEMS": "正在 {0} 项物品中搜索地城预设",
+        "INFO_AVIL_PRESET": "可用的预设：",
+        "INFO_NO_AVIL_PRESET": "未找到带有 '地下城' 指派的预设，未导入任何内容。",
+        "INFO_PRESET_FOUND": "已找到地下城预设：{0}，包含 {1} 名佣兵",
+        "INFO_PROC_FIGHTER": "正在处理佣兵：{0}　职业：{1}"
     },
 
     "Alerts" : {
@@ -132,7 +138,8 @@
             "前排怪物",
             "前排佣兵",
             "后排佣兵"
-        ],        
+        ],   
+
         "LOSE_DUE_TO_EXHAUST": "佣兵因疲劳输掉战斗！",
         "HEALTH_0": "血量为 0",
         "HEALTH_TABLE_LINE": "{0} 等级 {1}",
@@ -142,9 +149,15 @@
 
         "DAMAGE_INFO": "{0} 命中 {1} 造成 {2} 伤害",
         "ATK_MISS": "{0} 的攻击未命中 {1}.",
+        "CRT_RNG_INFO": "暴击随机值：{0}} < 0.1",
+        "ATK_CANNOT_DODGE": "{0} 的攻击无法闪避",
+        "ATK_RNG_SUCC": "攻击命中判定成功：随机值 {0} < 阈值 {1}",
 
-        "SP_SD_DOGED": "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
+        "SP_SD_EVADED": "暗影舞者闪避成功。下次攻击将造成双倍伤害。",
+        "SP_SD_APL_DOUBLEDMG": "暗影舞者造成双倍伤害",
         "SP_BR_DOUBLE": "格斗家造成了两次伤害！",
+        "SP_PL_DMG_REDUCTION": "圣骑士的光环提供了15%减伤",
+        "SP_BS_DMG_DODGE": "堡垒的光环提供了25%的减伤和50%额外闪避概率",
 
         "ERR_IVLD_TGT_ID": "{0} 的攻击没有有效目标",
         "ERR_IVLD_ATKR": "无效的攻击者",
