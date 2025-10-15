@@ -1,4 +1,5 @@
 import { calculateDefense } from "../utils/utils.js";
+import { formatString } from "../utils/i18n.js";  
 
 export const FighterClasses = Object.freeze({
   ASSASSIN: "Assassin",
@@ -36,9 +37,11 @@ export class Fighter {
   ) {
     this.fighter_class = fighterClass;
 
+    this.I18N = window.i18nManager;
+
     if (!Object.values(FighterClasses).includes(fighterClass)) {
       throw new Error(
-        `${fighterClass} is not a valid class. Please check your input.`,
+        formatString(this.I18N.getConsoleMsg("ERR_IVLD_FIGHTER_CLS_PLH"), fighterClass),
       );
     }
 
