@@ -48,6 +48,8 @@ I18N.initPromise.then(() => {
 
 I18N.on("languageChanged", (event) => {
   classDescriptions = I18N.getClassDescription();
+  renderGrid();
+  renderBench();
 });
 
 // First register i18n Manager to global because other module may use it.
@@ -76,6 +78,59 @@ window.i18nManager = I18N;
     "Allies in adjacent position to the bastion gain +50% dodge and 25% damage reduction",
   "No Class": "No special abilities",
 }; */
+
+// Create "COPY" image SVG
+function createDuplicateIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  
+  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path1.setAttribute("d", "M15 3H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z");
+  
+  const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path2.setAttribute("d", "M19 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2");
+  
+  svg.appendChild(path1);
+  svg.appendChild(path2);
+  
+  return svg;
+}
+
+// 在文件顶部附近添加辅助函数
+function getNextDuplicateIndex() {
+  let maxIndex = 0;
+  
+  // 检查战斗区的所有佣兵
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 2; j++) {
+      const fighter = gridState[i][j];
+      if (fighter && fighter.poolIndex) {
+        if (fighter.poolIndex > maxIndex) {
+          maxIndex = fighter.poolIndex;
+        }
+      }
+    }
+  }
+  
+  // 检查替补区的所有佣兵
+  benchState.forEach(fighter => {
+    if (fighter && fighter.poolIndex) {
+      if (fighter.poolIndex > maxIndex) {
+        maxIndex = fighter.poolIndex;
+      }
+    }
+  });
+  
+  return maxIndex + 1;
+}
+
 
 // Create tooltip element
 const classTooltip = document.createElement("div");
@@ -212,7 +267,7 @@ Object.values(FighterClasses).forEach((className) => {
 
   option.addEventListener("click", () => {
     fighterClassSelect.value = className;
-    dropdownButton.innerHTML = `${className} <span style="float: right;">▼</span>`;
+    dropdownButton.innerHTML = `${I18N.getFighterName(className)} <span style="float: right;">▼</span>`;
     dropdownOptions.style.display = "none";
     dropdownButton.style.borderRadius = "6px";
 
@@ -270,7 +325,7 @@ fighterClassSelect.parentNode.insertBefore(
 );
 
 // Helper function to duplicate a fighter
-function duplicateFighter(originalFighter) {
+/* function duplicateFighter(originalFighter) {
   if (!originalFighter) return null;
 
   // Create new fighter data with same stats
@@ -283,6 +338,36 @@ function duplicateFighter(originalFighter) {
     originalFighter.name,
   );
   //duplicateData.name = `Duplicate of ${originalFighter.name}`;
+
+  // Create the duplicate fighter
+  const duplicate = new Fighter(originalFighter.fighter_class, duplicateData);
+  duplicate.__raw = { ...duplicateData };
+
+  return duplicate;
+} */
+// Helper function to duplicate a fighter
+function duplicateFighter(originalFighter) {
+  if (!originalFighter) return null;
+
+  // Create new fighter data with same stats
+  const originalData = originalFighter.__raw || {};
+  const duplicateData = { ...originalData };
+
+  // 获取下一个编号
+  const nextIndex = getNextDuplicateIndex();
+  
+  // 更新名字，添加复制编号
+  duplicateData.name = `${originalFighter.name} #${nextIndex}D`;
+  
+  // Add a flag to indicate that this is a duplicate
+  duplicateData.isDuplicate = true;
+  duplicateData.base = {
+    name: originalFighter.name,
+    fighter_class: originalFighter.fighter_class
+  };
+  
+  // 设置复制体的 poolIndex
+  duplicateData.poolIndex = nextIndex;
 
   // Create the duplicate fighter
   const duplicate = new Fighter(originalFighter.fighter_class, duplicateData);
@@ -321,6 +406,10 @@ function serializeFighter(f) {
     object_defense: raw.object_defense || 0,
     object_crit: raw.object_crit || 0,
     object_dodge: raw.object_dodge || 0,
+    // 新增属性
+    isDuplicate: f.isDuplicate || false,
+    base: f.base || null,
+    poolIndex: f.poolIndex || null
   };
 }
 
@@ -342,6 +431,10 @@ function deserializeFighter(obj) {
     object_defense: Math.max(0, obj.object_defense || 0),
     object_crit: Math.max(0, obj.object_crit || 0),
     object_dodge: Math.max(0, obj.object_dodge || 0),
+    // 新增属性
+    isDuplicate: obj.isDuplicate || false,
+    base: obj.base || null,
+    poolIndex: obj.poolIndex || null
   };
 
   try {
@@ -378,6 +471,11 @@ function loadState() {
         if (Array.isArray(raw[i]) && raw[i].length === 2) {
           for (let j = 0; j < 2; j++) {
             gridState[i][j] = deserializeFighter(raw[i][j]);
+            // 如果没有 poolIndex，则分配一个
+            if (gridState[i][j] && !gridState[i][j].poolIndex) {
+              const index = getNextDuplicateIndex();
+              gridState[i][j].poolIndex = index;
+            }
           }
         }
       }
@@ -396,6 +494,11 @@ function loadState() {
         const fighter = deserializeFighter(data);
         if (fighter) {
           benchState.push(fighter);
+          // 如果没有 poolIndex，则分配一个
+          if (!fighter.poolIndex) {
+            const index = getNextDuplicateIndex();
+            fighter.poolIndex = index;
+          }
         }
       });
     }
@@ -486,7 +589,33 @@ function renderGrid() {
 
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = fighter ? fighter.name : I18N.getFighterName("Empty");
+
+      if (fighter) {
+        if (fighter.isDuplicate && fighter.base) {
+          // Duplicated fighter display two lines: class and localized "copy of" text
+          const duplicateText = formatString(
+            I18N.getUIElement("DUPLICATE_NAME"),
+            fighter.poolIndex ? `#${fighter.poolIndex}D` : fighter.base.name
+          );
+          name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText}</small>`;
+        } else {
+          // Normally display with index
+          name.textContent = fighter.name;
+          // 为原始佣兵也设置 poolIndex（如果还没有的话）
+          if (!fighter.poolIndex) {
+            const index = getNextDuplicateIndex();
+            fighter.poolIndex = index;
+          }
+          const indexSpan = document.createElement("span");
+          indexSpan.textContent = ` #${fighter.poolIndex}`;
+          indexSpan.style.opacity = "0.6";
+          indexSpan.style.fontSize = "0.8em";
+          name.appendChild(indexSpan);
+        }
+      } else {
+        name.textContent = I18N.getFighterName("Empty");
+      }
+
       cell.appendChild(name);
 
       if (fighter) {
@@ -496,7 +625,6 @@ function renderGrid() {
         const del = document.createElement("button");
         del.className = "btn small delete";
         del.dataset.i18n = `UIElement.DELETE`;
-        //del.textContent = "Delete";
         del.textContent = I18N.getUIElement("Delete");
         del.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -510,7 +638,13 @@ function renderGrid() {
         const duplicate = document.createElement("button");
         duplicate.className = "btn small duplicate";
         duplicate.dataset.i18n = `UIElement.DUPLICATE`;
-        duplicate.textContent = I18N.getUIElement("Duplicate");
+        duplicate.title = I18N.getUIElement("Duplicate");
+        
+        // 添加SVG图标
+        duplicate.innerHTML = "";
+        const duplicateIcon = createDuplicateIcon();
+        duplicate.appendChild(duplicateIcon);
+        
         duplicate.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -557,13 +691,13 @@ function renderBench() {
     placeholder.style.textAlign = "center";
     placeholder.style.color = "#8892b0";
     placeholder.style.fontSize = "0.9em";
-    placeholder.style.flex = "1 1 100%";
     placeholder.style.minHeight = "60px";
     placeholder.style.display = "flex";
     placeholder.style.alignItems = "center";
     placeholder.style.justifyContent = "center";
     placeholder.style.borderRadius = "10px";
     placeholder.style.padding = "0 0.66em";
+    placeholder.style.width = "100%"; // 占满整行
 
     // Make placeholder accept drops
     placeholder.addEventListener("dragover", handleDragOver);
@@ -578,6 +712,7 @@ function renderBench() {
     benchItem.className = "bench-fighter";
     benchItem.draggable = true;
     benchItem.dataset.benchIndex = index;
+    benchItem.style.width = "100%"; // 确保占满整行
 
     benchItem.addEventListener("dragstart", handleDragStart);
     benchItem.addEventListener("dragend", handleDragEnd);
@@ -612,13 +747,36 @@ function renderBench() {
     nameContainer.style.alignItems = "center";
     nameContainer.style.justifyContent = "center";
     nameContainer.style.minWidth = "0";
+    nameContainer.style.width = "100%"; // 占满空间
 
     const name = document.createElement("span");
     name.className = "name";
-    name.textContent = fighter.name;
     name.style.textAlign = "center";
-    nameContainer.appendChild(name);
+    name.style.width = "100%"; // 文本占满空间
+    
+    if (fighter.isDuplicate && fighter.base) {
+      // Duplicated fighter display two lines: class and localized "copy of" text
+      const duplicateText = formatString(
+        I18N.getUIElement("DUPLICATE_NAME"),
+        fighter.poolIndex ? `#${fighter.poolIndex}D` : fighter.base.name
+      );
+      name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText}</small>`;
+    } else {
+      // Normally display with index
+      name.textContent = fighter.name;
+      // 为原始佣兵也设置 poolIndex（如果还没有的话）
+      if (!fighter.poolIndex) {
+        const currentIndex = getNextDuplicateIndex();
+        fighter.poolIndex = currentIndex;
+      }
+      const indexSpan = document.createElement("span");
+      indexSpan.textContent = ` #${fighter.poolIndex}`;
+      indexSpan.style.opacity = "0.6";
+      indexSpan.style.fontSize = "0.8em";
+      name.appendChild(indexSpan);
+    }
 
+    nameContainer.appendChild(name);
     benchItem.appendChild(nameContainer);
 
     const actions = document.createElement("div");
@@ -647,14 +805,19 @@ function renderBench() {
 
     const duplicate = document.createElement("button");
     duplicate.className = "btn small duplicate";
-    duplicate.textContent = "D";
-    duplicate.style.fontSize = "0.7em";
+    duplicate.title = I18N.getUIElement("Duplicate");
     duplicate.style.padding = "0.2em";
-    duplicate.style.width = "20px";
-    duplicate.style.height = "20px";
+    duplicate.style.width = "24px";
+    duplicate.style.height = "24px";
     duplicate.style.display = "flex";
     duplicate.style.alignItems = "center";
     duplicate.style.justifyContent = "center";
+
+    // 添加SVG图标
+    duplicate.innerHTML = "";
+    const duplicateIcon = createDuplicateIcon();
+    duplicate.appendChild(duplicateIcon);
+
     duplicate.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -749,14 +912,21 @@ function populateFighterModal(fighter) {
     const currentName = fighterNameInput.value.trim();
     const newClass = fighterClassSelect.value;
 
+    // Reset duplicate flag if class changes
+    if (fighter && fighter.isDuplicate && fighter.fighter_class !== newClass) {
+      fighter.isDuplicate = false;
+      fighter.base = null;
+    }
+
     // If name is empty or matches the old class, update it to the new class
     if (
       !currentName ||
       (fighter && currentName === fighter.fighter_class) ||
+      (fighter && fighter.isDuplicate && currentName === fighter.base.name) ||
       (!fighter &&
         (!currentName || Object.values(FighterClasses).includes(currentName)))
     ) {
-      fighterNameInput.value = newClass;
+      fighterNameInput.value = I18N.getFighterName(newClass.replace(" ", "_"));
     }
   };
 }
@@ -776,8 +946,8 @@ saveFighterBtn.addEventListener("click", () => {
   // Create fighter data from form inputs
   const data = {};
 
-  // Add name to data, use class name as default if no name provided
-  data.name = fighterName || fc;
+  // Add name to data, use localized class name as default if no name provided
+  data.name = fighterName || I18N.getFighterName(fc.replace(" ", "_"));
 
   const fields = [
     "fighter_health",
@@ -804,6 +974,40 @@ saveFighterBtn.addEventListener("click", () => {
   });
 
   try {
+    // Check if we're editing a duplicate fighter and the class has changed
+    let isDuplicate = false;
+    let base = null;
+    
+    if (editingCell.i >= 0 && editingCell.j >= 0) {
+      const originalFighter = gridState[editingCell.i][editingCell.j];
+      if (originalFighter && originalFighter.isDuplicate && originalFighter.fighter_class !== fc) {
+        // Class changed, reset duplicate status
+        isDuplicate = false;
+        base = null;
+      } else if (originalFighter && originalFighter.isDuplicate) {
+        // Class unchanged, keep duplicate status
+        isDuplicate = true;
+        base = originalFighter.base;
+      }
+    } else if (editingBench.index >= 0) {
+      const originalFighter = benchState[editingBench.index];
+      if (originalFighter && originalFighter.isDuplicate && originalFighter.fighter_class !== fc) {
+        // Class changed, reset duplicate status
+        isDuplicate = false;
+        base = null;
+      } else if (originalFighter && originalFighter.isDuplicate) {
+        // Class unchanged, keep duplicate status
+        isDuplicate = true;
+        base = originalFighter.base;
+      }
+    }
+    
+    // Add duplicate flag and base fighter if applicable
+    if (isDuplicate) {
+      data.isDuplicate = true;
+      data.base = base;
+    }
+
     // Create fighter with selected class (including "No Class")
     const f = new Fighter(fc, data);
     // Store raw inputs on instance for easy re-populating
@@ -824,8 +1028,8 @@ saveFighterBtn.addEventListener("click", () => {
       renderBench();
     }
   } catch (error) {
-    console.error(I18N.getConsoleMsg("ERR_FAIL_CREA_FIGHTER"), error); // ConsoleMessages.ERR_FAIL_CREA_FIGHTER
-    alert(I18N.getAlertMsg("ERR_FAIL_CREA_FIGHTER")); // Alerts.ERR_FAIL_CREA_FIGHTER
+    console.error(I18N.getConsoleMsg("ERR_FAIL_CREA_FIGHTER"), error);
+    alert(I18N.getAlertMsg("ERR_FAIL_CREA_FIGHTER"));
     return;
   }
 

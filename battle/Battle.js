@@ -421,7 +421,7 @@ export class Battle {
     });
     output += "</tr>";
     for (const row of rows) {
-      output += "<tr>";
+      output += `<tr height="55px">`;
       row.forEach((cell) => {
         // Handle multi-line cells by replacing newlines with <br>
         const cellContent = (cell || "")
@@ -430,7 +430,7 @@ export class Battle {
           .filter((line) => line.length > 0)
           .join("<br>");
 
-        output += `<td style="border: 1px solid white; padding: 8px; ${cellContent.indexOf("*") > 0 ? "background: #A0522D;" : ""} ">${cellContent.replace("EMPTY", "")}</td>`;
+        output += `<td style="width:25%; border: 1px solid white; padding: 8px; ${cellContent.indexOf("*") > 0 ? "background: #A0522D;" : ""} ">${cellContent.replace("EMPTY", "")}</td>`;
       });
       output += "</tr>";
     }
