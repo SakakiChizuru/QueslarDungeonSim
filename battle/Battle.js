@@ -326,7 +326,7 @@ export class Battle {
    * @param {boolean} sigle If needs display a sigle info
    */
   _draw_table_head(content, sigle = false) {
-    let head = `<table style="border: 1px solid white; border-collapse: collapse; width: 100%; text-align: center; background:#778899">\n`;
+    let head = `<table style="border: 1px solid white; border-collapse: collapse; width: 100%; text-align: center; background:#36405a">\n`;
     head += `<thead><tr><th colspan="4" style="border: 1px solid white; padding: 16px;"> ${content} </th></tr></thead>${sigle ? "</table>" : ""}`;
     console.log(head);
   }
