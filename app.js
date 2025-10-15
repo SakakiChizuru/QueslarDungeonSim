@@ -2,7 +2,7 @@ import { FightersSquad } from "./squads/FightersSquad.js";
 import { MobsSquad } from "./squads/MobsSquad.js";
 import { Battle } from "./battle/Battle.js";
 import { Fighter, FighterClasses } from "./characters/Fighter.js";
-import { I18nManager, formatString } from './utils/i18n.js';
+import { I18nManager, formatString } from "./utils/i18n.js";
 
 const fightersGridEl = document.getElementById("fightersGrid");
 const verboseEl = document.getElementById("verbose");
@@ -37,17 +37,17 @@ const closeChangelog = document.getElementById("closeChangelog");
 const lastUpdatedEl = document.getElementById("lastUpdated");
 
 //Create i18n Manager
-const I18N = new I18nManager;
+const I18N = new I18nManager();
 let classDescriptions = null;
 await I18N.initPromise;
 
 // Now We Use I18nManager to load Descriptions ;D
 I18N.initPromise.then(() => {
-    classDescriptions = I18N.getClassDescription();
+  classDescriptions = I18N.getClassDescription();
 });
 
-I18N.on('languageChanged', (event) => {
-    classDescriptions = I18N.getClassDescription();
+I18N.on("languageChanged", (event) => {
+  classDescriptions = I18N.getClassDescription();
 });
 
 // First register i18n Manager to global because other module may use it.
@@ -108,7 +108,7 @@ document.body.appendChild(classTooltip);
 for (const value of Object.values(FighterClasses)) {
   const opt = document.createElement("option");
   opt.value = value;
-  opt.textContent = I18N.getFighterName(value.replace(' ', '_'));
+  opt.textContent = I18N.getFighterName(value.replace(" ", "_"));
   //opt.textContent = value;
   fighterClassSelect.appendChild(opt);
 }
@@ -176,8 +176,10 @@ Object.values(FighterClasses).forEach((className) => {
     border-bottom: 1px solid #2c3242;
     transition: background-color 0.15s ease;
   `;
-  option.textContent = I18N.getFighterName(className.replace(' ', '_').toUpperCase());
-  option.dataset.i18n = `FighterName.${className.replace(' ', '_').toUpperCase()}`
+  option.textContent = I18N.getFighterName(
+    className.replace(" ", "_").toUpperCase(),
+  );
+  option.dataset.i18n = `FighterName.${className.replace(" ", "_").toUpperCase()}`;
   option.dataset.value = className;
 
   // Hover effects
@@ -276,7 +278,10 @@ function duplicateFighter(originalFighter) {
   const duplicateData = { ...originalData };
 
   // Update the name
-  duplicateData.name = formatString(I18N.getUIElement("DUPLICATE_NAME"), originalFighter.name);
+  duplicateData.name = formatString(
+    I18N.getUIElement("DUPLICATE_NAME"),
+    originalFighter.name,
+  );
   //duplicateData.name = `Duplicate of ${originalFighter.name}`;
 
   // Create the duplicate fighter
@@ -481,9 +486,7 @@ function renderGrid() {
 
       const name = document.createElement("span");
       name.className = "name";
-      name.dataset.i18n = `FighterName.${fighter ? fighter.fighter_class.toUpperCase() : "EMPTY"}`;
-      //name.textContent = fighter ? fighter.name : "Empty";
-      name.textContent = I18N.getFighterName(fighter ? fighter.fighter_class : "Empty");
+      name.textContent = fighter ? fighter.name : I18N.getFighterName("Empty");
       cell.appendChild(name);
 
       if (fighter) {
@@ -549,7 +552,7 @@ function renderBench() {
     placeholder.style.opacity = "0.3";
     placeholder.style.border = "2px dashed #36405a";
     placeholder.style.background = "transparent";
-    placeholder.dataset.i18n = "UIElement.DROP_FIGHTER_HERE"
+    placeholder.dataset.i18n = "UIElement.DROP_FIGHTER_HERE";
     placeholder.textContent = I18N.getUIElement("DROP_FIGHTER_HERE");
     placeholder.style.textAlign = "center";
     placeholder.style.color = "#8892b0";
@@ -612,8 +615,7 @@ function renderBench() {
 
     const name = document.createElement("span");
     name.className = "name";
-    name.dataset.i18n = `FighterName.${fighter.fighter_class.toUpperCase()}`;
-    name.textContent = I18N.getFighterName(fighter.name);
+    name.textContent = fighter.name;
     name.style.textAlign = "center";
     nameContainer.appendChild(name);
 
@@ -711,7 +713,7 @@ function populateFighterModal(fighter) {
       const selectedClass = fighter
         ? fighter.fighter_class
         : FighterClasses.NONE;
-      dropdownButton.innerHTML = `${I18N.getFighterName(selectedClass.replace(' ','_'))} <span style="float: right;">▼</span>`;
+      dropdownButton.innerHTML = `${I18N.getFighterName(selectedClass.replace(" ", "_"))} <span style="float: right;">▼</span>`;
     }
   }
 
@@ -928,7 +930,11 @@ function runBattles() {
     outputEl.innerHTML = lastBattleLog.join("\n");
     //console.warn(lastBattleLog.join("\n"));
   } else {
-    outputEl.textContent = formatString(I18N.getUIElement("TOTAL_WONS"), fighterWins, actualBattlesToRun); // TOTAL_WONS
+    outputEl.textContent = formatString(
+      I18N.getUIElement("TOTAL_WONS"),
+      fighterWins,
+      actualBattlesToRun,
+    ); // TOTAL_WONS
     //outputEl.textContent = `Fighters won ${fighterWins} out of ${n} battles.`;
   }
 }
@@ -990,7 +996,7 @@ importConfirmModal.querySelector(".modal").addEventListener("click", (e) => {
 // Perform the actual API import
 async function performImport(apiKey) {
   try {
-    importBtn.disabled = true;    
+    importBtn.disabled = true;
     importBtn.textContent = I18N.getUIElement("IMPORTING");
 
     const response = await fetch(
@@ -1004,7 +1010,9 @@ async function performImport(apiKey) {
     );
 
     if (!response.ok) {
-      throw new Error(formatString(I18N.getAlertMsg("ERR_HTTP_ERROR"), response.status)); //Alert.ERR_HTTP_ERROR
+      throw new Error(
+        formatString(I18N.getAlertMsg("ERR_HTTP_ERROR"), response.status),
+      ); //Alert.ERR_HTTP_ERROR
       //throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -1033,8 +1041,7 @@ function processImportedData(apiData) {
     if (!apiData.output || !Array.isArray(apiData.output)) {
       return {
         success: false,
-        message:
-          I18N.getConsoleMsg("IVLD_API_FORMAT"),
+        message: I18N.getConsoleMsg("IVLD_API_FORMAT"),
       };
     }
 
@@ -1052,8 +1059,7 @@ function processImportedData(apiData) {
       );
       return {
         success: false,
-        message:
-          I18N.getConsoleMsg("INFO_NO_AVIL_PRESET"),
+        message: I18N.getConsoleMsg("INFO_NO_AVIL_PRESET"),
       };
     }
 
@@ -1143,7 +1149,10 @@ function processImportedData(apiData) {
     return {
       success: false,
       // message: `Error processing imported data: ${error.message}`,
-      message: formatString(I18N.getConsoleMsg("ERR_PROC_IMPORT_DATA"), error.message),
+      message: formatString(
+        I18N.getConsoleMsg("ERR_PROC_IMPORT_DATA"),
+        error.message,
+      ),
     };
   }
 }
@@ -1641,8 +1650,6 @@ numBattlesEl.addEventListener("paste", () => {
     }
   }, 0);
 });
-
-
 
 loadState();
 renderGrid();

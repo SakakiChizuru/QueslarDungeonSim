@@ -1,3 +1,7 @@
+2025-10-15
+- Reworked the verbose display (thanks Sakaki Chizuru)
+- Added Chinese localization (all done by Sakaki Chizuru)
+
 2025-10-14
 - Shadow Dancer double damage attack will stay until a successful hit
 

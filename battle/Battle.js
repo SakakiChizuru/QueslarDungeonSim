@@ -58,7 +58,12 @@ export class Battle {
     }
 
     const winner = this._check_battle_is_over();
-    return [winner, this.current_round, this.I18N.getBattleMsg("HEALTH_0"), tot_mob_health];
+    return [
+      winner,
+      this.current_round,
+      this.I18N.getBattleMsg("HEALTH_0"),
+      tot_mob_health,
+    ];
   }
 
   _sumMobsHealth() {
@@ -147,7 +152,8 @@ export class Battle {
         if (this.verbose >= 2)
           console.log(`\nRNG brawler: ${rng_brawler} < 0.15`);
         if (rng_brawler < 0.15) {
-          if (this.verbose >= 1) this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true); //console.log("Brawler attacked twice!");
+          if (this.verbose >= 1)
+            this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true); //console.log("Brawler attacked twice!");
           this._do_standard_attack(attacker, target);
           target = this._find_target("mobs");
           if (target === null) {
@@ -316,30 +322,34 @@ export class Battle {
 
   /**
    * Print table head for Round information.
-   * @param {*} content 
+   * @param {*} content
    * @param {boolean} sigle If needs display a sigle info
    */
   _draw_table_head(content, sigle = false) {
     let head = `<table style="border: 1px solid white; border-collapse: collapse; width: 100%; text-align: center; background:#778899">\n`;
-    head += `<thead><tr><th colspan="4" style="border: 1px solid white; padding: 16px;"> ${content} </th></tr></thead>${((sigle) ? "</table>" : "")}`;
+    head += `<thead><tr><th colspan="4" style="border: 1px solid white; padding: 16px;"> ${content} </th></tr></thead>${sigle ? "</table>" : ""}`;
     console.log(head);
   }
 
   /**
    * Print row for special moves/passive effect.
-   * @param {*} content 
+   * @param {*} content
    */
   _draw_table_row(content) {
     let row = `<tr><th colspan="4" style="border: 1px solid white; padding: 16px;"> ${content} </th></tr>`;
     console.log(row);
   }
 
-
-
   _print_debug(i, j, type, current_attack) {
     if (this.verbose >= 1) {
       //console.log(`Round: ${this.current_round}, Attack: ${current_attack}\n`);
-      this._draw_table_row(formatString(this.I18N.getBattleMsg("ROUND_INFO"), this.current_round, current_attack));
+      this._draw_table_row(
+        formatString(
+          this.I18N.getBattleMsg("ROUND_INFO"),
+          this.current_round,
+          current_attack,
+        ),
+      );
       this._draw_health_table(i, j, type);
     }
   }
@@ -355,9 +365,13 @@ export class Battle {
       let label =
         type === "fighters"
           ? this.I18N.getFighterName(fighters[x][y].fighter_class)
-          //? fighters[x][y].fighter_class
-          : formatString(this.I18N.getBattleMsg("HEALTH_TABLE_LINE"), mobs[x][y].mob_class, mobs[x][y].level);
-          //: `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
+          : //? fighters[x][y].fighter_class
+            formatString(
+              this.I18N.getBattleMsg("HEALTH_TABLE_LINE"),
+              mobs[x][y].mob_class,
+              mobs[x][y].level,
+            );
+      //: `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
       if (selI === x && selJ === y && att_type === type) label += " *";
 
       let current, total;
@@ -386,7 +400,7 @@ export class Battle {
       formattedString(i, j, att_type, x, 1, "fighters"),
     ]);
 
-    /*     
+    /*
     const headers = [
       "Mobs Back",
       "Mobs Front",
@@ -400,26 +414,27 @@ export class Battle {
 
     // Build HTML table
     // Table body, table head process with this._draw_table_head
-    let output = '<tbody>'
-    output += '<tr>';
-    headers.forEach(headerline => {
-        output += `<td style="border: 1px solid white; padding: 8px;">${headerline}</td>`;
+    let output = "<tbody>";
+    output += "<tr>";
+    headers.forEach((headerline) => {
+      output += `<td style="border: 1px solid white; padding: 8px;">${headerline}</td>`;
     });
-    output += '</tr>';
+    output += "</tr>";
     for (const row of rows) {
-        output += '<tr>';
-        row.forEach(cell => {
-            // Handle multi-line cells by replacing newlines with <br>
-            const cellContent = (cell || "").split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 0)
-                .join('<br>');
-            
-            output += `<td style="border: 1px solid white; padding: 8px; ${((cellContent.indexOf("*") > 0) ? "background: #A0522D;" : "" )} ">${cellContent.replace("EMPTY", "")}</td>`;
-        });
-        output += '</tr>';
+      output += "<tr>";
+      row.forEach((cell) => {
+        // Handle multi-line cells by replacing newlines with <br>
+        const cellContent = (cell || "")
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0)
+          .join("<br>");
+
+        output += `<td style="border: 1px solid white; padding: 8px; ${cellContent.indexOf("*") > 0 ? "background: #A0522D;" : ""} ">${cellContent.replace("EMPTY", "")}</td>`;
+      });
+      output += "</tr>";
     }
-    output += '</tbody></table>';
+    output += "</tbody></table>";
 
     /*
       const colWidths = headers.map((_, ci) =>
@@ -461,7 +476,7 @@ export class Battle {
         tableLines.push(separator);
       }
 
-      const output = tableLines.join("\n") + "\n\n"; 
+      const output = tableLines.join("\n") + "\n\n";
     */
 
     // Print to HTML <pre> element
@@ -482,12 +497,15 @@ export class Battle {
     // Add safety check for null/undefined targets
     if (!target) {
       if (this.verbose >= 1)
-        console.log(formatString(this.I18N.getBattleMsg("ERR_IVLD_TGT_ID"), attacker instanceof Mob ? 
-            this.I18N.getBattleMsg("mob") : 
-            this.I18N.getBattleMsg("fighter")
-          )
+        console.log(
+          formatString(
+            this.I18N.getBattleMsg("ERR_IVLD_TGT_ID"),
+            attacker instanceof Mob
+              ? this.I18N.getBattleMsg("mob")
+              : this.I18N.getBattleMsg("fighter"),
+          ),
         );
-        /*
+      /*
         console.log(
           `No valid target found for ${attacker instanceof Mob ? "mob" : "fighter"} attack`,
         );
@@ -496,17 +514,26 @@ export class Battle {
     }
 
     if (attacker instanceof Mob)
-      attacker_name = formatString(this.I18N.getBattleMsg("MOB_ATK_NAME"), attacker.level, attacker.mob_class);
-      //attacker_name = `level ${attacker.level} ${attacker.mob_class}`;
+      attacker_name = formatString(
+        this.I18N.getBattleMsg("MOB_ATK_NAME"),
+        attacker.level,
+        attacker.mob_class,
+      );
+    //attacker_name = `level ${attacker.level} ${attacker.mob_class}`;
     else if (attacker instanceof Fighter)
       attacker_name = this.I18N.getFighterName(attacker.fighter_class);
     else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_ATKR"));
     //else throw new Error("Invalid attacker");
 
     if (target instanceof Mob)
-      target_name = formatString(this.I18N.getBattleMsg("MOB_TGT_NAME"), target.level, target.mob_class);
-      //target_name = `level ${target.level} ${target.mob_class}`;
-    else if (target instanceof Fighter) target_name = this.I18N.getFighterName(target.fighter_class);
+      target_name = formatString(
+        this.I18N.getBattleMsg("MOB_TGT_NAME"),
+        target.level,
+        target.mob_class,
+      );
+    //target_name = `level ${target.level} ${target.mob_class}`;
+    else if (target instanceof Fighter)
+      target_name = this.I18N.getFighterName(target.fighter_class);
     else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_TGT"));
     //else throw new Error("Invalid target");
 
@@ -546,11 +573,8 @@ export class Battle {
         console.log(`Shadow dancer evade rng: ${rng_evade.toFixed(3)} < 0.25`);
       if (rng_evade < 0.25) {
         if (this.verbose >= 1)
-          this._draw_table_head(
-            this.I18N.getBattleMsg("SP_SD_EVADED"),
-            true
-          );            
-/*           console.log(
+          this._draw_table_head(this.I18N.getBattleMsg("SP_SD_EVADED"));
+        /*           console.log(
             "Shadow dancer has evaded. Next attack will be double damage",
           ); */
         this.shadow_dancer_double_damage = true;
@@ -561,11 +585,8 @@ export class Battle {
 
     if (this.bastion_aura) {
       if (this.verbose >= 1)
-          this._draw_table_head(
-            this.I18N.getBattleMsg("SP_BS_DMG_DODGE"),
-            true
-          );        
-/*         console.log(
+        this._draw_table_head(this.I18N.getBattleMsg("SP_BS_DMG_DODGE"), true);
+      /*         console.log(
           "Bastion aura adds 25% damage reduction and 50% increased dodge ",
         ); */
       additional_dr = additional_dr + 0.25;
@@ -581,11 +602,11 @@ export class Battle {
         this._draw_table_head(
           formatString(
             this.I18N.getBattleMsg("ATK_CANNOT_DODGE"),
-            attacker_name
+            attacker_name,
           ),
-          true
+          true,
         );
-        //console.log(`${attacker_name} attack cannot be dodged`);
+      //console.log(`${attacker_name} attack cannot be dodged`);
       this.cannot_be_dodged = false;
     } else {
       rng_attack = Math.random();
@@ -594,11 +615,11 @@ export class Battle {
           formatString(
             this.I18N.getBattleMsg("ATK_RNG_SUCC"),
             rng_attack.toFixed(3),
-            attacker_chance.toFixed(3)
+            attacker_chance.toFixed(3),
           ),
-          true
+          true,
         );
-/*         console.log(
+      /*         console.log(
           `Successful attack rng: ${rng_attack.toFixed(3)} < ${attacker_chance.toFixed(3)}`,
         ); */
     }
@@ -614,9 +635,9 @@ export class Battle {
         if (this.verbose >= 1)
           this._draw_table_head(
             this.I18N.getBattleMsg("SP_SD_APL_DOUBLEDMG"),
-            true
+            true,
           );
-          //console.log("Shadow Dancer applies double damage");
+        //console.log("Shadow Dancer applies double damage");
         attacker_damage = attacker_damage * 2;
         this.shadow_dancer_double_damage = false;
       }
@@ -625,9 +646,9 @@ export class Battle {
         if (this.verbose >= 1)
           this._draw_table_head(
             this.I18N.getBattleMsg("SP_PL_DMG_REDUCTION"),
-            true
+            true,
           );
-          //console.log("Paladin aura adds 15% damage reduction");
+        //console.log("Paladin aura adds 15% damage reduction");
         additional_dr = additional_dr + 0.15;
         this.paladin_aura = false;
       }
@@ -639,11 +660,11 @@ export class Battle {
         this._draw_table_head(
           formatString(
             this.I18N.getBattleMsg("CRT_RNG_INFO"),
-            rng_attack.toFixed(3)
+            rng_attack.toFixed(3),
           ),
-          true
+          true,
         );
-        //console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
+      //console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
       if (rng_crit < 0.1) {
         dmg_amount = dmg_amount * (1 + attacker_crit);
       }
@@ -652,10 +673,13 @@ export class Battle {
       if (this.verbose >= 1)
         this._draw_table_head(
           formatString(
-            this.I18N.getBattleMsg("DAMAGE_INFO"), attacker_name, target_name, dmg_applied
-          )
+            this.I18N.getBattleMsg("DAMAGE_INFO"),
+            attacker_name,
+            target_name,
+            dmg_applied,
+          ),
         );
-/*         console.log(
+      /*         console.log(
           `${attacker_name} hits ${target_name} and deals ${dmg_applied} damage.`,
         ); */
       target.current_health = Math.max(
@@ -668,17 +692,16 @@ export class Battle {
           formatString(
             this.I18N.getBattleMsg("ATK_MISS"),
             attacker_name,
-            target_name
-          )      
+            target_name,
+          ),
         );
-        //console.log(`${attacker_name} misses attacking ${target_name}.`);
+      //console.log(`${attacker_name} misses attacking ${target_name}.`);
       if (
         target instanceof Fighter &&
         target.fighter_class === FighterClasses.SHADOW_DANCER
       ) {
-        if (this.verbose >= 1)
-          this._draw_table_head("SP_SD_DODGED");
-/*           console.log(
+        if (this.verbose >= 1) this._draw_table_head("SP_SD_DODGED");
+        /*           console.log(
             "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
           ); */
       }
