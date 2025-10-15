@@ -33,10 +33,13 @@ export class Fighter {
       object_defense = 0,
       object_crit = 0,
       object_dodge = 0,
+      // 新增属性
+      isDuplicate = false,
+      base = null,
+      poolIndex = null
     } = {},
   ) {
     this.fighter_class = fighterClass;
-
     this.I18N = window.i18nManager;
 
     if (!Object.values(FighterClasses).includes(fighterClass)) {
@@ -45,7 +48,7 @@ export class Fighter {
       );
     }
 
-    this.name = name || fighterClass;
+    this.name = name || this.I18N.getFighterName(fighterClass.replace(" ", "_"));
 
     this.total_health = Math.ceil(500 + 100 * fighter_health) + object_health;
     this.current_health = this.total_health;
@@ -57,9 +60,10 @@ export class Fighter {
     this.dodge = Math.ceil(50.0 + 50.0 * fighter_dodge) + object_dodge;
 
     this.hit_counter = 0;
-  }
-
-  toString() {
-    return `I am ${this.name} (${this.fighter_class}) with Health: ${this.current_health}/${this.total_health}, Damage: ${this.damage}, Hit: ${this.hit}, Defense: ${(100 * this.defense).toFixed(2)}%, Crit: ${(100 * this.crit).toFixed(2)}%, Dodge: ${this.dodge}`;
+    
+    // 新增属性
+    this.isDuplicate = isDuplicate;
+    this.base = base;
+    this.poolIndex = poolIndex;
   }
 }
