@@ -353,13 +353,7 @@ function duplicateFighter(originalFighter) {
   const originalData = originalFighter.__raw || {};
   const duplicateData = { ...originalData };
 
-  // 获取下一个编号
   const nextIndex = getNextDuplicateIndex();
-  
-  // 更新名字，添加复制编号
-  duplicateData.name = `${originalFighter.name} #${nextIndex}D`;
-  
-  // Add a flag to indicate that this is a duplicate
   duplicateData.isDuplicate = true;
   duplicateData.base = {
     name: originalFighter.name,
@@ -595,9 +589,9 @@ function renderGrid() {
           // Duplicated fighter display two lines: class and localized "copy of" text
           const duplicateText = formatString(
             I18N.getUIElement("DUPLICATE_NAME"),
-            fighter.poolIndex ? `#${fighter.poolIndex}D` : fighter.base.name
+            fighter.base.name
           );
-          name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText}</small>`;
+          name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText} #${fighter.poolIndex}D</small>`;
         } else {
           // Normally display with index
           name.textContent = fighter.name;
@@ -758,9 +752,9 @@ function renderBench() {
       // Duplicated fighter display two lines: class and localized "copy of" text
       const duplicateText = formatString(
         I18N.getUIElement("DUPLICATE_NAME"),
-        fighter.poolIndex ? `#${fighter.poolIndex}D` : fighter.base.name
+        fighter.base.name
       );
-      name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText}</small>`;
+      name.innerHTML = `${I18N.getFighterName(fighter.fighter_class)}<br/><small style="font-size: 0.7em; opacity: 0.7;">${duplicateText} #${fighter.poolIndex}D</small>`;
     } else {
       // Normally display with index
       name.textContent = fighter.name;
@@ -782,6 +776,7 @@ function renderBench() {
     const actions = document.createElement("div");
     actions.style.display = "flex";
     actions.style.flexDirection = "column";
+    actions.style.alignItems = "center";
     actions.style.gap = "0.1em";
     actions.style.flexShrink = "0";
 
