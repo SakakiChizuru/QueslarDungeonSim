@@ -1,3 +1,6 @@
+2025-10-16
+- Polished non verbose battle output text. Included average sum of surviving mobs health. 
+
 2025-10-15
 - Introduced fighters index so dulipcations can be tracked
 - Various graphic fixes

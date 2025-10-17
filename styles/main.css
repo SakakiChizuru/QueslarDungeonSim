@@ -318,6 +318,7 @@ input[type="checkbox"] {
     color: #e6eaf3;
     font-family:
         "Courier New", Consolas, "Lucida Console", monospace; /* FIXED-WIDTH FONT */
+    font-size: 1em;
     overflow-x: auto;
 }
 footer {

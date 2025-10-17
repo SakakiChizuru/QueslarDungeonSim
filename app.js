@@ -1087,6 +1087,7 @@ function buildFightersSquad() {
 function runBattles() {
   // Clear previous output immediately
   outputEl.textContent = "";
+  outputEl.innerHTML = "";
 
   let level = Math.max(1, parseInt(mobLevelEl.value) || 1);
   let n = Math.max(1, parseInt(numBattlesEl.value) || 1);
@@ -1106,6 +1107,8 @@ function runBattles() {
 
   // Reset battle statistics completely
   let fighterWins = 0;
+  let totalMobsHealth = 0;
+  let battlesWithSurvivors = 0;
   let lastBattleLog = [];
   const originalConsoleLog = console.log;
 
@@ -1128,10 +1131,16 @@ function runBattles() {
 
       // Pass verbose flag only if we should log verbose
       const battle = new Battle(fighters, mobs, shouldLogVerbose ? 1 : 0);
-      const [winner] = battle.battle();
+      const battleResult = battle.battle();
+      const [winner, rounds, message, mobHealth] = battleResult;
 
       if (winner === "fighters") {
         fighterWins += 1;
+      }
+
+      if (winner === "mobs") {
+        totalMobsHealth += mobHealth;
+        battlesWithSurvivors += 1;
       }
     }
   } finally {
@@ -1144,12 +1153,22 @@ function runBattles() {
     outputEl.innerHTML = lastBattleLog.join("\n");
     //console.warn(lastBattleLog.join("\n"));
   } else {
-    outputEl.textContent = formatString(
-      I18N.getUIElement("TOTAL_WONS"),
-      fighterWins,
-      actualBattlesToRun,
-    ); // TOTAL_WONS
-    //outputEl.textContent = `Fighters won ${fighterWins} out of ${n} battles.`;
+    const victoryChance = ((fighterWins / actualBattlesToRun) * 100).toFixed(2);
+    const avgHealthSurvivors =
+      battlesWithSurvivors > 0
+        ? Math.round(totalMobsHealth / battlesWithSurvivors)
+        : 0;
+
+    const victoryLine = formatString(
+      I18N.getUIElement("VICTORY_CHANCE"),
+      victoryChance,
+    );
+    const healthLine = formatString(
+      I18N.getUIElement("AVG_SURVIVOR_HEALTH"),
+      avgHealthSurvivors,
+    );
+
+    outputEl.innerHTML = `${victoryLine}<br>${healthLine}`;
   }
 }
 

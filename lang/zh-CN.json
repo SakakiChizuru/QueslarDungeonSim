@@ -92,6 +92,9 @@
 
     "TOTAL_WONS": "佣兵在{1}场战斗中总共赢了{0}场.",
 
+    "VICTORY_CHANCE": "胜利几率: {0}%",
+    "AVG_SURVIVOR_HEALTH": "幸存怪物平均总血量: {0}",
+
     "IMPORTING": "导入中..."
   },
 
