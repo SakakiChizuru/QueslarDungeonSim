@@ -583,7 +583,7 @@ export class Battle {
       }
     }
 
-    if (this.bastion_aura) {
+    if (target instanceof Fighter && this.bastion_aura) {
       if (this.verbose >= 1)
         this._draw_table_head(this.I18N.getBattleMsg("SP_BS_DMG_DODGE"), true);
       /*         console.log(
