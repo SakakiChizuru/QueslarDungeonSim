@@ -1,3 +1,6 @@
+2025-10-19
+- Added probability of winning within next 60 minutes
+
 2025-10-16
 - Polished non verbose battle output text. Included average sum of surviving mobs health. 
 

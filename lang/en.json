@@ -94,6 +94,7 @@
 
     "VICTORY_CHANCE": "Victory chance: {0}%",
     "AVG_SURVIVOR_HEALTH": "Average total health of surviving mobs: {0} hp",
+    "CHANCE_60_MIN": "Probability of winning within the next 60 minutes: {0}%",
 
     "IMPORTING": "Importing..."
   },

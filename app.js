@@ -55,30 +55,6 @@ I18N.on("languageChanged", (event) => {
 // First register i18n Manager to global because other module may use it.
 window.i18nManager = I18N;
 
-// Fighter class descriptions for tooltips
-/* const classDescriptions = {
-  Assassin: "The assassin prioritises the back column first",
-  Brawler: "The brawler has 15% chance to attack twice",
-  Hunter:
-    "The hunter attacks hits a row dealing 75% damage to every enemy fighter",
-  Mage: "The mage attacks hits a column dealing 50% damage to every enemy fighter",
-  Priest:
-    "While alive the priest has a 10% chance to resurrect a random dead fighter on your team every round",
-  "Shadow Dancer":
-    "The shadow dancer has a 25% chance to evade an attack completely. After any dodge, the next attack deals 200% damage",
-  Berserker:
-    "The berserker gains 25% damage for each 25% health lost. When below 25% health, berserker attacks cannot be dodged",
-  Paladin:
-    "The paladin provides a 15% damage reduction aura to all allied fighters in the same row",
-  Crusader:
-    "The crusader becomes more powerful as allies fall. Gains +20% to all stats for each dead ally",
-  Sentinel:
-    "The sentinel protects weakened allies, intercepting all attacks against allies below 25% health",
-  Bastion:
-    "Allies in adjacent position to the bastion gain +50% dodge and 25% damage reduction",
-  "No Class": "No special abilities",
-}; */
-
 // Create "COPY" image SVG
 function createDuplicateIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -1153,7 +1129,7 @@ function runBattles() {
     outputEl.innerHTML = lastBattleLog.join("\n");
     //console.warn(lastBattleLog.join("\n"));
   } else {
-    const victoryChance = ((fighterWins / actualBattlesToRun) * 100).toFixed(2);
+    const victoryChance = (fighterWins / actualBattlesToRun) * 100;
     const avgHealthSurvivors =
       battlesWithSurvivors > 0
         ? Math.round(totalMobsHealth / battlesWithSurvivors)
@@ -1161,14 +1137,18 @@ function runBattles() {
 
     const victoryLine = formatString(
       I18N.getUIElement("VICTORY_CHANCE"),
-      victoryChance,
+      victoryChance.toFixed(2),
     );
     const healthLine = formatString(
       I18N.getUIElement("AVG_SURVIVOR_HEALTH"),
       avgHealthSurvivors,
     );
+    const chance60Min = formatString(
+      I18N.getUIElement("CHANCE_60_MIN"),
+      ((1.0 - (1.0 - victoryChance / 100.0) ** 60) * 100.0).toFixed(2),
+    );
 
-    outputEl.innerHTML = `${victoryLine}<br>${healthLine}`;
+    outputEl.innerHTML = `${victoryLine}<br>${healthLine}<br>${chance60Min}`;
   }
 }
 
