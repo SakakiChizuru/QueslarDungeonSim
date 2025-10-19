@@ -200,38 +200,6 @@ export class Battle {
 
       if (
         attacker instanceof Fighter &&
-        attacker.fighter_class === FighterClasses.PRIEST
-      ) {
-        if (this.dead_fighters.length > 0) {
-          const rng_priest = Math.random();
-          if (rng_priest < 0.1) {
-            const idx = Math.floor(Math.random() * this.dead_fighters.length);
-            const resurrected_fighter = this.dead_fighters[idx];
-            resurrected_fighter.current_health =
-              resurrected_fighter.total_health;
-            resurrected_fighter.hit_counter = 0;
-            this.dead_fighters = [];
-            for (const [x, y] of [
-              [0, 0],
-              [1, 0],
-              [2, 0],
-              [0, 1],
-              [1, 1],
-              [2, 1],
-            ]) {
-              const f = this.fighters.all_fighters[x][y];
-              if (f && f.current_health === 0.0) this.dead_fighters.push(f);
-            }
-            if (this.verbose >= 1)
-              console.log(
-                `Priest resurrected ${resurrected_fighter.fighter_class}`,
-              );
-          }
-        }
-      }
-
-      if (
-        attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.BERSERKER
       ) {
         const health_ratio = attacker.current_health / attacker.total_health;
@@ -308,6 +276,67 @@ export class Battle {
 
       this._do_standard_attack(attacker, target);
       this._print_debug(i, j, row.type, current_attack);
+    }
+
+    // Do the Priest resurrection at the end of the round if still _check_battle_is_over
+
+    this.dead_fighters = [];
+    for (const [x, y] of [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+    ]) {
+      const f = this.fighters.all_fighters[x][y];
+      if (f && f.current_health === 0.0) this.dead_fighters.push(f);
+    }
+
+    const f = this.fighters.all_fighters;
+    const priest = [];
+    for (let x = 0; x < 3; x++) {
+      for (let y = 0; y < 2; y++) {
+        if (
+          f[x][y] &&
+          f[x][y].fighter_class === FighterClasses.PRIEST &&
+          f[x][y].current_health > 0.0
+        ) {
+          priest.push(f[x][y]);
+        }
+      }
+    }
+
+    if (priest.length > 0 && this.dead_fighters.length > 0) {
+      const rng_priest = Math.random();
+      if (rng_priest < 0.1) {
+        const idx = Math.floor(Math.random() * this.dead_fighters.length);
+        const resurrected_fighter = this.dead_fighters[idx];
+        resurrected_fighter.current_health = Math.round(
+          resurrected_fighter.total_health * 0.1,
+        );
+        resurrected_fighter.hit_counter = 0;
+        this.dead_fighters = [];
+        for (const [x, y] of [
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [0, 1],
+          [1, 1],
+          [2, 1],
+        ]) {
+          const f = this.fighters.all_fighters[x][y];
+          if (f && f.current_health === 0.0) this.dead_fighters.push(f);
+        }
+        if (this.verbose >= 1)
+          this._draw_table_head(
+            formatString(
+              this.I18N.getBattleMsg("PRIEST_RESURRECTED"),
+              resurrected_fighter.name,
+            ),
+            true,
+          );
+      }
     }
 
     if (this.verbose >= 1) {
@@ -436,49 +465,6 @@ export class Battle {
     }
     output += "</tbody></table>";
 
-    /*
-      const colWidths = headers.map((_, ci) =>
-        Math.max(
-          ...allCells.map((r) =>
-            (r[ci] || "").split("\n").reduce((a, l) => Math.max(a, l.length), 0),
-          ),
-        ),
-      );
-
-      // Helper to pad multiline cells
-      const padCell = (content, width) => {
-        const lines = (content || "").split("\n");
-        const paddedLines = lines.map((line) => line.padEnd(width, " "));
-        return paddedLines.join("\n");
-      };
-
-      // Build the table text
-      const separator = colWidths.map((w) => "-".repeat(w)).join("-+-");
-      const headerLine = headers
-        .map((h, i) => h.padEnd(colWidths[i], " "))
-        .join(" | ");
-      const tableLines = [headerLine, separator];
-
-      // Add rows (multi-line cell alignment)
-      for (const row of rows) {
-        const cellLines = row.map((cell, ci) =>
-          padCell(cell, colWidths[ci]).split("\n"),
-        );
-        const maxLines = Math.max(...cellLines.map((l) => l.length));
-        for (let li = 0; li < maxLines; li++) {
-          const line = cellLines
-            .map((l) =>
-              (l[li] || "").padEnd(colWidths[cellLines.indexOf(l)], " "),
-            )
-            .join(" | ");
-          tableLines.push(line);
-        }
-        tableLines.push(separator);
-      }
-
-      const output = tableLines.join("\n") + "\n\n";
-    */
-
     // Print to HTML <pre> element
     const outputEl = document.getElementById("battle-output");
 
@@ -505,11 +491,7 @@ export class Battle {
               : this.I18N.getBattleMsg("fighter"),
           ),
         );
-      /*
-        console.log(
-          `No valid target found for ${attacker instanceof Mob ? "mob" : "fighter"} attack`,
-        );
-        */
+
       return;
     }
 
@@ -574,9 +556,6 @@ export class Battle {
       if (rng_evade < 0.25) {
         if (this.verbose >= 1)
           this._draw_table_head(this.I18N.getBattleMsg("SP_SD_EVADED"));
-        /*           console.log(
-            "Shadow dancer has evaded. Next attack will be double damage",
-          ); */
         this.shadow_dancer_double_damage = true;
         attacker.hit_counter += 1;
         return;
@@ -586,9 +565,6 @@ export class Battle {
     if (target instanceof Fighter && this.bastion_aura) {
       if (this.verbose >= 1)
         this._draw_table_head(this.I18N.getBattleMsg("SP_BS_DMG_DODGE"), true);
-      /*         console.log(
-          "Bastion aura adds 25% damage reduction and 50% increased dodge ",
-        ); */
       additional_dr = additional_dr + 0.25;
       target_dodge *= 1.5;
       this.bastion_aura = false;
@@ -607,7 +583,6 @@ export class Battle {
           ),
           true,
         );
-      //console.log(`${attacker_name} attack cannot be dodged`);
       this.cannot_be_dodged = false;
     } else {
       rng_attack = Math.random();

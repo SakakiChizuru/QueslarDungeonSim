@@ -1,4 +1,5 @@
 2025-10-19
+- Fixed priest resurrecting at the end of the round, at only 10% of total hp
 - Added probability of winning within next 60 minutes
 
 2025-10-16
