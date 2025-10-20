@@ -1487,12 +1487,12 @@ function createFighterFromApiData(apiData) {
       name: (apiData.name || fighterClass).trim() || fighterClass,
       // Convert API stats to allocation points (direct values, not divided by 50)
       // Ensure values are within reasonable bounds (0-20 allocation points)
-      fighter_health: Math.max(0, Math.min(20, parseInt(stats.health || 0))),
-      fighter_damage: Math.max(0, Math.min(20, parseInt(stats.damage || 0))),
-      fighter_hit: Math.max(0, Math.min(20, parseInt(stats.hit || 0))),
-      fighter_defense: Math.max(0, Math.min(20, parseInt(stats.defense || 0))),
-      fighter_crit: Math.max(0, Math.min(20, parseInt(stats.critDamage || 0))),
-      fighter_dodge: Math.max(0, Math.min(20, parseInt(stats.dodge || 0))),
+      fighter_health: Math.max(0, parseInt(stats.health || 0)),
+      fighter_damage: Math.max(0, parseInt(stats.damage || 0)),
+      fighter_hit: Math.max(0, parseInt(stats.hit || 0)),
+      fighter_defense: Math.max(0, parseInt(stats.defense || 0)),
+      fighter_crit: Math.max(0, parseInt(stats.critDamage || 0)),
+      fighter_dodge: Math.max(0, parseInt(stats.dodge || 0)),
       // Equipment bonuses (ensure they are non-negative)
       object_health: Math.max(0, equipmentBonuses.health),
       object_damage: Math.max(0, equipmentBonuses.damage),

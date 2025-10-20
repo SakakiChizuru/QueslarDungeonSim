@@ -1,5 +1,8 @@
+2025-10-20
+- Fixed imported stats being capped at 20
+
 2025-10-19
-- Fixed priest resurrecting at the end of the round, at only 10 percent of total hp
+- Fixed priest to resurrect at the end of the round, at only 10 percent of total hp
 - Added probability of winning within next 60 minutes
 
 2025-10-16
