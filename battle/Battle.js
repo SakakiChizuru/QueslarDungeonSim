@@ -618,7 +618,7 @@ export class Battle {
         this.shadow_dancer_double_damage = false;
       }
 
-      if (this.paladin_aura) {
+      if (target instanceof Fighter && this.paladin_aura) {
         if (this.verbose >= 1)
           this._draw_table_head(
             this.I18N.getBattleMsg("SP_PL_DMG_REDUCTION"),
@@ -671,17 +671,6 @@ export class Battle {
             target_name,
           ),
         );
-      //console.log(`${attacker_name} misses attacking ${target_name}.`);
-      if (
-        target instanceof Fighter &&
-        target.fighter_class === FighterClasses.SHADOW_DANCER
-      ) {
-        if (this.verbose >= 1)
-          this._draw_table_head(this.I18N.getBattleMsg("SP_SD_DODGED"));
-        /*           console.log(
-            "Shadow dancer has dodged (not evaded). Next attack will deal normal damage",
-          ); */
-      }
     }
   }
 

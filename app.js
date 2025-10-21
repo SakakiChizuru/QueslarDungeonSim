@@ -875,10 +875,17 @@ function populateFighterModal(fighter) {
   for (const id of fields) {
     const el = document.getElementById(id);
     // Always use the raw values for form population
-    const value =
+    let value =
       fighter && fighter.__raw && typeof fighter.__raw[id] === "number"
         ? fighter.__raw[id]
         : 0;
+
+    // Convert crit values for display
+    if (id === "object_crit") {
+      // Object crit: already stored as percentage points, round to 2 decimal places for display
+      value = Math.round(value * 100) / 100;
+    }
+
     el.value = value;
   }
 
@@ -945,9 +952,18 @@ saveFighterBtn.addEventListener("click", () => {
   fields.forEach((field) => {
     const input = document.getElementById(field);
     if (input) {
-      const value = Math.max(0, parseInt(input.value) || 0);
+      let value = Math.max(0, parseFloat(input.value) || 0);
+
+      // Convert crit values back to raw storage format
+      if (field === "object_crit") {
+        // Object crit: keep as percentage points, round to 2 decimal places
+        value = Math.round(value * 100) / 100;
+      } else {
+        // All other fields remain as integers
+        value = Math.round(value);
+      }
+
       data[field] = value;
-      input.value = value; // Update display to show corrected value
     }
   });
 
@@ -1436,10 +1452,23 @@ function createFighterFromApiData(apiData) {
     equipmentStats.forEach((stat) => {
       if (!stat || typeof stat !== "object" || !stat.type) return;
 
-      const baseValue = Math.max(0, parseInt(stat.value) || 0); // Ensure positive integer
       const tier = Math.max(1, parseInt(stat.tier) || 1); // Ensure tier is at least 1
       const multiplier = tierMultipliers[tier] || 1.0; // Default to 1.0 if tier not found
-      const value = Math.round(baseValue * multiplier); // Apply tier multiplier and round
+
+      let baseValue, value;
+      if (
+        stat.type.toLowerCase() === "critdamage" ||
+        stat.type.toLowerCase() === "crit_damage" ||
+        stat.type.toLowerCase() === "critical_damage"
+      ) {
+        // Handle crit damage as decimal value, convert to percentage points for storage
+        baseValue = Math.max(0, parseFloat(stat.value) || 0);
+        value = baseValue * multiplier * 100; // Convert to percentage points
+      } else {
+        // Handle other stats as integers
+        baseValue = Math.max(0, parseInt(stat.value) || 0);
+        value = Math.round(baseValue * multiplier);
+      }
 
       if (tier > 12) {
         console.warn(
@@ -1805,9 +1834,20 @@ const statInputIds = [
 ];
 
 function validateStatInput(input) {
-  let value = Math.max(0, parseInt(input.value) || 0);
-  if (input.value != value) {
-    input.value = value;
+  // Handle crit fields
+  if (input.id === "object_crit") {
+    // Object crit: decimal percentage values
+    let value = Math.max(0, parseFloat(input.value) || 0);
+    value = Math.round(value * 100) / 100; // Round to 2 decimal places
+    if (Math.abs(parseFloat(input.value) - value) > 0.01) {
+      input.value = value;
+    }
+  } else {
+    // Integer validation for all other fields
+    let value = Math.max(0, parseInt(input.value) || 0);
+    if (input.value != value) {
+      input.value = value;
+    }
   }
 }
 

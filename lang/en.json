@@ -36,7 +36,7 @@
   "item_hit": "Item Hit",
   "item_dodge": "Item Dodge",
   "item_defense": "Item Defense",
-  "item_crit": "Item Crit",
+  "item_crit": "Item Crit (%)",
   "save_button": "Save",
   "confirm_import": "Confirm Import",
   "import_warning": "This will override all fighters currently in the Battle Formation. Are you sure you want to continue?",

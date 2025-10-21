@@ -36,7 +36,7 @@
   "item_hit": "物品命中",
   "item_dodge": "物品闪避",
   "item_defense": "物品防御",
-  "item_crit": "物品暴击",
+  "item_crit": "装备暴击 (%)",
   "save_button": "保存",
   "confirm_import": "确认导入",
   "import_warning": "这将覆盖当前战斗阵型中的所有佣兵。您确定要继续吗？",
@@ -93,7 +93,7 @@
     "TOTAL_WONS": "佣兵在{1}场战斗中总共赢了{0}场.",
 
     "VICTORY_CHANCE": "胜利几率: {0}%",
-    "AVG_SURVIVOR_HEALTH": "幸存怪物平均总血量: {0}",
+    "AVG_SURVIVOR_HEALTH": "平均幸存怪物总血量: {0}",
     "CHANCE_60_MIN": "60分钟内获胜几率: {0}%",
 
     "IMPORTING": "导入中..."
