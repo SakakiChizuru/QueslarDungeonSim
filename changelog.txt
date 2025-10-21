@@ -1,3 +1,6 @@
+2025-10-21
+- Fixed item crit import through API 
+
 2025-10-20
 - Fixed imported stats being capped at 20
 
