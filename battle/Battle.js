@@ -571,7 +571,7 @@ export class Battle {
     }
 
     const attacker_chance =
-      0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75;
+      Math.min(0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75, 0.95);
     let rng_attack;
     if (this.cannot_be_dodged) {
       rng_attack = -1.0;

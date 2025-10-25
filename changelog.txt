@@ -1,3 +1,6 @@
+2025-10-25
+- Fixed attacker hit chance being capped at 95% 
+
 2025-10-21
 - Fixed item crit import through API 
 
