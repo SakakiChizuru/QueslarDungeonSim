@@ -177,7 +177,7 @@ export class Battle {
               this._do_standard_attack(attacker, lcl_target, 0.75);
           }
         }
-        this._print_debug(i, j, row.type, current_attack);
+        this._print_debug(i, j, row.type, current_attack, targets_hunter);
         continue;
       }
 
@@ -194,7 +194,7 @@ export class Battle {
             if (lcl_target) this._do_standard_attack(attacker, lcl_target, 0.5);
           }
         }
-        this._print_debug(i, j, row.type, current_attack);
+        this._print_debug(i, j, row.type, current_attack, targets_mage);
         continue;
       }
 
@@ -215,7 +215,7 @@ export class Battle {
           damage_mult = 1.75;
         }
         this._do_standard_attack(attacker, target, damage_mult);
-        this._print_debug(i, j, row.type, current_attack);
+        this._print_debug(i, j, row.type, current_attack, [target]);
         continue;
       }
 
@@ -225,7 +225,7 @@ export class Battle {
       ) {
         const attack_multiplier = 1.0 + 0.2 * this.dead_fighters.length;
         this._do_standard_attack(attacker, target, attack_multiplier);
-        this._print_debug(i, j, row.type, current_attack);
+        this._print_debug(i, j, row.type, current_attack, [target]);
         continue;
       }
 
@@ -275,7 +275,7 @@ export class Battle {
       }
 
       this._do_standard_attack(attacker, target);
-      this._print_debug(i, j, row.type, current_attack);
+      this._print_debug(i, j, row.type, current_attack, [target]);
     }
 
     // Do the Priest resurrection at the end of the round if still _check_battle_is_over
@@ -369,7 +369,7 @@ export class Battle {
     console.log(row);
   }
 
-  _print_debug(i, j, type, current_attack) {
+  _print_debug(i, j, type, current_attack, targets = null) {
     if (this.verbose >= 1) {
       //console.log(`Round: ${this.current_round}, Attack: ${current_attack}\n`);
       this._draw_table_row(
@@ -379,11 +379,11 @@ export class Battle {
           current_attack,
         ),
       );
-      this._draw_health_table(i, j, type);
+      this._draw_health_table(i, j, type, targets);
     }
   }
 
-  _draw_health_table(i, j, att_type, test = false) {
+  _draw_health_table(i, j, att_type, targets, test = false) {
     const fighters = this.fighters.all_fighters;
     const mobs = this.mobs.mobs;
 
@@ -401,7 +401,9 @@ export class Battle {
               mobs[x][y].level,
             );
       //: `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
-      if (selI === x && selJ === y && att_type === type) label += " *";
+      if (selI === x && selJ === y && att_type === type) label += " ⚔️";
+      const char = type === "fighters" ? fighters[x][y] : mobs[x][y];
+      if (targets && targets.includes(char)) label += " 🛡️";
 
       let current, total;
       if (type === "fighters") {
@@ -459,7 +461,11 @@ export class Battle {
           .filter((line) => line.length > 0)
           .join("<br>");
 
-        output += `<td style="width:25%; border: 1px solid white; padding: 8px; ${cellContent.indexOf("*") > 0 ? "background: #A0522D;" : ""} ">${cellContent.replace("EMPTY", "")}</td>`;
+        output += `<td style="width:25%; border: 1px solid white; padding: 8px; ${
+          cellContent.indexOf("⚔️") > 0 ? "background: #b40900;" : ""
+        } ${
+          cellContent.indexOf("🛡️") > 0 ? "background: #0000c4;" : ""
+        } ">${cellContent.replace("EMPTY", "")}</td>`;
       });
       output += "</tr>";
     }
@@ -570,8 +576,10 @@ export class Battle {
       this.bastion_aura = false;
     }
 
-    const attacker_chance =
-      Math.min(0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75, 0.95);
+    const attacker_chance = Math.min(
+      0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75,
+      0.95,
+    );
     let rng_attack;
     if (this.cannot_be_dodged) {
       rng_attack = -1.0;
