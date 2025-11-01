@@ -1,5 +1,6 @@
 2025-11-01
 - Added color coding in verbose for atatcker and defender characters
+- Corrected Paladin description
 
 2025-10-25
 - Fixed attacker hit chance being capped at 95% 

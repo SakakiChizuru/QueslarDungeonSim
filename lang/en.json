@@ -56,7 +56,7 @@
     "priest": "While alive the priest has a 10% chance to resurrect a random dead fighter on your team every round",
     "shadow_dancer": "The shadow dancer has a 25% chance to evade an attack completely. After any dodge, the next attack deals 200% damage",
     "berserker": "The berserker gains 25% damage for each 25% health lost. When below 25% health, berserker attacks cannot be dodged",
-    "paladin": "The paladin provides a 15% damage reduction aura to all allied fighters in the same row",
+    "paladin": "The paladin provides a 15% damage reduction aura to all allied fighters in the same column",
     "crusader": "The crusader becomes more powerful as allies fall. Gains +20% to all stats for each dead ally",
     "sentinel": "The sentinel protects weakened allies, intercepting all attacks against allies below 25% health",
     "bastion": "Allies in adjacent position to the bastion gain +50% dodge and 25% damage reduction",
