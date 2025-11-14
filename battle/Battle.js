@@ -220,16 +220,6 @@ export class Battle {
       }
 
       if (
-        attacker instanceof Fighter &&
-        attacker.fighter_class === FighterClasses.CRUSADER
-      ) {
-        const attack_multiplier = 1.0 + 0.2 * this.dead_fighters.length;
-        this._do_standard_attack(attacker, target, attack_multiplier);
-        this._print_debug(i, j, row.type, current_attack, [target]);
-        continue;
-      }
-
-      if (
         target instanceof Fighter &&
         target.current_health / target.total_health < 0.25
       ) {

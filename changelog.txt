@@ -1,3 +1,6 @@
+2025-11-14
+- Fixed a bug where crusader attack buff was applied twice. Thanks to all who reported it  
+
 2025-11-01
 - Added color coding in verbose for atatcker and defender characters
 - Corrected Paladin description
