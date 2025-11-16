@@ -303,7 +303,7 @@ export class Battle {
         const idx = Math.floor(Math.random() * this.dead_fighters.length);
         const resurrected_fighter = this.dead_fighters[idx];
         resurrected_fighter.current_health = Math.round(
-          resurrected_fighter.total_health * 0.1,
+          resurrected_fighter.total_health * 0.25,
         );
         resurrected_fighter.hit_counter = 0;
         this.dead_fighters = [];
