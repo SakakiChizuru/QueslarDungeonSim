@@ -1,5 +1,5 @@
 2025-11-16
-- Priest health upon resurrection corrected to 25% of resurrected fighter total HP
+- Dead fighters are revived by priest to 25% of resurrected fighter total HP. Corrected value from previous 10%
 
 2025-11-14
 - Fixed a bug where crusader attack buff was applied twice. Thanks to all who reported it  
