@@ -113,23 +113,56 @@ export class Battle {
         if (f && f.current_health === 0.0) this.dead_fighters.push(f);
       }
 
-      if (
-        attacker instanceof Mob &&
-        target.fighter_class !== FighterClasses.PALADIN
-      ) {
-        const f = this.fighters.all_fighters;
-        if (
-          (f[0][j] &&
-            f[0][j].fighter_class === FighterClasses.PALADIN &&
-            f[0][j].current_health > 0.0) ||
-          (f[1][j] &&
-            f[1][j].fighter_class === FighterClasses.PALADIN &&
-            f[1][j].current_health > 0.0) ||
-          (f[2][j] &&
-            f[2][j].fighter_class === FighterClasses.PALADIN &&
-            f[2][j].current_health > 0.0)
-        ) {
-          this.paladin_aura = true;
+      if (attacker instanceof Mob) {
+        let fighters = this.fighters.all_fighters;
+
+        let target_i = null;
+        let target_j = null;
+        for (let i = 0; i < fighters.length; i++) {
+          for (let j = 0; j < fighters[i].length; j++) {
+            if (
+              fighters[i][j] &&
+              fighters[i][j].fighter_class === target.fighter_class &&
+              fighters[i][j].current_health > 0
+            ) {
+              target_i = i;
+              target_j = j;
+              break;
+            }
+          }
+          if (target_i !== null) break;
+        }
+
+        if (target_i !== null) {
+          // === Bastion Aura Check (adjacent cells) ===
+          const adjacentPositions = getAdjacent(target_i, target_j);
+
+          for (const [adj_i, adj_j] of adjacentPositions) {
+            const fighter = fighters[adj_i]?.[adj_j];
+            if (
+              fighter &&
+              fighter.fighter_class === FighterClasses.BASTION &&
+              fighter.current_health > 0
+            ) {
+              this.bastion_aura = true;
+              break;
+            }
+          }
+
+          // === Paladin Aura Check (same column) ===
+          if (target.fighter_class !== FighterClasses.PALADIN) {
+            for (let i = 0; i < fighters.length; i++) {
+              const fighter = fighters[i]?.[target_j];
+              if (
+                fighter &&
+                fighter.fighter_class === FighterClasses.PALADIN &&
+                fighter.current_health > 0
+              ) {
+                this.paladin_aura = true;
+                break;
+              }
+            }
+          }
         }
       }
 
@@ -153,7 +186,7 @@ export class Battle {
           console.log(`\nRNG brawler: ${rng_brawler} < 0.15`);
         if (rng_brawler < 0.15) {
           if (this.verbose >= 1)
-            this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true); //console.log("Brawler attacked twice!");
+            this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true);
           this._do_standard_attack(attacker, target);
           target = this._find_target("mobs");
           if (target === null) {
@@ -237,31 +270,6 @@ export class Battle {
           }
         }
         if (sentinel.length > 0) target = sentinel[0];
-      }
-
-      if (attacker instanceof Mob) {
-        const f = this.fighters.all_fighters;
-        const pos = [];
-        for (let x = 0; x < 3; x++) {
-          for (let y = 0; y < 2; y++) {
-            if (f[x][y] && f[x][y].fighter_class === target.fighter_class)
-              pos.push([x, y]);
-          }
-        }
-        if (pos.length) {
-          const [target_i, target_j] = pos[0];
-          const adjacents = getAdjacent(target_i, target_j);
-          for (const [row_bastion, col_bastion] of adjacents) {
-            if (
-              f[row_bastion][col_bastion] &&
-              f[row_bastion][col_bastion].fighter_class ===
-                FighterClasses.BASTION &&
-              f[row_bastion][col_bastion].current_health > 0.0
-            ) {
-              this.bastion_aura = true;
-            }
-          }
-        }
       }
 
       this._do_standard_attack(attacker, target);

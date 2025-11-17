@@ -1,3 +1,6 @@
+2025-11-17
+- Corrected a bug where Paladin aura would sometimes not apply
+
 2025-11-16
 - Dead fighters are revived by priest to 25% of resurrected fighter total HP. Corrected value from previous 10%
 
