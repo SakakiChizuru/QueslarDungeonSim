@@ -3,6 +3,7 @@ import { MobsSquad } from "./squads/MobsSquad.js";
 import { Battle } from "./battle/Battle.js";
 import { Fighter, FighterClasses } from "./characters/Fighter.js";
 import { I18nManager, formatString } from "./utils/i18n.js";
+import { ArmoryItem } from "./armory/ArmoryItem.js";
 
 const fightersGridEl = document.getElementById("fightersGrid");
 const verboseEl = document.getElementById("verbose");
@@ -30,6 +31,14 @@ const fighterNameInput = document.getElementById("fighterName");
 
 const benchGridEl = document.getElementById("benchGrid");
 const addToBenchBtn = document.getElementById("addToBench");
+
+const armoryGridEl = document.getElementById("armoryGrid");
+const itemModal = document.getElementById("itemModal");
+const closeItemModal = document.getElementById("closeItemModal");
+const saveItemBtn = document.getElementById("saveItem");
+const itemNameInput = document.getElementById("itemName");
+const itemStatsContainer = document.getElementById("itemStatsContainer");
+const addToArmoryBtn = document.getElementById("addToArmory");
 
 const changelogLink = document.getElementById("changelogLink");
 const changelogModal = document.getElementById("changelogModal");
@@ -323,6 +332,7 @@ function duplicateFighter(originalFighter) {
 const LS_KEYS = {
   grid: "dungeon:gridState:v1",
   bench: "dungeon:benchState:v1",
+  armory: "dungeon:armoryState:v1",
   mobLevel: "dungeon:mobLevel",
   numBattles: "dungeon:numBattles",
   verbose: "dungeon:verbose",
@@ -352,6 +362,7 @@ function serializeFighter(f) {
     // 新增属性
     isDuplicate: f.isDuplicate || false,
     base: f.base || null,
+    equippedItemId: f.equippedItemId || null,
   };
 }
 
@@ -376,6 +387,7 @@ function deserializeFighter(obj) {
     // 新增属性
     isDuplicate: obj.isDuplicate || false,
     base: obj.base || null,
+    equippedItemId: obj.equippedItemId || null,
   };
 
   try {
@@ -389,11 +401,33 @@ function deserializeFighter(obj) {
   }
 }
 
+function serializeItem(item) {
+  if (!item) return null;
+  return {
+    _id: item.id,
+    name: item.name,
+    rarity: item.rarity,
+    stats: item.stats,
+  };
+}
+
+function deserializeItem(obj) {
+  if (!obj) return null;
+  try {
+    return new ArmoryItem(obj);
+  } catch (error) {
+    console.warn("Failed to deserialize item:", obj, error);
+    return null;
+  }
+}
+
 function saveState() {
   const raw = gridState.map((row) => row.map(serializeFighter));
   const benchRaw = benchState.map(serializeFighter);
+  const armoryRaw = armoryState.map(serializeItem);
   localStorage.setItem(LS_KEYS.grid, JSON.stringify(raw));
   localStorage.setItem(LS_KEYS.bench, JSON.stringify(benchRaw));
+  localStorage.setItem(LS_KEYS.armory, JSON.stringify(armoryRaw));
   localStorage.setItem(LS_KEYS.mobLevel, String(mobLevelEl.value || ""));
   localStorage.setItem(LS_KEYS.numBattles, String(numBattlesEl.value || ""));
   localStorage.setItem(LS_KEYS.verbose, verboseEl.checked ? "1" : "0");
@@ -438,6 +472,23 @@ function loadState() {
     localStorage.removeItem(LS_KEYS.bench);
   }
 
+  try {
+    const armoryRaw = JSON.parse(localStorage.getItem(LS_KEYS.armory) || "[]");
+    if (Array.isArray(armoryRaw)) {
+      armoryState.length = 0; // Clear array
+      armoryRaw.forEach((data) => {
+        const item = deserializeItem(data);
+        if (item) {
+          armoryState.push(item);
+        }
+      });
+      renderArmory();
+    }
+  } catch (error) {
+    console.warn("Failed to load armory state:", error);
+    localStorage.removeItem(LS_KEYS.armory);
+  }
+
   const mob = localStorage.getItem(LS_KEYS.mobLevel);
   const num = localStorage.getItem(LS_KEYS.numBattles);
   const ver = localStorage.getItem(LS_KEYS.verbose);
@@ -465,8 +516,11 @@ const gridState = Array.from({ length: 3 }, () =>
 );
 // State: bench fighters (dynamic array)
 const benchState = [];
+// State: armory items (dynamic array)
+const armoryState = [];
 let editingCell = { i: 0, j: 0 };
 let editingBench = { index: -1, isAddNew: false };
+let editingArmory = { index: -1 };
 
 function renderGrid() {
   fightersGridEl.innerHTML = "";
@@ -522,25 +576,37 @@ function renderGrid() {
       name.className = "name";
 
       if (fighter) {
+        const classDetails = document.createElement("div");
+        classDetails.style.fontSize = "1em"; // Wider font
+        classDetails.style.fontWeight = "bold"; // Bolder font
+        classDetails.style.opacity = "0.9";
+        classDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)}`; // Always display just the class name
+
         const fighterName = document.createElement("div");
-        fighterName.textContent = fighter.name;
-
-        const fighterDetails = document.createElement("div");
-        fighterDetails.style.fontSize = "0.8em";
-        fighterDetails.style.opacity = "0.7";
-
+        fighterName.style.fontSize = "0.8em"; // Smaller font
         if (fighter.isDuplicate && fighter.base) {
-          const duplicateText = formatString(
+          fighterName.textContent = formatString(
             I18N.getUIElement("DUPLICATE_NAME"),
             fighter.base.name,
           );
-          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText}`;
         } else {
-          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)}`;
+          fighterName.textContent = fighter.name;
         }
 
+        const itemDetails = document.createElement("div");
+        itemDetails.style.fontSize = "0.8em";
+        itemDetails.style.opacity = "0.7";
+        itemDetails.style.color = "#a0aec0"; // Lighter color for item name
+        const equippedItem = armoryState.find(
+          (item) => item.id === fighter.equippedItemId,
+        );
+        const itemName = equippedItem ? equippedItem.name : "No Item";
+        itemDetails.textContent =
+          itemName.substring(0, 25) + (itemName.length > 25 ? "..." : ""); // Shorten item name
+
+        name.appendChild(classDetails);
         name.appendChild(fighterName);
-        name.appendChild(fighterDetails);
+        name.appendChild(itemDetails);
       } else {
         name.textContent = I18N.getFighterName("Empty");
       }
@@ -686,25 +752,37 @@ function renderBench() {
     name.style.width = "100%"; // 文本占满空间
 
     if (fighter) {
+      const classDetails = document.createElement("div");
+      classDetails.style.fontSize = "1em"; // Wider font
+      classDetails.style.fontWeight = "bold"; // Bolder font
+      classDetails.style.opacity = "0.9";
+      classDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)}`; // Always display just the class name
+
       const fighterName = document.createElement("div");
-      fighterName.textContent = fighter.name;
-
-      const fighterDetails = document.createElement("div");
-      fighterDetails.style.fontSize = "0.8em";
-      fighterDetails.style.opacity = "0.7";
-
+      fighterName.style.fontSize = "0.8em"; // Smaller font
       if (fighter.isDuplicate && fighter.base) {
-        const duplicateText = formatString(
+        fighterName.textContent = formatString(
           I18N.getUIElement("DUPLICATE_NAME"),
           fighter.base.name,
         );
-        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText}`;
       } else {
-        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)}`;
+        fighterName.textContent = fighter.name;
       }
 
+      const itemDetails = document.createElement("div");
+      itemDetails.style.fontSize = "0.8em";
+      itemDetails.style.opacity = "0.7";
+      itemDetails.style.color = "#a0aec0"; // Lighter color for item name
+      const equippedItem = armoryState.find(
+        (item) => item.id === fighter.equippedItemId,
+      );
+      const itemName = equippedItem ? equippedItem.name : "No Item";
+      itemDetails.textContent =
+        itemName.substring(0, 25) + (itemName.length > 25 ? "..." : ""); // Shorten item name
+
+      name.appendChild(classDetails);
       name.appendChild(fighterName);
-      name.appendChild(fighterDetails);
+      name.appendChild(itemDetails);
     } else {
       name.textContent = I18N.getFighterName("Empty");
     }
@@ -770,6 +848,220 @@ function renderBench() {
     benchGridEl.appendChild(benchItem);
   });
 }
+
+function duplicateItem(originalItem) {
+  if (!originalItem) return null;
+  const duplicateData = JSON.parse(JSON.stringify(originalItem));
+  duplicateData._id = `copy_${Date.now()}`;
+  duplicateData.name = `Copy of ${originalItem.name}`;
+  return new ArmoryItem(duplicateData);
+}
+
+function renderArmory() {
+  armoryGridEl.innerHTML = "";
+  armoryState.forEach((item, index) => {
+    const itemEl = document.createElement("div");
+    itemEl.className = "armory-item";
+    itemEl.draggable = true;
+    itemEl.dataset.armoryIndex = index;
+
+    // Main content area (name, rarity) - clickable
+    const mainContent = document.createElement("div");
+    mainContent.style.flex = "1";
+    mainContent.style.cursor = "pointer";
+    mainContent.addEventListener("click", () => openItemEditor(index));
+
+    const nameEl = document.createElement("div");
+    nameEl.className = "name";
+    nameEl.textContent =
+      item.name.substring(0, 30) + (item.name.length > 30 ? "..." : "");
+    mainContent.appendChild(nameEl);
+
+    const rarityEl = document.createElement("div");
+    rarityEl.className = "rarity";
+    rarityEl.textContent = item.rarity;
+    mainContent.appendChild(rarityEl);
+
+    itemEl.appendChild(mainContent);
+
+    // Buttons container
+    const actions = document.createElement("div");
+    actions.style.display = "flex";
+    actions.style.flexDirection = "column"; // On top of each other
+    actions.style.alignItems = "center";
+    actions.style.gap = "0.1em"; // Reduced gap
+    actions.style.flexShrink = "0";
+    actions.style.width = "40px"; // Wider container for buttons
+
+    const del = document.createElement("button");
+    del.className = "btn small delete";
+    del.textContent = "×";
+    del.title = "Delete";
+    del.style.width = "100%";
+    del.style.padding = "0.1em 0.2em"; // Compress padding
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      armoryState.splice(index, 1);
+      saveState();
+      renderArmory();
+    });
+
+    const duplicate = document.createElement("button");
+    duplicate.className = "btn small duplicate";
+    duplicate.title = "Duplicate";
+    duplicate.style.width = "100%";
+    duplicate.style.padding = "0.1em 0.2em"; // Compress padding
+    const duplicateIcon = createDuplicateIcon();
+    duplicateIcon.style.width = "12px";
+    duplicateIcon.style.height = "12px";
+    duplicate.appendChild(duplicateIcon);
+    duplicate.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const newItem = duplicateItem(item);
+      if (newItem) {
+        armoryState.push(newItem);
+        saveState();
+        renderArmory();
+      }
+    });
+
+    actions.appendChild(del);
+    actions.appendChild(duplicate);
+    itemEl.appendChild(actions);
+
+    // Drag and drop listeners
+    itemEl.addEventListener("dragstart", handleDragStart);
+    itemEl.addEventListener("dragend", handleDragEnd);
+    itemEl.addEventListener("dragover", handleDragOver);
+    itemEl.addEventListener("drop", handleDrop);
+
+    itemEl.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      if (draggedData && itemEl !== draggedElement) {
+        itemEl.classList.add("drag-over");
+      }
+    });
+
+    itemEl.addEventListener("dragleave", (e) => {
+      if (!itemEl.contains(e.relatedTarget)) {
+        itemEl.classList.remove("drag-over");
+      }
+    });
+
+    armoryGridEl.appendChild(itemEl);
+  });
+}
+
+const ALL_STAT_TYPES = [
+  "health",
+  "damage",
+  "hit",
+  "defense",
+  "critDamage",
+  "dodge",
+];
+
+function openAddToArmoryEditor() {
+  editingArmory = { index: -1, isAddNew: true };
+  openItemEditor(-1); // Pass -1 to indicate a new item
+}
+
+function openItemEditor(index) {
+  if (index !== -1) {
+    editingArmory = { index: index, isAddNew: false };
+  }
+
+  const item =
+    index !== -1 ? armoryState[index] : { name: "", rarity: "", stats: [] };
+  itemNameInput.value = item.name;
+
+  itemStatsContainer.innerHTML = "";
+  itemStatsContainer.style.display = "flex";
+  itemStatsContainer.style.flexDirection = "column";
+  itemStatsContainer.style.gap = "0.4em"; // Reduced vertical space
+
+  ALL_STAT_TYPES.forEach((statType) => {
+    const existingStat = item.stats.find((s) => s.type === statType);
+    let value = existingStat ? existingStat.value : 0;
+
+    const statRow = document.createElement("div");
+    statRow.style.display = "grid";
+    statRow.style.gridTemplateColumns = "1fr 1fr 30px"; // Consistent 3-column layout
+    statRow.style.gap = "0.8em";
+    statRow.style.alignItems = "center";
+
+    const label = document.createElement("label");
+    label.textContent = statType.charAt(0).toUpperCase() + statType.slice(1);
+    statRow.appendChild(label);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.dataset.statType = statType;
+    input.value = statType === "critDamage" ? value.toFixed(2) : value;
+    statRow.appendChild(input);
+
+    const percentSign = document.createElement("span");
+    percentSign.textContent = statType === "critDamage" ? "%" : "";
+    statRow.appendChild(percentSign);
+
+    itemStatsContainer.appendChild(statRow);
+  });
+
+  itemModal.style.display = "flex";
+}
+
+function closeItemEditor() {
+  editingArmory = { index: -1, isAddNew: false };
+  itemModal.style.display = "none";
+}
+
+function saveItem() {
+  if (editingArmory.index === -1 && !editingArmory.isAddNew) return;
+
+  let itemToSave;
+  if (editingArmory.isAddNew) {
+    itemToSave = {
+      _id: `new_item_${Date.now()}`, // Generate a unique ID for new items
+      name: itemNameInput.value,
+      rarity: "Custom", // Default rarity for new items
+      stats: [],
+    };
+  } else {
+    itemToSave = armoryState[editingArmory.index];
+    itemToSave.name = itemNameInput.value;
+    itemToSave.stats = []; // Clear existing stats to rebuild from form
+  }
+
+  const statInputs = itemStatsContainer.querySelectorAll(
+    "input[data-stat-type]",
+  );
+  statInputs.forEach((input) => {
+    const statType = input.dataset.statType;
+    let value = parseFloat(input.value) || 0;
+
+    // No conversion needed here, value is stored as calculated percentage points for critDamage
+    // The display logic in openItemEditor handles the * 100 and % symbol
+
+    if (value !== 0) {
+      // Only add stats that have a non-zero value
+      // tier property is ignored for now based on previous discussions.
+      // When adding new stat, default tier to 1.
+      itemToSave.stats.push({ type: statType, value: value, tier: 1 });
+    }
+  });
+
+  if (editingArmory.isAddNew) {
+    armoryState.push(new ArmoryItem(itemToSave));
+  }
+
+  saveState();
+  renderArmory();
+  closeItemEditor();
+}
+
+closeItemModal.addEventListener("click", closeItemEditor);
+saveItemBtn.addEventListener("click", saveItem);
+addToArmoryBtn.addEventListener("click", openAddToArmoryEditor);
 
 function openFighterEditor(i, j) {
   editingCell = { i, j };
@@ -1320,10 +1612,48 @@ function processImportedData(apiData) {
       }
     });
 
+    // Update/add items into armory from fighters
+    const apiItemsToProcess = new Map();
+    fighters.forEach((fighterData) => {
+      if (fighterData.equipment && fighterData.equipment._id) {
+        if (!apiItemsToProcess.has(fighterData.equipment._id)) {
+          apiItemsToProcess.set(
+            fighterData.equipment._id,
+            fighterData.equipment,
+          );
+        }
+      }
+    });
+
+    apiItemsToProcess.forEach((apiItemData) => {
+      const calculatedStats = apiItemData.stats.map((stat) => ({
+        ...stat,
+        value: calculateStatValue(stat),
+      }));
+
+      const existingItemIndex = armoryState.findIndex(
+        (item) => item.name === apiItemData.name,
+      );
+
+      if (existingItemIndex !== -1) {
+        // Update existing item
+        const itemToUpdate = armoryState[existingItemIndex];
+        itemToUpdate.id = apiItemData._id;
+        itemToUpdate.rarity = apiItemData.rarity;
+        itemToUpdate.stats = calculatedStats;
+      } else {
+        // Add as new item
+        const processedEquipment = { ...apiItemData, stats: calculatedStats };
+        const newItem = new ArmoryItem(processedEquipment);
+        armoryState.push(newItem);
+      }
+    });
+
     // Save state and re-render
     saveState();
     renderGrid();
     renderBench();
+    renderArmory();
 
     return {
       success: true,
@@ -1339,6 +1669,41 @@ function processImportedData(apiData) {
         error.message,
       ),
     };
+  }
+}
+
+function calculateStatValue(stat) {
+  const tierMultipliers = {
+    1: 1.1,
+    2: 1.2,
+    3: 1.3,
+    4: 1.4,
+    5: 1.5,
+    6: 1.75,
+    7: 2,
+    8: 2.25,
+    9: 2.5,
+    10: 2.75,
+    11: 3,
+    12: 3.5,
+  };
+  if (!stat || typeof stat !== "object" || !stat.type) return 0;
+
+  const tier = Math.max(1, parseInt(stat.tier) || 1);
+  const multiplier = tierMultipliers[tier] || 1.0;
+
+  if (tier > 12) {
+    console.warn(
+      `Equipment stat has tier ${tier} which is above max (12), using default multiplier 1.0`,
+    );
+  }
+
+  if (stat.type.toLowerCase().includes("critdamage")) {
+    const baseValue = Math.max(0, parseFloat(stat.value) || 0);
+    return baseValue * multiplier * 100; // Return as percentage points
+  } else {
+    const baseValue = Math.max(0, parseInt(stat.value) || 0);
+    return Math.round(baseValue * multiplier);
   }
 }
 
@@ -1389,49 +1754,8 @@ function createFighterFromApiData(apiData) {
       dodge: 0,
     };
 
-    // Tier multipliers for equipment stats
-    const tierMultipliers = {
-      1: 1.1,
-      2: 1.2,
-      3: 1.3,
-      4: 1.4,
-      5: 1.5,
-      6: 1.75,
-      7: 2,
-      8: 2.25,
-      9: 2.5,
-      10: 2.75,
-      11: 3,
-      12: 3.5,
-    };
-
     equipmentStats.forEach((stat) => {
-      if (!stat || typeof stat !== "object" || !stat.type) return;
-
-      const tier = Math.max(1, parseInt(stat.tier) || 1); // Ensure tier is at least 1
-      const multiplier = tierMultipliers[tier] || 1.0; // Default to 1.0 if tier not found
-
-      let baseValue, value;
-      if (
-        stat.type.toLowerCase() === "critdamage" ||
-        stat.type.toLowerCase() === "crit_damage" ||
-        stat.type.toLowerCase() === "critical_damage"
-      ) {
-        // Handle crit damage as decimal value, convert to percentage points for storage
-        baseValue = Math.max(0, parseFloat(stat.value) || 0);
-        value = baseValue * multiplier * 100; // Convert to percentage points
-      } else {
-        // Handle other stats as integers
-        baseValue = Math.max(0, parseInt(stat.value) || 0);
-        value = Math.round(baseValue * multiplier);
-      }
-
-      if (tier > 12) {
-        console.warn(
-          `Equipment stat has tier ${tier} which is above max (12), using default multiplier 1.0`,
-        );
-      }
-
+      const value = calculateStatValue(stat);
       switch (stat.type.toLowerCase()) {
         case "health":
           equipmentBonuses.health += value;
@@ -1485,6 +1809,7 @@ function createFighterFromApiData(apiData) {
       object_defense: Math.max(0, equipmentBonuses.defense),
       object_crit: Math.max(0, equipmentBonuses.critDamage),
       object_dodge: Math.max(0, equipmentBonuses.dodge),
+      equippedItemId: equipment ? equipment._id : null,
     };
 
     const fighter = new Fighter(fighterClass, fighterData);
@@ -1589,6 +1914,30 @@ verboseEl.addEventListener("input", saveState);
 apiKeyEl.addEventListener("input", saveState);
 dontShowImportWarningEl.addEventListener("change", saveState);
 
+function getBonusesFromItem(item) {
+    const bonuses = {
+        object_health: 0,
+        object_damage: 0,
+        object_hit: 0,
+        object_defense: 0,
+        object_crit: 0,
+        object_dodge: 0,
+    };
+    if (!item || !item.stats) return bonuses;
+
+    item.stats.forEach(stat => {
+        const statType = stat.type.toLowerCase();
+        const value = stat.value || 0;
+        if (statType.includes('health')) bonuses.object_health += value;
+        if (statType.includes('damage') && !statType.includes('crit')) bonuses.object_damage += value;
+        if (statType.includes('hit')) bonuses.object_hit += value;
+        if (statType.includes('defense')) bonuses.object_defense += value;
+        if (statType.includes('crit')) bonuses.object_crit += value;
+        if (statType.includes('dodge')) bonuses.object_dodge += value;
+    });
+    return bonuses;
+}
+
 // Drag and drop functionality
 let draggedElement = null;
 let draggedData = null;
@@ -1611,6 +1960,13 @@ function handleDragStart(e) {
       type: "bench",
       index: index,
       fighter: benchState[index],
+    };
+  } else if (e.target.dataset.armoryIndex !== undefined) {
+    const index = parseInt(e.target.dataset.armoryIndex);
+    draggedData = {
+      type: "armory",
+      index: index,
+      item: armoryState[index],
     };
   }
 
@@ -1652,6 +2008,10 @@ function handleDrop(e) {
     const index = parseInt(dropTarget.dataset.benchIndex);
     targetType = "bench";
     targetData = { index, fighter: benchState[index] };
+  } else if (dropTarget.dataset.armoryIndex !== undefined) {
+    const index = parseInt(dropTarget.dataset.armoryIndex);
+    targetType = "armory";
+    targetData = { index, item: armoryState[index] };
   } else if (
     dropTarget === benchGridEl ||
     dropTarget.textContent === "Drop fighters here"
@@ -1717,11 +2077,49 @@ function handleDrop(e) {
       benchState.splice(targetData.index, 0, sourceFighter);
       renderBench();
     }
+    } else if (draggedData.type === "armory" && targetType === "armory") {
+      // Armory to armory - reorder
+      if (draggedData.index !== targetData.index) {
+          const sourceItem = armoryState[draggedData.index];
+          armoryState.splice(draggedData.index, 1);
+          armoryState.splice(targetData.index, 0, sourceItem);
+          renderArmory();
+      }
+    } else if (draggedData.type === "armory" && (targetType === "grid" || targetType === "bench")) {
+      // Equip item onto a fighter
+      const draggedItem = draggedData.item;
+      let originalFighter = null;
+      if (targetType === "grid") {
+          originalFighter = gridState[targetData.i][targetData.j];
+      } else { // bench
+          originalFighter = benchState[targetData.index];
+      }
+  
+      if (originalFighter) {
+          const itemBonuses = getBonusesFromItem(draggedItem);
+          const newFighterData = { ...originalFighter.__raw };
+  
+          // Update item stats and name
+          Object.assign(newFighterData, itemBonuses);
+          newFighterData.name = draggedItem.name;
+          newFighterData.equippedItemId = draggedItem.id;
+          
+          const newFighter = new Fighter(originalFighter.fighter_class, newFighterData);
+          newFighter.__raw = newFighterData;
+  
+          // Replace the old fighter
+          if (targetType === "grid") {
+              gridState[targetData.i][targetData.j] = newFighter;
+              renderGrid();
+          } else {
+              benchState[targetData.index] = newFighter;
+              renderBench();
+          }
+      }
+    }
+  
+    saveState();
   }
-
-  saveState();
-}
-
 // Add visual feedback for bench grid when dragging from grid
 benchGridEl.addEventListener("dragenter", (e) => {
   e.preventDefault();
@@ -1863,4 +2261,5 @@ numBattlesEl.addEventListener("paste", () => {
 loadState();
 renderGrid();
 renderBench();
+renderArmory();
 loadChangelog();

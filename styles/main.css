@@ -28,7 +28,7 @@ header {
     gap: 1.2em;
     padding: 1.2em;
     padding-bottom: 1em;
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
 }
 .bench-section {
@@ -529,6 +529,10 @@ footer {
     width: 80%;
 }
 
+#itemModal .modal {
+    max-width: calc(560px * 0.7);
+}
+
 .language-switcher {
     display: flex;
     align-items: center;
@@ -645,4 +649,57 @@ footer {
 .battle-table td {
     border: 1px solid black;
     padding: 8px;
+}
+
+.armory-section {
+    flex: 0 0 320px;
+    background: #23283a;
+    border: 1px solid #2c3242;
+    border-radius: 12px;
+    padding: 1em;
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+}
+
+.armory-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    max-height: 800px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5em;
+}
+
+.armory-item {
+    background: #0d4b24; /* Dark Green */
+    border: 1px solid #1a5932;
+    border-radius: 10px;
+    padding: 0.6em;
+    transition: background-color 0.2s;
+    min-height: 42px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6em;
+}
+
+.armory-item:hover {
+    background: #1a5932;
+}
+
+.armory-item .name {
+    font-size: 0.9em;
+    color: #e6eaf3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.armory-item .rarity {
+    font-size: 0.8em;
+    color: #8892b0;
+    text-transform: capitalize;
 }
