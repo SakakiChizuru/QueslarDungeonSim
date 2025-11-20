@@ -35,8 +35,7 @@ export class Fighter {
       object_dodge = 0,
       // 新增属性
       isDuplicate = false,
-      base = null,
-      poolIndex = null
+      base = null
     } = {},
   ) {
     this.fighter_class = fighterClass;
@@ -64,6 +63,5 @@ export class Fighter {
     // 新增属性
     this.isDuplicate = isDuplicate;
     this.base = base;
-    this.poolIndex = poolIndex;
   }
 }

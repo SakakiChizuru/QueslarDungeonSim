@@ -85,34 +85,6 @@ function createDuplicateIcon() {
   return svg;
 }
 
-// 在文件顶部附近添加辅助函数
-function getNextDuplicateIndex() {
-  let maxIndex = 0;
-
-  // 检查战斗区的所有佣兵
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 2; j++) {
-      const fighter = gridState[i][j];
-      if (fighter && fighter.poolIndex) {
-        if (fighter.poolIndex > maxIndex) {
-          maxIndex = fighter.poolIndex;
-        }
-      }
-    }
-  }
-
-  // 检查替补区的所有佣兵
-  benchState.forEach((fighter) => {
-    if (fighter && fighter.poolIndex) {
-      if (fighter.poolIndex > maxIndex) {
-        maxIndex = fighter.poolIndex;
-      }
-    }
-  });
-
-  return maxIndex + 1;
-}
-
 // Create tooltip element
 const classTooltip = document.createElement("div");
 classTooltip.id = "classTooltip";
@@ -334,15 +306,11 @@ function duplicateFighter(originalFighter) {
   const originalData = originalFighter.__raw || {};
   const duplicateData = { ...originalData };
 
-  const nextIndex = getNextDuplicateIndex();
   duplicateData.isDuplicate = true;
   duplicateData.base = {
     name: originalFighter.name,
     fighter_class: originalFighter.fighter_class,
   };
-
-  // 设置复制体的 poolIndex
-  duplicateData.poolIndex = nextIndex;
 
   // Create the duplicate fighter
   const duplicate = new Fighter(originalFighter.fighter_class, duplicateData);
@@ -384,7 +352,6 @@ function serializeFighter(f) {
     // 新增属性
     isDuplicate: f.isDuplicate || false,
     base: f.base || null,
-    poolIndex: f.poolIndex || null,
   };
 }
 
@@ -409,7 +376,6 @@ function deserializeFighter(obj) {
     // 新增属性
     isDuplicate: obj.isDuplicate || false,
     base: obj.base || null,
-    poolIndex: obj.poolIndex || null,
   };
 
   try {
@@ -446,11 +412,6 @@ function loadState() {
         if (Array.isArray(raw[i]) && raw[i].length === 2) {
           for (let j = 0; j < 2; j++) {
             gridState[i][j] = deserializeFighter(raw[i][j]);
-            // 如果没有 poolIndex，则分配一个
-            if (gridState[i][j] && !gridState[i][j].poolIndex) {
-              const index = getNextDuplicateIndex();
-              gridState[i][j].poolIndex = index;
-            }
           }
         }
       }
@@ -469,11 +430,6 @@ function loadState() {
         const fighter = deserializeFighter(data);
         if (fighter) {
           benchState.push(fighter);
-          // 如果没有 poolIndex，则分配一个
-          if (!fighter.poolIndex) {
-            const index = getNextDuplicateIndex();
-            fighter.poolIndex = index;
-          }
         }
       });
     }
@@ -578,9 +534,9 @@ function renderGrid() {
             I18N.getUIElement("DUPLICATE_NAME"),
             fighter.base.name,
           );
-          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText} #${fighter.poolIndex}`;
+          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText}`;
         } else {
-          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} #${fighter.poolIndex}`;
+          fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)}`;
         }
 
         name.appendChild(fighterName);
@@ -742,9 +698,9 @@ function renderBench() {
           I18N.getUIElement("DUPLICATE_NAME"),
           fighter.base.name,
         );
-        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText} #${fighter.poolIndex}`;
+        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} - ${duplicateText}`;
       } else {
-        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)} #${fighter.poolIndex}`;
+        fighterDetails.textContent = `${I18N.getFighterName(fighter.fighter_class)}`;
       }
 
       name.appendChild(fighterName);
@@ -1529,8 +1485,6 @@ function createFighterFromApiData(apiData) {
       object_defense: Math.max(0, equipmentBonuses.defense),
       object_crit: Math.max(0, equipmentBonuses.critDamage),
       object_dodge: Math.max(0, equipmentBonuses.dodge),
-      // Assign pool ID for imported fighter
-      poolIndex: getNextDuplicateIndex(),
     };
 
     const fighter = new Fighter(fighterClass, fighterData);
