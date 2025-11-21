@@ -14,7 +14,11 @@
   "battle_formation_description": "点击编辑 • 拖拽移动/交换",
   "fight_button": "⚔️ 战斗",
   "clear_output_button": "清空输出",
+  "create_snapshot_button": "创建快照",
+  "load_snapshot_button": "加载快照",
   "output": "输出",
+  "snapshot_code": "快照代码",
+  "snapshot_code_placeholder": "生成的快照代码将显示在此处",
   "made_by": "由 anfneub 制作， SakakiChizuru 中文化",
   "last_updated": "最后更新: 2025-10-08",
   "changelog": "更新日志",
@@ -126,7 +130,9 @@
     "ERR_NULL_API": "导入前请先输入API秘钥",
     "ERR_HTTP_ERROR": "HTTP 错误! 状态: {0}",
     "ERR_IMPORT_FAIL": "导入失败，原因: {0}",
-    "SUCC_IMPORT_FIGHTER": "成功从预设中导入 {0} 个佣兵信息"
+    "SUCC_IMPORT_FIGHTER": "成功从预设中导入 {0} 个佣兵信息",
+    "SUCC_SNAPSHOT_LOADED": "快照加载成功！",
+    "ERR_SNAPSHOT_LOAD_FAIL": "加载快照失败。请检查代码并重试。"
   },
 
   "BattleInfo": {

@@ -136,6 +136,33 @@
                     </div>
                 </div>
 
+                <div class="card" style="margin-top: -0.6em">
+                    <label class="label" data-i18n="snapshot_code">Snapshot Code</label>
+                    <div class="row" style="gap: 0.8em; align-items: center">
+                        <input
+                            id="snapshotOutputField"
+                            type="text"
+                            placeholder="Generated snapshot code will appear here"
+                            data-i18n-placeholder="snapshot_code_placeholder"
+                            style="flex: 1; cursor: text;"
+                        />
+                        <button
+                            id="createSnapshotBtn"
+                            class="btn secondary"
+                            data-i18n="create_snapshot_button"
+                        >
+                            Create Snapshot
+                        </button>
+                        <button
+                            id="loadSnapshotBtn"
+                            class="btn secondary"
+                            data-i18n="load_snapshot_button"
+                        >
+                            Load Snapshot
+                        </button>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div
                         class="row"
@@ -164,21 +191,23 @@
                     <div id="fightersGrid" class="fighters-grid"></div>
                 </div>
 
-                <div class="row" style="gap: 0.8em">
-                    <button
-                        id="fightBtn"
-                        class="btn primary"
-                        data-i18n="fight_button"
-                    >
-                        ⚔️ Fight
-                    </button>
-                    <button
-                        id="clearLogBtn"
-                        class="btn secondary"
-                        data-i18n="clear_output_button"
-                    >
-                        Clear Output
-                    </button>
+                <div class="card">
+                    <div class="row" style="gap: 0.8em">
+                        <button
+                            id="fightBtn"
+                            class="btn primary"
+                            data-i18n="fight_button"
+                        >
+                            ⚔️ Fight
+                        </button>
+                        <button
+                            id="clearLogBtn"
+                            class="btn secondary"
+                            data-i18n="clear_output_button"
+                        >
+                            Clear Output
+                        </button>
+                    </div>
                 </div>
 
                 <div class="card">

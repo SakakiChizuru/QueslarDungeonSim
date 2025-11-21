@@ -14,7 +14,11 @@
   "battle_formation_description": "Click to edit • Drag to move/swap",
   "fight_button": "⚔️ Fight",
   "clear_output_button": "Clear Output",
+  "create_snapshot_button": "Create Snapshot",
+  "load_snapshot_button": "Load Snapshot",
   "output": "Output",
+  "snapshot_code": "Snapshot Code",
+  "snapshot_code_placeholder": "Generated snapshot code will appear here",
   "made_by": "Proudly made by anfneub",
   "last_updated": "Last updated: 2025-10-08",
   "changelog": "Changelog",
@@ -126,7 +130,9 @@
     "ERR_NULL_API": "Please enter an API key before importing.",
     "ERR_HTTP_ERROR": "HTTP error! status: {0}",
     "ERR_IMPORT_FAIL": "Import failed: {0}",
-    "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters from dungeon preset!"
+    "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters from dungeon preset!",
+    "SUCC_SNAPSHOT_LOADED": "Snapshot loaded successfully!",
+    "ERR_SNAPSHOT_LOAD_FAIL": "Failed to load snapshot. Please check the code and try again."
   },
 
   "BattleInfo": {

@@ -12,6 +12,9 @@ const numBattlesEl = document.getElementById("numBattles");
 const outputEl = document.getElementById("output");
 const fightBtn = document.getElementById("fightBtn");
 const clearLogBtn = document.getElementById("clearLogBtn");
+const createSnapshotBtn = document.getElementById("createSnapshotBtn");
+const snapshotOutputField = document.getElementById("snapshotOutputField");
+const loadSnapshotBtn = document.getElementById("loadSnapshotBtn");
 
 const apiKeyEl = document.getElementById("apiKey");
 const importBtn = document.getElementById("importBtn");
@@ -1419,6 +1422,60 @@ function runBattles() {
 fightBtn.addEventListener("click", runBattles);
 clearLogBtn.addEventListener("click", () => {
   outputEl.textContent = "";
+});
+
+function createSnapshot() {
+  const snapshotData = {
+    grid: gridState.map(row => row.map(serializeFighter)),
+    armory: armoryState.map(serializeItem),
+  };
+
+  const jsonString = JSON.stringify(snapshotData);
+  const base64String = btoa(jsonString);
+
+  snapshotOutputField.value = base64String;
+  snapshotOutputField.select(); // Select the text for easy copying
+  snapshotOutputField.setSelectionRange(0, 99999); // For mobile devices
+}
+
+createSnapshotBtn.addEventListener("click", createSnapshot);
+
+loadSnapshotBtn.addEventListener("click", () => {
+    const base64String = snapshotOutputField.value.trim();
+    if (!base64String) {
+        return;
+    }
+
+    try {
+        const jsonString = atob(base64String);
+        const snapshotData = JSON.parse(jsonString);
+
+        if (snapshotData.grid) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 2; j++) {
+                    gridState[i][j] = deserializeFighter(snapshotData.grid[i][j]);
+                }
+            }
+        }
+
+        if (snapshotData.armory) {
+            snapshotData.armory.forEach(itemData => {
+                const newItem = deserializeItem(itemData);
+                if (newItem && !armoryState.some(existingItem => existingItem.id === newItem.id)) {
+                    armoryState.push(newItem);
+                }
+            });
+        }
+
+        renderGrid();
+        renderArmory();
+        saveState();
+        snapshotOutputField.value = "";
+        alert(I18N.getAlertMsg("SUCC_SNAPSHOT_LOADED"));
+    } catch (error) {
+        console.error("Failed to load snapshot:", error);
+        alert(I18N.getAlertMsg("ERR_SNAPSHOT_LOAD_FAIL"));
+    }
 });
 
 // API Import functionality
