@@ -1,6 +1,7 @@
 2025-11-22
 - INTRODUCING: Armory. Import your fighters as usual through the API and find your fighter items in the armory on the right. Simply drag the fighter items on a fighter to equip them
 - INTRODUCING: Snapshots. Share your setup with your friends and villagers. Simply click on "Generate Snapshot" to create a code containing your Battle and Armory information. The same setup can be loaded on any other interface using the generated code. 
+- considerably shortened the shareable code
 
 2025-11-17
 - Corrected a bug where Paladin aura would sometimes not apply

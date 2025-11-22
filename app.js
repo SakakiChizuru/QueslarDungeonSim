@@ -348,56 +348,60 @@ const LS_KEYS = {
 
 function serializeFighter(f) {
   if (!f) return null;
-  // Save the raw input values that were stored when creating the fighter
   const raw = f.__raw || {};
-  return {
-    fighter_class: f.fighter_class,
+  const serialized = {
+    fc: f.fighter_class,
     name: f.name,
-    fighter_health: raw.fighter_health || 0,
-    fighter_damage: raw.fighter_damage || 0,
-    fighter_hit: raw.fighter_hit || 0,
-    fighter_defense: raw.fighter_defense || 0,
-    fighter_crit: raw.fighter_crit || 0,
-    fighter_dodge: raw.fighter_dodge || 0,
-    object_health: raw.object_health || 0,
-    object_damage: raw.object_damage || 0,
-    object_hit: raw.object_hit || 0,
-    object_defense: raw.object_defense || 0,
-    object_crit: raw.object_crit || 0,
-    object_dodge: raw.object_dodge || 0,
-    // 新增属性
-    isDuplicate: f.isDuplicate || false,
-    base: f.base || null,
-    equippedItemId: f.equippedItemId || null,
   };
+
+  // Only include stats if they are not zero
+  if (raw.fighter_health !== 0) serialized.fh = raw.fighter_health;
+  if (raw.fighter_damage !== 0) serialized.fd = raw.fighter_damage;
+  if (raw.fighter_hit !== 0) serialized.fi = raw.fighter_hit;
+  if (raw.fighter_defense !== 0) serialized.fdef = raw.fighter_defense;
+  if (raw.fighter_crit !== 0) serialized.fcr = raw.fighter_crit;
+  if (raw.fighter_dodge !== 0) serialized.fdo = raw.fighter_dodge;
+
+  if (raw.object_health !== 0) serialized.oh = raw.object_health;
+  if (raw.object_damage !== 0) serialized.od = raw.object_damage;
+  if (raw.object_hit !== 0) serialized.oi = raw.object_hit;
+  if (raw.object_defense !== 0) serialized.odef = raw.object_defense;
+  if (raw.object_crit !== 0) serialized.ocr = raw.object_crit;
+  if (raw.object_dodge !== 0) serialized.odo = raw.object_dodge;
+
+  if (f.isDuplicate) serialized.d = true; // Only include if true
+  if (f.base !== null) serialized.base = f.base;
+  if (f.equippedItemId !== null) serialized.eId = f.equippedItemId;
+
+  return serialized;
 }
 
 function deserializeFighter(obj) {
-  if (!obj || !obj.fighter_class) return null;
+  if (!obj || !obj.fc) return null; // Check for shortened key 'fc'
 
   // Ensure all required fields exist with default values and are non-negative
   const data = {
     name: obj.name,
-    fighter_health: Math.max(0, obj.fighter_health || 0),
-    fighter_damage: Math.max(0, obj.fighter_damage || 0),
-    fighter_hit: Math.max(0, obj.fighter_hit || 0),
-    fighter_defense: Math.max(0, obj.fighter_defense || 0),
-    fighter_crit: Math.max(0, obj.fighter_crit || 0),
-    fighter_dodge: Math.max(0, obj.fighter_dodge || 0),
-    object_health: Math.max(0, obj.object_health || 0),
-    object_damage: Math.max(0, obj.object_damage || 0),
-    object_hit: Math.max(0, obj.object_hit || 0),
-    object_defense: Math.max(0, obj.object_defense || 0),
-    object_crit: Math.max(0, obj.object_crit || 0),
-    object_dodge: Math.max(0, obj.object_dodge || 0),
+    fighter_health: Math.max(0, obj.fh || 0),
+    fighter_damage: Math.max(0, obj.fd || 0),
+    fighter_hit: Math.max(0, obj.fi || 0),
+    fighter_defense: Math.max(0, obj.fdef || 0),
+    fighter_crit: Math.max(0, obj.fcr || 0),
+    fighter_dodge: Math.max(0, obj.fdo || 0),
+    object_health: Math.max(0, obj.oh || 0),
+    object_damage: Math.max(0, obj.od || 0),
+    object_hit: Math.max(0, obj.oi || 0),
+    object_defense: Math.max(0, obj.odef || 0),
+    object_crit: Math.max(0, obj.ocr || 0),
+    object_dodge: Math.max(0, obj.odo || 0),
     // 新增属性
-    isDuplicate: obj.isDuplicate || false,
+    isDuplicate: obj.d || false, // Use shortened key 'd'
     base: obj.base || null,
-    equippedItemId: obj.equippedItemId || null,
+    equippedItemId: obj.eId || null, // Use shortened key 'eId'
   };
 
   try {
-    const fighter = new Fighter(obj.fighter_class, data);
+    const fighter = new Fighter(obj.fc, data); // Use shortened key 'fc'
     // Store the raw input values for re-populating the form
     fighter.__raw = { ...data };
     fighter.name = data.name; // Explicitly update the fighter's name property
@@ -411,17 +415,24 @@ function deserializeFighter(obj) {
 function serializeItem(item) {
   if (!item) return null;
   return {
-    _id: item.id,
+    id: item.id, // Shorten _id to id
     name: item.name,
-    rarity: item.rarity,
-    stats: item.stats,
+    r: item.rarity, // Shorten rarity to r
+    s: item.stats, // Shorten stats to s
   };
 }
 
 function deserializeItem(obj) {
   if (!obj) return null;
   try {
-    return new ArmoryItem(obj);
+    // Map shortened keys back to original names for ArmoryItem constructor
+    const itemData = {
+      _id: obj.id,
+      name: obj.name,
+      rarity: obj.r,
+      stats: obj.s,
+    };
+    return new ArmoryItem(itemData);
   } catch (error) {
     console.warn(I18N.getConsoleMsg("ERR_FAIL_LOAD_ITEM"), obj, error);
     return null;
@@ -1400,8 +1411,21 @@ function createSnapshot() {
   };
 
   const jsonString = JSON.stringify(snapshotData);
-  const base64String = btoa(jsonString);
-
+  let base64String = "";
+  try {
+    // Convert JSON string to Uint8Array for pako.deflate
+    const jsonUint8 = new TextEncoder().encode(jsonString);
+    // Compress the Uint8Array using pako
+    const compressedUint8 = pako.deflate(jsonUint8);
+    // Convert compressed Uint8Array to a binary string for btoa
+    const binaryString = String.fromCharCode.apply(null, compressedUint8);
+    base64String = btoa(binaryString);
+  } catch (error) {
+    console.error("Error compressing snapshot data:", error);
+    // Fallback to uncompressed if compression fails, or handle error as appropriate
+    base64String = btoa(jsonString); 
+  }
+  
   snapshotOutputField.value = base64String;
   snapshotOutputField.select(); // Select the text for easy copying
   snapshotOutputField.setSelectionRange(0, 99999); // For mobile devices
@@ -1416,7 +1440,21 @@ loadSnapshotBtn.addEventListener("click", () => {
   }
 
   try {
-    const jsonString = atob(base64String);
+    const decodedBinaryString = atob(base64String);
+    let jsonString;
+
+    try {
+      // Convert decoded binary string to Uint8Array for pako.inflate
+      const decodedUint8 = new Uint8Array(decodedBinaryString.split('').map(char => char.charCodeAt(0)));
+      // Attempt to decompress the Uint8Array
+      jsonString = pako.inflate(decodedUint8, { to: 'string' });
+    } catch (decompressionError) {
+      console.warn("Failed to decompress snapshot, attempting to parse as uncompressed JSON.", decompressionError);
+      // If decompression fails, assume it's an uncompressed snapshot.
+      // In this case, the decodedBinaryString is already the jsonString.
+      jsonString = decodedBinaryString;
+    }
+    
     const snapshotData = JSON.parse(jsonString);
 
     if (snapshotData.grid) {
