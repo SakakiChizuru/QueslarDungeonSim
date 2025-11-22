@@ -50,8 +50,25 @@
   "ok_button": "OK",
   "language_en": "EN",
   "language_cn": "CN",
+  "armory": "Armory",
+  "armory_description": "Click on items to edit. Drag on fighter to equip.",
+  "add_fighter_item": "+ Add Fighter Item",
+  "number_of_battles_tooltip": "When Verbose is active, only one battle will be shown",
+  "api_key_tooltip": "You can find you own API key under Settings > PI",
+  "edit_fighter_tooltip": "On the left column, insert the number of upgrades for each stats. On the right column, the final values of the Fighter Item",
+  "edit_item": "Edit Item",
+  "item_name_placeholder": "Item Name",
 
-  "Below All For App.js [This line using as Comment]": "Below All For App.js [This line using as Comment]",
+  "Below All For App.js [This line using as Comment]": "Below All For App.s [This line using as Comment]",
+  "ITEM_RARITY_CUSTOM": "Custom",
+  "NO_CHANGELOG_ENTRIES": "No changelog entries found.",
+  "UNABLE_TO_LOAD_CHANGELOG": "Unable to load changelog.",
+  "stat_health": "Health",
+  "stat_damage": "Damage",
+  "stat_hit": "Hit",
+  "stat_defense": "Defense",
+  "stat_crit_damage": "Crit Damage",
+  "stat_dodge": "Dodge",
 
   "class_descriptions": {
     "assassin": "The assassin prioritises the back column first",
@@ -67,7 +84,6 @@
     "bastion": "Allies in adjacent position to the bastion gain +50% dodge and 25% damage reduction",
     "no_class": "No special abilities"
   },
-
   "FighterName": {
     "ASSASSIN": "Assassin",
     "BRAWLER": "Brawler",
@@ -85,47 +101,43 @@
     "EMPTY": "Empty",
     "NO_CLASS": "No Class"
   },
-
   "UIElement": {
     "ADD": "Add",
     "DELETE": "Delete",
     "DUPLICATE": "Duplicate",
-
     "DUPLICATE_NAME": "Duplicate of {0}",
-
     "DROP_FIGHTER_HERE": "Drop fighters here",
-
     "TOTAL_WONS": "Fighters won {0} out of {1} battles.",
-
     "VICTORY_CHANCE": "Victory chance: {0}%",
     "AVG_SURVIVOR_HEALTH": "Average total health of surviving mobs: {0} hp",
     "CHANCE_60_MIN": "Probability of winning within the next 60 minutes: {0}%",
-
-    "IMPORTING": "Importing..."
+    "IMPORTING": "Importing...",
+    "NO_ITEM": "No Item"
   },
-
   "ConsoleMessages": {
     "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters",
-
     "ERR_FAIL_LOAD_FIGHTER": "Failed to deserialize fighter:",
     "ERR_FAIL_LOAD_GRID": "Failed to load grid state:",
     "ERR_FAIL_LOAD_BENCH": "Failed to load bench state:",
     "ERR_FAIL_CREA_FIGHTER": "Failed to create fighter:",
     "ERR_IMPORT_FAIL": "Import failed:",
     "ERR_PROC_IMPORT_DATA": "Error processing imported data: {0}",
-
     "ERR_IVLD_FIGHTER_DATA": "Invalid fighter data: not an object",
     "ERR_IVLD_FIGHTER_CLS": "Invalid or missing fighter class",
     "ERR_IVLD_FIGHTER_CLS_PLH": "{0} is not a valid class. Please check your input.",
     "ERR_IVLD_API_FORMAT": "Invalid API response format: missing or invalid 'output' array.",
-
     "INFO_SEARCH_IN_ITEMS": "Searching for dungeon preset in {0} items",
     "INFO_AVIL_PRESET": "Available presets:",
     "INFO_NO_AVIL_PRESET": "No preset found with assignment 'dungeon'. Nothing was imported.",
     "INFO_PRESET_FOUND": "Found dungeon preset: {0} with {1} fighteres",
-    "INFO_PROC_FIGHTER": "Processing fighter: {0} class: {1}"
+    "INFO_PROC_FIGHTER": "Processing fighter: {0} class: {1}",
+    "ERR_FAIL_LOAD_ITEM": "Failed to deserialize item:",
+    "ERR_FAIL_LOAD_ARMORY": "Failed to load armory state:",
+    "ERR_GRID_FULL": "Could not place fighter: {0} - grid is full",
+    "ERR_UNKNOWN_EQUIP_STAT": "Unknown equipment stat type: {0} with value: {1}",
+    "WARN_EQUIP_TIER_EXCEEDS_MAX": "Equipment stat has tier {0} which is above max (12), using default multiplier 1.0",
+    "ERR_FAIL_LOAD_CHANGELOG": "Failed to load changelog:"
   },
-
   "Alerts": {
     "ERR_FAIL_CREA_FIGHTER": "Failed to create fighter. Please check your input values.",
     "ERR_NULL_API": "Please enter an API key before importing.",
@@ -135,41 +147,32 @@
     "SUCC_SNAPSHOT_LOADED": "Snapshot loaded successfully!",
     "ERR_SNAPSHOT_LOAD_FAIL": "Failed to load snapshot. Please check the code and try again."
   },
-
   "BattleInfo": {
     "MOB": "mob",
     "FIGHTER": "fighter",
-
     "MOB_ATK_NAME": "level {0} {1}",
     "MOB_TGT_NAME": "level {0} {1}",
-
-    "HEADERS": ["Mobs Back", "Mobs Front", "Fighters Front", "Fighters Back"],
-
+    "HEADERS": [" Mobs Back", " Mobs Front", "Fighters Front", "Fighters Back"],
     "LOSE_DUE_TO_EXHAUST": "Fighters lost the battle due to exhaustion!",
     "HEALTH_0": "Health reached 0",
     "HEALTH_TABLE_LINE": "{0} lvl {1}",
-
     "ROUND_INFO": "Round: {0}, Attack: {1}",
     "FINAL_ROUND": "Final Round Situation",
-
     "DAMAGE_INFO": "{0} hits {1} and deals {2} damage.",
     "ATK_MISS": "{0} misses attacking {1}.",
     "CRT_RNG_INFO": "Crit rng: {0}} < 0.1",
     "ATK_CANNOT_DODGE": "{0} attack cannot be dodged",
     "ATK_RNG_SUCC": "Successful attack rng: {0} < {1}",
-
     "SP_SD_EVADED": "Shadow dancer has evaded. Next attack will be double damage",
     "SP_SD_APL_DOUBLEDMG": "Shadow Dancer applies double damage",
     "SP_BR_DOUBLE": "Brawler attacked twice!",
     "SP_PL_DMG_REDUCTION": "Paladin aura adds 15% damage reduction",
     "SP_BS_DMG_DODGE": "Bastion aura adds 25% damage reduction and 50% increased dodge",
     "PRIEST_RESURRECTED": "Priest resurrected {0} at 10% hp",
-
     "ERR_IVLD_TGT_ID": "No valid target found for {0} attack",
     "ERR_IVLD_ATKR": "Invalid attacker",
     "ERR_IVLD_TGT": "Invalid target"
   },
-
   "MobInfo": {
     "MOB": "Mob",
     "BOSS": "Boss"

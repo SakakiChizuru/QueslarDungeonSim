@@ -423,7 +423,7 @@ function deserializeItem(obj) {
   try {
     return new ArmoryItem(obj);
   } catch (error) {
-    console.warn("Failed to deserialize item:", obj, error);
+    console.warn(I18N.getConsoleMsg("ERR_FAIL_LOAD_ITEM"), obj, error);
     return null;
   }
 }
@@ -492,7 +492,7 @@ function loadState() {
       renderArmory();
     }
   } catch (error) {
-    console.warn("Failed to load armory state:", error);
+    console.warn(I18N.getConsoleMsg("ERR_FAIL_LOAD_ARMORY"), error);
     localStorage.removeItem(LS_KEYS.armory);
   }
 
@@ -600,7 +600,7 @@ function renderGrid() {
         const equippedItem = armoryState.find(
           (item) => item.id === fighter.equippedItemId,
         );
-        const itemName = equippedItem ? equippedItem.name : "No Item";
+        const itemName = equippedItem ? equippedItem.name : I18N.getUIElement("NO_ITEM");
         itemDetails.textContent =
           itemName.substring(0, 25) + (itemName.length > 25 ? "..." : ""); // Shorten item name
 
@@ -769,8 +769,7 @@ function renderBench() {
       const equippedItem = armoryState.find(
         (item) => item.id === fighter.equippedItemId,
       );
-      const itemName = equippedItem ? equippedItem.name : "No Item";
-      itemDetails.textContent =
+              const itemName = equippedItem ? equippedItem.name : I18N.getUIElement("NO_ITEM");      itemDetails.textContent =
         itemName.substring(0, 25) + (itemName.length > 25 ? "..." : ""); // Shorten item name
 
       name.appendChild(classDetails);
@@ -889,7 +888,7 @@ function renderArmory() {
     const del = document.createElement("button");
     del.className = "btn small delete";
     del.textContent = "×";
-    del.title = "Delete";
+    del.title = I18N.getUIElement("DELETE");
     del.style.width = "100%";
     del.style.padding = "0.1em 0.2em"; // Compress padding
     del.addEventListener("click", (e) => {
@@ -901,7 +900,7 @@ function renderArmory() {
 
     const duplicate = document.createElement("button");
     duplicate.className = "btn small duplicate";
-    duplicate.title = "Duplicate";
+    duplicate.title = I18N.getUIElement("DUPLICATE");
     duplicate.style.width = "100%";
     duplicate.style.padding = "0.1em 0.2em"; // Compress padding
     const duplicateIcon = createDuplicateIcon();
@@ -984,7 +983,7 @@ function openItemEditor(index) {
     statRow.style.alignItems = "center";
 
     const label = document.createElement("label");
-    label.textContent = statType.charAt(0).toUpperCase() + statType.slice(1);
+    label.textContent = I18N.getTranslation("stat_" + statType.replace(/([A-Z])/g, '_$1').toLowerCase());
     statRow.appendChild(label);
 
     const input = document.createElement("input");
@@ -1016,7 +1015,7 @@ function saveItem() {
     itemToSave = {
       _id: `new_item_${Date.now()}`, // Generate a unique ID for new items
       name: itemNameInput.value,
-      rarity: "Custom", // Default rarity for new items
+      rarity: I18N.getTranslation("ITEM_RARITY_CUSTOM"), // Default rarity for new items
       stats: [],
     };
   } else {
@@ -1609,11 +1608,7 @@ function processImportedData(apiData) {
           }
 
           if (!placed) {
-            console.warn(
-              "Could not place fighter:",
-              fighterData.name,
-              "- grid is full",
-            );
+            console.warn(I18N.getConsoleMsg("ERR_GRID_FULL"), fighterData.name);
           }
         }
       } catch (error) {
@@ -1707,7 +1702,7 @@ function calculateStatValue(stat) {
 
   if (tier > 12) {
     console.warn(
-      `Equipment stat has tier ${tier} which is above max (12), using default multiplier 1.0`,
+      formatString(I18N.getConsoleMsg("WARN_EQUIP_TIER_EXCEEDS_MAX"), tier)
     );
   }
 
@@ -1794,10 +1789,7 @@ function createFighterFromApiData(apiData) {
           break;
         default:
           console.warn(
-            "Unknown equipment stat type:",
-            stat.type,
-            "with value:",
-            value,
+            formatString(I18N.getConsoleMsg("ERR_UNKNOWN_EQUIP_STAT"), stat.type, value)
           );
           break;
       }
@@ -1869,18 +1861,18 @@ async function loadChangelog() {
     const changelogContent = changelogModal.querySelector(
       ".modal div:last-child",
     );
-    changelogContent.innerHTML = html || "<p>No changelog entries found.</p>";
+    changelogContent.innerHTML = html || I18N.getTranslation("NO_CHANGELOG_ENTRIES");
 
     // Update last updated date in footer
     if (latestDate && lastUpdatedEl) {
       lastUpdatedEl.textContent = `Last updated: ${latestDate}`;
     }
   } catch (error) {
-    console.warn("Failed to load changelog:", error);
+    console.warn(I18N.getConsoleMsg("ERR_FAIL_LOAD_CHANGELOG"), error);
     const changelogContent = changelogModal.querySelector(
       ".modal div:last-child",
     );
-    changelogContent.innerHTML = "<p>Unable to load changelog.</p>";
+    changelogContent.innerHTML = I18N.getTranslation("UNABLE_TO_LOAD_CHANGELOG");
   }
 }
 

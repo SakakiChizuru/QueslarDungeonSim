@@ -88,7 +88,7 @@
                             >Number of battles<span
                                 class="info-icon"
                                 tabindex="0"
-                                data-tooltip="When Verbose is active, only one battle will be shown"
+                                data-tooltip="number_of_battles_tooltip"
                             ></span
                         ></label>
                         <div
@@ -115,7 +115,7 @@
                         API Key<span
                             class="info-icon"
                             tabindex="0"
-                            data-tooltip="You can find you own API key under Settings > PI"
+                            data-tooltip="api_key_tooltip"
                         ></span>
                     </label>
                     <div class="row" style="gap: 0.8em; align-items: center">
@@ -237,20 +237,19 @@
             </div>
 
             <div class="armory-section">
-                <div class="label" style="margin-bottom: 0.5em">Armory</div>
+                <div class="label" style="margin-bottom: 0.5em" data-i18n="armory">Armory</div>
                 <div
                     style="
                         font-size: 0.8em;
                         color: #8892b0;
                         margin-bottom: 0.8em;
                     "
+                    data-i18n="armory_description"
                 >
                     Click on items to edit. Drag on fighter to equip.
                 </div>
                 <div id="armoryGrid" class="armory-grid"></div>
-                <div id="addToArmory" class="add-to-bench">
-                    + Add Fighter Item
-                </div>
+                <div id="addToArmory" class="add-to-bench" data-i18n="add_fighter_item"> + Add Fighter Item</div>
             </div>
         </div>
 
@@ -298,7 +297,7 @@
                         Edit Fighter<span
                             class="info-icon"
                             tabindex="0"
-                            data-tooltip="On the left column, insert the number of upgrades for each stats. On the right column, the final values of the Fighter Item"
+                            data-tooltip="edit_fighter_tooltip"
                         ></span>
                     </h3>
                     <button
@@ -565,18 +564,18 @@
                         margin-bottom: 0.4em;
                     "
                 >
-                    <h3>Edit Item</h3>
+                    <h3 data-i18n="edit_item">Edit Item</h3>
                     <button id="closeItemModal" class="btn secondary">
                         Close
                     </button>
                 </div>
                 <div class="grid">
                     <div style="grid-column: 1 / -1">
-                        <label>Name</label>
+                        <label data-i18n="name_label">Name</label>
                         <input
                             id="itemName"
                             type="text"
-                            placeholder="Item Name"
+                            placeholder="Item Name" data-i18n-placeholder="item_name_placeholder"
                             style="
                                 width: 100%;
                                 padding: 0.5em 0.7em;
@@ -596,7 +595,7 @@
                     class="row"
                     style="margin-top: 0.8em; justify-content: flex-end"
                 >
-                    <button id="saveItem" class="btn">Save</button>
+                    <button id="saveItem" class="btn" data-i18n="save_button">Save</button>
                 </div>
             </div>
         </div>

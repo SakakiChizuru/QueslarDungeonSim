@@ -98,8 +98,14 @@ export class I18nManager {
         
         document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
             const key = element.getAttribute('data-i18n-placeholder');
-            if (this.translations[this.currentLang] && this.translations[this.currentLang][key]) {
-                element.setAttribute('placeholder', this.translations[this.currentLang][key]);
+            const translation = this.getTranslation(key); // Use getTranslation for consistency
+            if (translation !== key) { // Check if a translation was found
+                element.placeholder = translation; // Directly set the property
+            } else {
+                // Fallback to original placeholder if no translation found, or use default from HTML
+                if (!element.hasAttribute('placeholder')) {
+                    element.setAttribute('placeholder', key); // Use key as fallback if no original placeholder
+                }
             }
         });
         

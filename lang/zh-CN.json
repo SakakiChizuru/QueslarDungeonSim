@@ -19,7 +19,7 @@
   "output": "输出",
   "snapshot_code": "快照代码",
   "snapshot_code_placeholder": "生成的快照代码将显示在此处",
-  "snapshot_code_tooltip": "点击“创建快照”生成当前战斗阵型和兵工厂物品的代码。与他人分享此代码。在此处粘贴代码，然后点击“加载快照”加载保存的设置。加载快照将覆盖您当前的战斗阵型，并将物品添加到您的兵工厂（现有物品不会被修改）。",
+  "snapshot_code_tooltip": "点击“创建快照”生成当前战斗阵型和兵工厂物品的代码。与他人分享此代码。在此处粘贴代码，然后点击“加载快照”加载保存的设置。",
   "made_by": "由 anfneub 制作， SakakiChizuru 中文化",
   "last_updated": "最后更新: 2025-10-08",
   "changelog": "更新日志",
@@ -50,8 +50,25 @@
   "ok_button": "确定",
   "language_en": "英文",
   "language_cn": "中文",
+  "armory": "兵工厂",
+  "armory_description": "点击物品进行编辑。拖拽到佣兵身上进行装备。",
+  "add_fighter_item": "+ 添加佣兵物品",
+  "number_of_battles_tooltip": "详细模式开启时，只会显示一场战斗",
+  "api_key_tooltip": "你可以在 设置 > PI 中找到你的API密钥",
+  "edit_fighter_tooltip": "左侧输入各属性的升级次数。右侧为佣兵物品的最终数值。",
+  "edit_item": "编辑物品",
+  "item_name_placeholder": "物品名称",
 
   "Below All For App.js [This line using as Comment]": "Below All For App.js [This line using as Comment]",
+  "ITEM_RARITY_CUSTOM": "自定义",
+  "NO_CHANGELOG_ENTRIES": "未找到更新日志条目。",
+  "UNABLE_TO_LOAD_CHANGELOG": "无法加载更新日志。",
+  "stat_health": "生命值",
+  "stat_damage": "伤害",
+  "stat_hit": "命中",
+  "stat_defense": "防御",
+  "stat_crit_damage": "暴击伤害",
+  "stat_dodge": "闪避",
 
   "class_descriptions": {
     "assassin": "刺客优先攻击后排",
@@ -101,7 +118,8 @@
     "AVG_SURVIVOR_HEALTH": "平均幸存怪物总血量: {0}",
     "CHANCE_60_MIN": "60分钟内获胜几率: {0}%",
 
-    "IMPORTING": "导入中..."
+    "IMPORTING": "导入中...",
+    "NO_ITEM": "无物品"
   },
 
   "ConsoleMessages": {
@@ -123,7 +141,13 @@
     "INFO_AVIL_PRESET": "可用的预设：",
     "INFO_NO_AVIL_PRESET": "未找到带有 '地下城' 指派的预设，未导入任何内容。",
     "INFO_PRESET_FOUND": "已找到地下城预设：{0}，包含 {1} 名佣兵",
-    "INFO_PROC_FIGHTER": "正在处理佣兵：{0}　职业：{1}"
+    "INFO_PROC_FIGHTER": "正在处理佣兵：{0}　职业：{1}",
+    "ERR_FAIL_LOAD_ITEM": "无法反序列化物品：",
+    "ERR_FAIL_LOAD_ARMORY": "无法加载兵工厂状态：",
+    "ERR_GRID_FULL": "无法放置佣兵：{0} - 阵型已满",
+    "ERR_UNKNOWN_EQUIP_STAT": "未知装备属性类型：{0} 值为：{1}",
+    "WARN_EQUIP_TIER_EXCEEDS_MAX": "装备属性层级 {0} 超过最大值 (12)，使用默认乘数 1.0",
+    "ERR_FAIL_LOAD_CHANGELOG": "无法加载更新日志："
   },
 
   "Alerts": {
