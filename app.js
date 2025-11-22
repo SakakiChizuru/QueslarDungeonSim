@@ -600,7 +600,9 @@ function renderGrid() {
         const equippedItem = armoryState.find(
           (item) => item.id === fighter.equippedItemId,
         );
-        const itemName = equippedItem ? equippedItem.name : I18N.getUIElement("NO_ITEM");
+        const itemName = equippedItem
+          ? equippedItem.name
+          : I18N.getUIElement("NO_ITEM");
         itemDetails.textContent =
           itemName.substring(0, 25) + (itemName.length > 25 ? "..." : ""); // Shorten item name
 
@@ -769,7 +771,10 @@ function renderBench() {
       const equippedItem = armoryState.find(
         (item) => item.id === fighter.equippedItemId,
       );
-              const itemName = equippedItem ? equippedItem.name : I18N.getUIElement("NO_ITEM");      itemDetails.textContent =
+      const itemName = equippedItem
+        ? equippedItem.name
+        : I18N.getUIElement("NO_ITEM");
+      itemDetails.textContent =
         itemName.substring(0, 25) + (itemName.length > 25 ? "..." : ""); // Shorten item name
 
       name.appendChild(classDetails);
@@ -983,9 +988,11 @@ function openItemEditor(index) {
     statRow.style.alignItems = "center";
 
     const label = document.createElement("label");
-    let labelText = I18N.getTranslation("stat_" + statType.replace(/([A-Z])/g, '_$1').toLowerCase());
+    let labelText = I18N.getTranslation(
+      "stat_" + statType.replace(/([A-Z])/g, "_$1").toLowerCase(),
+    );
     if (existingStat && existingStat.tier) {
-        labelText += ` (T${existingStat.tier})`;
+      labelText += ` (T${existingStat.tier})`;
     }
     label.textContent = labelText;
     statRow.appendChild(label);
@@ -1211,40 +1218,43 @@ saveFighterBtn.addEventListener("click", () => {
     }
   });
 
-      const originalFighter = editingCell.i >= 0 && editingCell.j >= 0
-          ? gridState[editingCell.i][editingCell.j]
-          : (editingBench.index >= 0 ? benchState[editingBench.index] : null);
-  
-      if (originalFighter && originalFighter.equippedItemId) {
-          data.equippedItemId = originalFighter.equippedItemId;
-      }
-  
-      try {
-          // Create fighter with selected class (including "No Class")
-          const f = new Fighter(fc, data);
-          // Store raw inputs on instance for easy re-populating
-          f.__raw = { ...data };
-          f.name = data.name; // Explicitly update the fighter's name property
-  
-          // Determine where to save the fighter
-          if (editingCell.i >= 0 && editingCell.j >= 0) {
-              // Saving to main grid
-              gridState[editingCell.i][editingCell.j] = f;
-              renderGrid();
-          } else if (editingBench.isAddNew) {
-              // Adding new fighter to bench
-              benchState.push(f);
-              renderBench();
-          } else if (editingBench.index >= 0) {
-              // Editing existing bench fighter
-              benchState[editingBench.index] = f;
-              renderBench();
-          }
-      } catch (error) {
-          console.error(I18N.getConsoleMsg("ERR_FAIL_CREA_FIGHTER"), error);
-          alert(I18N.getAlertMsg("ERR_FAIL_CREA_FIGHTER"));
-          return;
-      }
+  const originalFighter =
+    editingCell.i >= 0 && editingCell.j >= 0
+      ? gridState[editingCell.i][editingCell.j]
+      : editingBench.index >= 0
+        ? benchState[editingBench.index]
+        : null;
+
+  if (originalFighter && originalFighter.equippedItemId) {
+    data.equippedItemId = originalFighter.equippedItemId;
+  }
+
+  try {
+    // Create fighter with selected class (including "No Class")
+    const f = new Fighter(fc, data);
+    // Store raw inputs on instance for easy re-populating
+    f.__raw = { ...data };
+    f.name = data.name; // Explicitly update the fighter's name property
+
+    // Determine where to save the fighter
+    if (editingCell.i >= 0 && editingCell.j >= 0) {
+      // Saving to main grid
+      gridState[editingCell.i][editingCell.j] = f;
+      renderGrid();
+    } else if (editingBench.isAddNew) {
+      // Adding new fighter to bench
+      benchState.push(f);
+      renderBench();
+    } else if (editingBench.index >= 0) {
+      // Editing existing bench fighter
+      benchState[editingBench.index] = f;
+      renderBench();
+    }
+  } catch (error) {
+    console.error(I18N.getConsoleMsg("ERR_FAIL_CREA_FIGHTER"), error);
+    alert(I18N.getAlertMsg("ERR_FAIL_CREA_FIGHTER"));
+    return;
+  }
   saveState();
   closeFighterEditor();
 });
@@ -1385,7 +1395,7 @@ clearLogBtn.addEventListener("click", () => {
 
 function createSnapshot() {
   const snapshotData = {
-    grid: gridState.map(row => row.map(serializeFighter)),
+    grid: gridState.map((row) => row.map(serializeFighter)),
     armory: armoryState.map(serializeItem),
   };
 
@@ -1400,41 +1410,44 @@ function createSnapshot() {
 createSnapshotBtn.addEventListener("click", createSnapshot);
 
 loadSnapshotBtn.addEventListener("click", () => {
-    const base64String = snapshotOutputField.value.trim();
-    if (!base64String) {
-        return;
+  const base64String = snapshotOutputField.value.trim();
+  if (!base64String) {
+    return;
+  }
+
+  try {
+    const jsonString = atob(base64String);
+    const snapshotData = JSON.parse(jsonString);
+
+    if (snapshotData.grid) {
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 2; j++) {
+          gridState[i][j] = deserializeFighter(snapshotData.grid[i][j]);
+        }
+      }
     }
 
-    try {
-        const jsonString = atob(base64String);
-        const snapshotData = JSON.parse(jsonString);
-
-        if (snapshotData.grid) {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 2; j++) {
-                    gridState[i][j] = deserializeFighter(snapshotData.grid[i][j]);
-                }
-            }
+    if (snapshotData.armory) {
+      snapshotData.armory.forEach((itemData) => {
+        const newItem = deserializeItem(itemData);
+        if (
+          newItem &&
+          !armoryState.some((existingItem) => existingItem.id === newItem.id)
+        ) {
+          armoryState.push(newItem);
         }
-
-        if (snapshotData.armory) {
-            snapshotData.armory.forEach(itemData => {
-                const newItem = deserializeItem(itemData);
-                if (newItem && !armoryState.some(existingItem => existingItem.id === newItem.id)) {
-                    armoryState.push(newItem);
-                }
-            });
-        }
-
-        renderGrid();
-        renderArmory();
-        saveState();
-        snapshotOutputField.value = "";
-        alert(I18N.getAlertMsg("SUCC_SNAPSHOT_LOADED"));
-    } catch (error) {
-        console.error("Failed to load snapshot:", error);
-        alert(I18N.getAlertMsg("ERR_SNAPSHOT_LOAD_FAIL"));
+      });
     }
+
+    renderGrid();
+    renderArmory();
+    saveState();
+    // snapshotOutputField.value = "";
+    // alert(I18N.getAlertMsg("SUCC_SNAPSHOT_LOADED"));
+  } catch (error) {
+    console.error("Failed to load snapshot:", error);
+    alert(I18N.getAlertMsg("ERR_SNAPSHOT_LOAD_FAIL"));
+  }
 });
 
 // API Import functionality
@@ -1706,7 +1719,7 @@ function calculateStatValue(stat) {
 
   if (tier > 12) {
     console.warn(
-      formatString(I18N.getConsoleMsg("WARN_EQUIP_TIER_EXCEEDS_MAX"), tier)
+      formatString(I18N.getConsoleMsg("WARN_EQUIP_TIER_EXCEEDS_MAX"), tier),
     );
   }
 
@@ -1793,7 +1806,11 @@ function createFighterFromApiData(apiData) {
           break;
         default:
           console.warn(
-            formatString(I18N.getConsoleMsg("ERR_UNKNOWN_EQUIP_STAT"), stat.type, value)
+            formatString(
+              I18N.getConsoleMsg("ERR_UNKNOWN_EQUIP_STAT"),
+              stat.type,
+              value,
+            ),
           );
           break;
       }
@@ -1865,7 +1882,8 @@ async function loadChangelog() {
     const changelogContent = changelogModal.querySelector(
       ".modal div:last-child",
     );
-    changelogContent.innerHTML = html || I18N.getTranslation("NO_CHANGELOG_ENTRIES");
+    changelogContent.innerHTML =
+      html || I18N.getTranslation("NO_CHANGELOG_ENTRIES");
 
     // Update last updated date in footer
     if (latestDate && lastUpdatedEl) {
@@ -1876,7 +1894,9 @@ async function loadChangelog() {
     const changelogContent = changelogModal.querySelector(
       ".modal div:last-child",
     );
-    changelogContent.innerHTML = I18N.getTranslation("UNABLE_TO_LOAD_CHANGELOG");
+    changelogContent.innerHTML = I18N.getTranslation(
+      "UNABLE_TO_LOAD_CHANGELOG",
+    );
   }
 }
 
@@ -1924,27 +1944,28 @@ apiKeyEl.addEventListener("input", saveState);
 dontShowImportWarningEl.addEventListener("change", saveState);
 
 function getBonusesFromItem(item) {
-    const bonuses = {
-        object_health: 0,
-        object_damage: 0,
-        object_hit: 0,
-        object_defense: 0,
-        object_crit: 0,
-        object_dodge: 0,
-    };
-    if (!item || !item.stats) return bonuses;
+  const bonuses = {
+    object_health: 0,
+    object_damage: 0,
+    object_hit: 0,
+    object_defense: 0,
+    object_crit: 0,
+    object_dodge: 0,
+  };
+  if (!item || !item.stats) return bonuses;
 
-    item.stats.forEach(stat => {
-        const statType = stat.type.toLowerCase();
-        const value = stat.value || 0;
-        if (statType.includes('health')) bonuses.object_health += value;
-        if (statType.includes('damage') && !statType.includes('crit')) bonuses.object_damage += value;
-        if (statType.includes('hit')) bonuses.object_hit += value;
-        if (statType.includes('defense')) bonuses.object_defense += value;
-        if (statType.includes('crit')) bonuses.object_crit += value;
-        if (statType.includes('dodge')) bonuses.object_dodge += value;
-    });
-    return bonuses;
+  item.stats.forEach((stat) => {
+    const statType = stat.type.toLowerCase();
+    const value = stat.value || 0;
+    if (statType.includes("health")) bonuses.object_health += value;
+    if (statType.includes("damage") && !statType.includes("crit"))
+      bonuses.object_damage += value;
+    if (statType.includes("hit")) bonuses.object_hit += value;
+    if (statType.includes("defense")) bonuses.object_defense += value;
+    if (statType.includes("crit")) bonuses.object_crit += value;
+    if (statType.includes("dodge")) bonuses.object_dodge += value;
+  });
+  return bonuses;
 }
 
 // Drag and drop functionality
@@ -2086,48 +2107,55 @@ function handleDrop(e) {
       benchState.splice(targetData.index, 0, sourceFighter);
       renderBench();
     }
-    } else if (draggedData.type === "armory" && targetType === "armory") {
-      // Armory to armory - reorder
-      if (draggedData.index !== targetData.index) {
-          const sourceItem = armoryState[draggedData.index];
-          armoryState.splice(draggedData.index, 1);
-          armoryState.splice(targetData.index, 0, sourceItem);
-          renderArmory();
-      }
-    } else if (draggedData.type === "armory" && (targetType === "grid" || targetType === "bench")) {
-      // Equip item onto a fighter
-      const draggedItem = draggedData.item;
-      let originalFighter = null;
+  } else if (draggedData.type === "armory" && targetType === "armory") {
+    // Armory to armory - reorder
+    if (draggedData.index !== targetData.index) {
+      const sourceItem = armoryState[draggedData.index];
+      armoryState.splice(draggedData.index, 1);
+      armoryState.splice(targetData.index, 0, sourceItem);
+      renderArmory();
+    }
+  } else if (
+    draggedData.type === "armory" &&
+    (targetType === "grid" || targetType === "bench")
+  ) {
+    // Equip item onto a fighter
+    const draggedItem = draggedData.item;
+    let originalFighter = null;
+    if (targetType === "grid") {
+      originalFighter = gridState[targetData.i][targetData.j];
+    } else {
+      // bench
+      originalFighter = benchState[targetData.index];
+    }
+
+    if (originalFighter) {
+      const itemBonuses = getBonusesFromItem(draggedItem);
+      const newFighterData = { ...originalFighter.__raw };
+
+      // Update item stats
+      Object.assign(newFighterData, itemBonuses);
+      newFighterData.equippedItemId = draggedItem.id;
+
+      const newFighter = new Fighter(
+        originalFighter.fighter_class,
+        newFighterData,
+      );
+      newFighter.__raw = newFighterData;
+
+      // Replace the old fighter
       if (targetType === "grid") {
-          originalFighter = gridState[targetData.i][targetData.j];
-      } else { // bench
-          originalFighter = benchState[targetData.index];
-      }
-  
-      if (originalFighter) {
-          const itemBonuses = getBonusesFromItem(draggedItem);
-          const newFighterData = { ...originalFighter.__raw };
-  
-          // Update item stats
-          Object.assign(newFighterData, itemBonuses);
-          newFighterData.equippedItemId = draggedItem.id;
-          
-          const newFighter = new Fighter(originalFighter.fighter_class, newFighterData);
-          newFighter.__raw = newFighterData;
-  
-          // Replace the old fighter
-          if (targetType === "grid") {
-              gridState[targetData.i][targetData.j] = newFighter;
-              renderGrid();
-          } else {
-              benchState[targetData.index] = newFighter;
-              renderBench();
-          }
+        gridState[targetData.i][targetData.j] = newFighter;
+        renderGrid();
+      } else {
+        benchState[targetData.index] = newFighter;
+        renderBench();
       }
     }
-  
-    saveState();
   }
+
+  saveState();
+}
 // Add visual feedback for bench grid when dragging from grid
 benchGridEl.addEventListener("dragenter", (e) => {
   e.preventDefault();
