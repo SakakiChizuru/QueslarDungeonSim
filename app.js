@@ -983,7 +983,11 @@ function openItemEditor(index) {
     statRow.style.alignItems = "center";
 
     const label = document.createElement("label");
-    label.textContent = I18N.getTranslation("stat_" + statType.replace(/([A-Z])/g, '_$1').toLowerCase());
+    let labelText = I18N.getTranslation("stat_" + statType.replace(/([A-Z])/g, '_$1').toLowerCase());
+    if (existingStat && existingStat.tier) {
+        labelText += ` (T${existingStat.tier})`;
+    }
+    label.textContent = labelText;
     statRow.appendChild(label);
 
     const input = document.createElement("input");
