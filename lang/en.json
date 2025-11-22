@@ -19,6 +19,7 @@
   "output": "Output",
   "snapshot_code": "Snapshot Code",
   "snapshot_code_placeholder": "Generated snapshot code will appear here",
+  "snapshot_code_tooltip": "Click 'Create Snapshot' to generate a code for your current Battle Formation and Armory items. Share this code with others. Paste a code here and click 'Load Snapshot' to load a saved setup.",
   "made_by": "Proudly made by anfneub",
   "last_updated": "Last updated: 2025-10-08",
   "changelog": "Changelog",

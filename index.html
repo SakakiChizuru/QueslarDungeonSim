@@ -110,7 +110,7 @@
                     </div>
                 </div>
 
-                <div class="card" style="margin-top: -0.6em">
+                <div class="card" style="margin-top: -1em">
                     <label class="label" data-i18n="api_key">
                         API Key<span
                             class="info-icon"
@@ -136,15 +136,22 @@
                     </div>
                 </div>
 
-                <div class="card" style="margin-top: -0.6em">
-                    <label class="label" data-i18n="snapshot_code">Snapshot Code</label>
+                <div class="card" style="margin-top: -0.3em">
+                    <label class="label">
+                        <span data-i18n="snapshot_code">Snapshot Code</span>
+                        <span
+                            class="info-icon"
+                            tabindex="0"
+                            data-tooltip="snapshot_code_tooltip"
+                        ></span>
+                    </label>
                     <div class="row" style="gap: 0.8em; align-items: center">
                         <input
                             id="snapshotOutputField"
                             type="text"
                             placeholder="Generated snapshot code will appear here"
                             data-i18n-placeholder="snapshot_code_placeholder"
-                            style="flex: 1; cursor: text;"
+                            style="flex: 1; cursor: text"
                         />
                         <button
                             id="createSnapshotBtn"
@@ -163,7 +170,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card" style="margin-top: -0.3em">
                     <div
                         class="row"
                         style="
@@ -188,29 +195,42 @@
                             Click to edit • Drag to move/swap
                         </div>
                     </div>
-                    <div id="fightersGrid" class="fighters-grid"></div>
-                </div>
-
-                <div class="card">
-                    <div class="row" style="gap: 0.8em">
-                        <button
-                            id="fightBtn"
-                            class="btn primary"
-                            data-i18n="fight_button"
+                    <div
+                        class="battle-formation-container"
+                        style="display: flex; gap: 0.8em"
+                    >
+                        <div
+                            id="fightersGrid"
+                            class="fighters-grid"
+                            style="flex: 1"
+                        ></div>
+                        <div
+                            class="col"
+                            style="
+                                display: flex;
+                                flex-direction: column;
+                                gap: 0.8em;
+                            "
                         >
-                            ⚔️ Fight
-                        </button>
-                        <button
-                            id="clearLogBtn"
-                            class="btn secondary"
-                            data-i18n="clear_output_button"
-                        >
-                            Clear Output
-                        </button>
+                            <button
+                                id="fightBtn"
+                                class="btn primary"
+                                data-i18n="fight_button"
+                            >
+                                ⚔️ Fight
+                            </button>
+                            <button
+                                id="clearLogBtn"
+                                class="btn secondary"
+                                data-i18n="clear_output_button"
+                            >
+                                Clear Output
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card" style="margin-top: -0.3em">
                     <label class="label" data-i18n="output">Output</label>
                     <div id="output" class="output"></div>
                 </div>

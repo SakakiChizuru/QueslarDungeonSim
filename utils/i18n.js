@@ -110,6 +110,14 @@ export class I18nManager {
                 document.title = this.translations[this.currentLang][key];
             }
         }
+
+        document.querySelectorAll('[data-tooltip]').forEach(element => {
+            const key = element.getAttribute('data-tooltip');
+            const translation = this.getTranslation(key);
+            if (translation) {
+                element.setAttribute('data-tooltip', translation);
+            }
+        });
     }
 
 

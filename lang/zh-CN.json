@@ -19,6 +19,7 @@
   "output": "输出",
   "snapshot_code": "快照代码",
   "snapshot_code_placeholder": "生成的快照代码将显示在此处",
+  "snapshot_code_tooltip": "点击“创建快照”生成当前战斗阵型和兵工厂物品的代码。与他人分享此代码。在此处粘贴代码，然后点击“加载快照”加载保存的设置。加载快照将覆盖您当前的战斗阵型，并将物品添加到您的兵工厂（现有物品不会被修改）。",
   "made_by": "由 anfneub 制作， SakakiChizuru 中文化",
   "last_updated": "最后更新: 2025-10-08",
   "changelog": "更新日志",

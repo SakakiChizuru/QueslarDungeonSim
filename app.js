@@ -314,19 +314,22 @@ fighterClassSelect.parentNode.insertBefore(
 function duplicateFighter(originalFighter) {
   if (!originalFighter) return null;
 
-  // Create new fighter data with same stats
-  const originalData = originalFighter.__raw || {};
-  const duplicateData = { ...originalData };
+  const originalRawData = originalFighter.__raw || {};
+  const newRawData = { ...originalRawData }; // Start with a copy of the original raw data
 
-  duplicateData.isDuplicate = true;
-  duplicateData.base = {
-    name: originalFighter.name,
+  newRawData.isDuplicate = true;
+  newRawData.base = {
+    name: originalFighter.name, // This is the original fighter's name
     fighter_class: originalFighter.fighter_class,
   };
+  // Update the name property in newRawData to reflect the duplicated state
+  newRawData.name = formatString(
+    I18N.getUIElement("DUPLICATE_NAME"),
+    originalFighter.name,
+  );
 
-  // Create the duplicate fighter
-  const duplicate = new Fighter(originalFighter.fighter_class, duplicateData);
-  duplicate.__raw = { ...duplicateData };
+  const duplicate = new Fighter(originalFighter.fighter_class, newRawData); // Pass the updated raw data
+  duplicate.__raw = { ...newRawData }; // Ensure __raw also has the updated name
 
   return duplicate;
 }
@@ -397,6 +400,7 @@ function deserializeFighter(obj) {
     const fighter = new Fighter(obj.fighter_class, data);
     // Store the raw input values for re-populating the form
     fighter.__raw = { ...data };
+    fighter.name = data.name; // Explicitly update the fighter's name property
     return fighter;
   } catch (error) {
     console.warn("Failed to deserialize fighter:", obj, error); //ERR_FAIL_LOAD_FIGHTER
@@ -587,14 +591,7 @@ function renderGrid() {
 
         const fighterName = document.createElement("div");
         fighterName.style.fontSize = "0.8em"; // Smaller font
-        if (fighter.isDuplicate && fighter.base) {
-          fighterName.textContent = formatString(
-            I18N.getUIElement("DUPLICATE_NAME"),
-            fighter.base.name,
-          );
-        } else {
-          fighterName.textContent = fighter.name;
-        }
+        fighterName.textContent = fighter.name;
 
         const itemDetails = document.createElement("div");
         itemDetails.style.fontSize = "0.8em";
@@ -763,14 +760,7 @@ function renderBench() {
 
       const fighterName = document.createElement("div");
       fighterName.style.fontSize = "0.8em"; // Smaller font
-      if (fighter.isDuplicate && fighter.base) {
-        fighterName.textContent = formatString(
-          I18N.getUIElement("DUPLICATE_NAME"),
-          fighter.base.name,
-        );
-      } else {
-        fighterName.textContent = fighter.name;
-      }
+      fighterName.textContent = fighter.name;
 
       const itemDetails = document.createElement("div");
       itemDetails.style.fontSize = "0.8em";
@@ -1218,74 +1208,40 @@ saveFighterBtn.addEventListener("click", () => {
     }
   });
 
-  try {
-    // Check if we're editing a duplicate fighter and the class has changed
-    let isDuplicate = false;
-    let base = null;
-
-    if (editingCell.i >= 0 && editingCell.j >= 0) {
-      const originalFighter = gridState[editingCell.i][editingCell.j];
-      if (
-        originalFighter &&
-        originalFighter.isDuplicate &&
-        originalFighter.fighter_class !== fc
-      ) {
-        // Class changed, reset duplicate status
-        isDuplicate = false;
-        base = null;
-      } else if (originalFighter && originalFighter.isDuplicate) {
-        // Class unchanged, keep duplicate status
-        isDuplicate = true;
-        base = originalFighter.base;
+      const originalFighter = editingCell.i >= 0 && editingCell.j >= 0
+          ? gridState[editingCell.i][editingCell.j]
+          : (editingBench.index >= 0 ? benchState[editingBench.index] : null);
+  
+      if (originalFighter && originalFighter.equippedItemId) {
+          data.equippedItemId = originalFighter.equippedItemId;
       }
-    } else if (editingBench.index >= 0) {
-      const originalFighter = benchState[editingBench.index];
-      if (
-        originalFighter &&
-        originalFighter.isDuplicate &&
-        originalFighter.fighter_class !== fc
-      ) {
-        // Class changed, reset duplicate status
-        isDuplicate = false;
-        base = null;
-      } else if (originalFighter && originalFighter.isDuplicate) {
-        // Class unchanged, keep duplicate status
-        isDuplicate = true;
-        base = originalFighter.base;
+  
+      try {
+          // Create fighter with selected class (including "No Class")
+          const f = new Fighter(fc, data);
+          // Store raw inputs on instance for easy re-populating
+          f.__raw = { ...data };
+          f.name = data.name; // Explicitly update the fighter's name property
+  
+          // Determine where to save the fighter
+          if (editingCell.i >= 0 && editingCell.j >= 0) {
+              // Saving to main grid
+              gridState[editingCell.i][editingCell.j] = f;
+              renderGrid();
+          } else if (editingBench.isAddNew) {
+              // Adding new fighter to bench
+              benchState.push(f);
+              renderBench();
+          } else if (editingBench.index >= 0) {
+              // Editing existing bench fighter
+              benchState[editingBench.index] = f;
+              renderBench();
+          }
+      } catch (error) {
+          console.error(I18N.getConsoleMsg("ERR_FAIL_CREA_FIGHTER"), error);
+          alert(I18N.getAlertMsg("ERR_FAIL_CREA_FIGHTER"));
+          return;
       }
-    }
-
-    // Add duplicate flag and base fighter if applicable
-    if (isDuplicate) {
-      data.isDuplicate = true;
-      data.base = base;
-    }
-
-    // Create fighter with selected class (including "No Class")
-    const f = new Fighter(fc, data);
-    // Store raw inputs on instance for easy re-populating
-    f.__raw = { ...data };
-
-    // Determine where to save the fighter
-    if (editingCell.i >= 0 && editingCell.j >= 0) {
-      // Saving to main grid
-      gridState[editingCell.i][editingCell.j] = f;
-      renderGrid();
-    } else if (editingBench.isAddNew) {
-      // Adding new fighter to bench
-      benchState.push(f);
-      renderBench();
-    } else if (editingBench.index >= 0) {
-      // Editing existing bench fighter
-      benchState[editingBench.index] = f;
-      renderBench();
-    }
-  } catch (error) {
-    console.error(I18N.getConsoleMsg("ERR_FAIL_CREA_FIGHTER"), error);
-    alert(I18N.getAlertMsg("ERR_FAIL_CREA_FIGHTER"));
-    return;
-  }
-
   saveState();
   closeFighterEditor();
 });
@@ -2156,9 +2112,8 @@ function handleDrop(e) {
           const itemBonuses = getBonusesFromItem(draggedItem);
           const newFighterData = { ...originalFighter.__raw };
   
-          // Update item stats and name
+          // Update item stats
           Object.assign(newFighterData, itemBonuses);
-          newFighterData.name = draggedItem.name;
           newFighterData.equippedItemId = draggedItem.id;
           
           const newFighter = new Fighter(originalFighter.fighter_class, newFighterData);
