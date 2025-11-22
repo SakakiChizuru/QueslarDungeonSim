@@ -98,6 +98,27 @@ export class Battle {
       }
       if (attacker === null || attacker.current_health === 0.0) continue;
 
+      // change target to sentinel if attack receiver has lesst than 25% hp
+      if (
+        target instanceof Fighter &&
+        target.current_health / target.total_health < 0.25
+      ) {
+        const f = this.fighters.all_fighters;
+        const sentinel = [];
+        for (let x = 0; x < 3; x++) {
+          for (let y = 0; y < 2; y++) {
+            if (
+              f[x][y] &&
+              f[x][y].fighter_class === FighterClasses.SENTINEL &&
+              f[x][y].current_health > 0.0
+            ) {
+              sentinel.push(f[x][y]);
+            }
+          }
+        }
+        if (sentinel.length > 0) target = sentinel[0];
+      }
+
       current_attack += 1;
 
       this.dead_fighters = [];
@@ -250,26 +271,6 @@ export class Battle {
         this._do_standard_attack(attacker, target, damage_mult);
         this._print_debug(i, j, row.type, current_attack, [target]);
         continue;
-      }
-
-      if (
-        target instanceof Fighter &&
-        target.current_health / target.total_health < 0.25
-      ) {
-        const f = this.fighters.all_fighters;
-        const sentinel = [];
-        for (let x = 0; x < 3; x++) {
-          for (let y = 0; y < 2; y++) {
-            if (
-              f[x][y] &&
-              f[x][y].fighter_class === FighterClasses.SENTINEL &&
-              f[x][y].current_health > 0.0
-            ) {
-              sentinel.push(f[x][y]);
-            }
-          }
-        }
-        if (sentinel.length > 0) target = sentinel[0];
       }
 
       this._do_standard_attack(attacker, target);
@@ -637,6 +638,7 @@ export class Battle {
 
       let dmg_amount =
         target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
+      let damage_info_key = "DAMAGE_INFO";
       const rng_crit = Math.random();
       if (this.verbose >= 2)
         this._draw_table_head(
@@ -649,13 +651,14 @@ export class Battle {
       //console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
       if (rng_crit < 0.1) {
         dmg_amount = dmg_amount * (1 + attacker_crit);
+        damage_info_key = "DAMAGE_INFO_CRIT";
       }
       const dmg_final = Math.floor(dmg_amount);
       const dmg_applied = Math.max(dmg_final, 0.0);
       if (this.verbose >= 1)
         this._draw_table_head(
           formatString(
-            this.I18N.getBattleMsg("DAMAGE_INFO"),
+            this.I18N.getBattleMsg(damage_info_key),
             attacker_name,
             target_name,
             dmg_applied,

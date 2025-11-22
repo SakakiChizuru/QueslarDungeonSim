@@ -159,6 +159,7 @@
     "ROUND_INFO": "Round: {0}, Attack: {1}",
     "FINAL_ROUND": "Final Round Situation",
     "DAMAGE_INFO": "{0} hits {1} and deals {2} damage.",
+    "DAMAGE_INFO_CRIT": "{0} hits {1} and deals {2} damage. (Critical Hit!)",
     "ATK_MISS": "{0} misses attacking {1}.",
     "CRT_RNG_INFO": "Crit rng: {0}} < 0.1",
     "ATK_CANNOT_DODGE": "{0} attack cannot be dodged",

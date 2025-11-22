@@ -177,6 +177,7 @@
     "FINAL_ROUND": "轮次最终情况",
 
     "DAMAGE_INFO": "{0} 命中 {1} 造成 {2} 伤害",
+    "DAMAGE_INFO_CRIT": "{0} 命中 {1} 造成 {2} 伤害 (暴击!)",
     "ATK_MISS": "{0} 的攻击未命中 {1}.",
     "CRT_RNG_INFO": "暴击随机值：{0}} < 0.1",
     "ATK_CANNOT_DODGE": "{0} 的攻击无法闪避",
