@@ -175,25 +175,40 @@
                         class="row"
                         style="
                             margin-bottom: 0.5em;
-                            justify-content: flex-start;
+                            justify-content: space-between;
+                            align-items: baseline;
                         "
                     >
-                        <span
-                            class="label"
-                            style="margin: 0"
-                            data-i18n="battle_formation"
-                            >Battle Formation</span
-                        >
                         <div
                             style="
-                                font-size: 0.8em;
-                                color: #8892b0;
-                                margin-top: 0.3em;
+                                display: flex;
+                                align-items: baseline;
+                                gap: 0.5em;
                             "
-                            data-i18n="battle_formation_description"
                         >
-                            Click to edit • Drag to move/swap
+                            <span
+                                class="label"
+                                style="margin: 0"
+                                data-i18n="battle_formation"
+                                >Battle Formation</span
+                            >
+                            <div
+                                style="
+                                    font-size: 0.8em;
+                                    color: #8892b0;
+                                    margin-top: 0.3em;
+                                "
+                                data-i18n="battle_formation_description"
+                            >
+                                Click to edit • Drag to move/swap
+                            </div>
                         </div>
+                        <div
+                            id="totalFightersCost"
+                            class="label"
+                            style="margin: 0"
+                            data-i18n="total_fighters_cost"
+                        ></div>
                     </div>
                     <div
                         class="battle-formation-container"
@@ -237,7 +252,13 @@
             </div>
 
             <div class="armory-section">
-                <div class="label" style="margin-bottom: 0.5em" data-i18n="armory">Armory</div>
+                <div
+                    class="label"
+                    style="margin-bottom: 0.5em"
+                    data-i18n="armory"
+                >
+                    Armory
+                </div>
                 <div
                     style="
                         font-size: 0.8em;
@@ -249,7 +270,13 @@
                     Click on items to edit. Drag on fighter to equip.
                 </div>
                 <div id="armoryGrid" class="armory-grid"></div>
-                <div id="addToArmory" class="add-to-bench" data-i18n="add_fighter_item"> + Add Fighter Item</div>
+                <div
+                    id="addToArmory"
+                    class="add-to-bench"
+                    data-i18n="add_fighter_item"
+                >
+                    + Add Fighter Item
+                </div>
             </div>
         </div>
 
@@ -397,7 +424,12 @@
                             step="1"
                             min="0"
                         />
-                        <div id="staticFighterCost" class="label" style="margin-top: 1em" data-i18n="fighter_gold"></div>
+                        <div
+                            id="staticFighterCost"
+                            class="label"
+                            style="margin-top: 1em"
+                            data-i18n="fighter_gold"
+                        ></div>
                     </div>
                     <div>
                         <label data-i18n="item_health">Item Health</label>
@@ -443,7 +475,12 @@
                             step="0.01"
                             min="0"
                         />
-                        <div id="modifiedFighterCost" class="label" style="margin-top: 1em" data-i18n="modified_fighter_gold"></div>
+                        <div
+                            id="modifiedFighterCost"
+                            class="label"
+                            style="margin-top: 1em"
+                            data-i18n="modified_fighter_gold"
+                        ></div>
                     </div>
                 </div>
                 <div
@@ -577,7 +614,8 @@
                         <input
                             id="itemName"
                             type="text"
-                            placeholder="Item Name" data-i18n-placeholder="item_name_placeholder"
+                            placeholder="Item Name"
+                            data-i18n-placeholder="item_name_placeholder"
                             style="
                                 width: 100%;
                                 padding: 0.5em 0.7em;
@@ -597,7 +635,9 @@
                     class="row"
                     style="margin-top: 0.8em; justify-content: flex-end"
                 >
-                    <button id="saveItem" class="btn" data-i18n="save_button">Save</button>
+                    <button id="saveItem" class="btn" data-i18n="save_button">
+                        Save
+                    </button>
                 </div>
             </div>
         </div>

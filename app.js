@@ -16,6 +16,7 @@ const clearLogBtn = document.getElementById("clearLogBtn");
 const createSnapshotBtn = document.getElementById("createSnapshotBtn");
 const snapshotOutputField = document.getElementById("snapshotOutputField");
 const loadSnapshotBtn = document.getElementById("loadSnapshotBtn");
+const totalFightersCostEl = document.getElementById("totalFightersCost");
 
 const apiKeyEl = document.getElementById("apiKey");
 const importBtn = document.getElementById("importBtn");
@@ -543,6 +544,27 @@ let editingCell = { i: 0, j: 0 };
 let editingBench = { index: -1, isAddNew: false };
 let editingArmory = { index: -1 };
 
+function updateTotalFightersCost() {
+    let totalCost = 0;
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 2; j++) {
+            const fighter = gridState[i][j];
+            if (fighter) {
+                const fighterStats = {
+                    fighter_health: fighter.__raw.fighter_health || 0,
+                    fighter_damage: fighter.__raw.fighter_damage || 0,
+                    fighter_hit: fighter.__raw.fighter_hit || 0,
+                    fighter_defense: fighter.__raw.fighter_defense || 0,
+                    fighter_crit: fighter.__raw.fighter_crit || 0,
+                    fighter_dodge: fighter.__raw.fighter_dodge || 0,
+                };
+                totalCost += calculateFighterCost(fighterStats);
+            }
+        }
+    }
+    totalFightersCostEl.textContent = `${I18N.getUIElement("TOTAL_FIGHTERS_COST")}${millify(totalCost)}`;
+}
+
 function renderGrid() {
   fightersGridEl.innerHTML = "";
   for (let i = 0; i < 3; i++) {
@@ -642,10 +664,11 @@ function renderGrid() {
           e.stopPropagation();
           e.preventDefault();
           gridState[i][j] = null;
-          saveState();
-          renderGrid();
-          renderBench();
-        });
+            saveState();
+            renderGrid();
+            renderBench();
+            updateTotalFightersCost();
+          });
 
         const duplicate = document.createElement("button");
         duplicate.className = "btn small duplicate";
@@ -687,6 +710,7 @@ function renderGrid() {
       fightersGridEl.appendChild(cell);
     }
   }
+  updateTotalFightersCost();
 }
 
 function renderBench() {

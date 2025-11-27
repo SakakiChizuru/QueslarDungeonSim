@@ -114,7 +114,8 @@
     "IMPORTING": "Importing...",
     "NO_ITEM": "No Item",
     "MODIFIED_FIGHTER_GOLD": "Modified fighter gold",
-    "FIGHTER_GOLD": "Fighter gold"
+    "FIGHTER_GOLD": "Fighter gold",
+    "TOTAL_FIGHTERS_COST": "Total fighters cost: "
   },
   "ConsoleMessages": {
     "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters",

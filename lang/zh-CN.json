@@ -121,7 +121,8 @@
     "IMPORTING": "导入中...",
     "NO_ITEM": "无物品",
     "MODIFIED_FIGHTER_GOLD": "修改后佣兵花费",
-    "FIGHTER_GOLD": "佣兵花费"
+    "FIGHTER_GOLD": "佣兵花费",
+    "TOTAL_FIGHTERS_COST": "佣兵总花费: "
   },
 
   "ConsoleMessages": {
