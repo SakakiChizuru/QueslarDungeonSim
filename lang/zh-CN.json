@@ -119,7 +119,9 @@
     "CHANCE_60_MIN": "60分钟内获胜几率: {0}%",
 
     "IMPORTING": "导入中...",
-    "NO_ITEM": "无物品"
+    "NO_ITEM": "无物品",
+    "MODIFIED_FIGHTER_GOLD": "修改后佣兵花费",
+    "FIGHTER_GOLD": "佣兵花费"
   },
 
   "ConsoleMessages": {

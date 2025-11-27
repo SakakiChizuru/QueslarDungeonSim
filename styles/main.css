@@ -564,6 +564,14 @@ footer {
     width: 80%;
 }
 
+.fighter-details-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    height: 100%;
+}
+
 #itemModal .modal {
     max-width: calc(560px * 0.7);
 }

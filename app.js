@@ -4,6 +4,7 @@ import { Battle } from "./battle/Battle.js";
 import { Fighter, FighterClasses } from "./characters/Fighter.js";
 import { I18nManager, formatString } from "./utils/i18n.js";
 import { ArmoryItem } from "./armory/ArmoryItem.js";
+import { calculateFighterCost, millify } from "./utils/utils.js";
 
 const fightersGridEl = document.getElementById("fightersGrid");
 const verboseEl = document.getElementById("verbose");
@@ -31,6 +32,8 @@ const closeFighterModal = document.getElementById("closeFighterModal");
 const saveFighterBtn = document.getElementById("saveFighter");
 const fighterClassSelect = document.getElementById("fighterClass");
 const fighterNameInput = document.getElementById("fighterName");
+const modifiedFighterCostEl = document.getElementById("modifiedFighterCost"); // Renamed
+const staticFighterCostEl = document.getElementById("staticFighterCost"); // New
 
 const benchGridEl = document.getElementById("benchGrid");
 const addToBenchBtn = document.getElementById("addToBench");
@@ -1151,6 +1154,19 @@ function populateFighterModal(fighter) {
     el.value = value;
   }
 
+  const fighterStats = {
+    fighter_health: Number(document.getElementById("fighter_health").value) || 0,
+    fighter_damage: Number(document.getElementById("fighter_damage").value) || 0,
+    fighter_hit: Number(document.getElementById("fighter_hit").value) || 0,
+    fighter_defense: Number(document.getElementById("fighter_defense").value) || 0,
+    fighter_crit: Number(document.getElementById("fighter_crit").value) || 0,
+    fighter_dodge: Number(document.getElementById("fighter_dodge").value) || 0,
+  };
+  const initialCost = calculateFighterCost(fighterStats);
+  staticFighterCostEl.textContent = `${I18N.getUIElement("FIGHTER_GOLD")}: ${millify(initialCost)}`;
+
+  updateModifiedFighterCost(); // Call the renamed function
+
   // Remove any existing event listeners to prevent stacking
   fighterClassSelect.onchange = null;
 
@@ -1184,6 +1200,20 @@ function closeFighterEditor() {
   editingCell = { i: -1, j: -1 };
   editingBench = { index: -1, isAddNew: false };
   fighterModal.style.display = "none";
+}
+
+function updateModifiedFighterCost() { // Renamed
+  const fighterStats = {
+    fighter_health: Number(document.getElementById("fighter_health").value) || 0,
+    fighter_damage: Number(document.getElementById("fighter_damage").value) || 0,
+    fighter_hit: Number(document.getElementById("fighter_hit").value) || 0,
+    fighter_defense: Number(document.getElementById("fighter_defense").value) || 0,
+    fighter_crit: Number(document.getElementById("fighter_crit").value) || 0,
+    fighter_dodge: Number(document.getElementById("fighter_dodge").value) || 0,
+  };
+
+  const totalCost = calculateFighterCost(fighterStats);
+  modifiedFighterCostEl.textContent = `${I18N.getUIElement("MODIFIED_FIGHTER_GOLD")}: ${millify(totalCost)}`; // Renamed element and i18n key
 }
 
 saveFighterBtn.addEventListener("click", () => {
@@ -1980,6 +2010,19 @@ numBattlesEl.addEventListener("input", () => {
 verboseEl.addEventListener("input", saveState);
 apiKeyEl.addEventListener("input", saveState);
 dontShowImportWarningEl.addEventListener("change", saveState);
+
+const statInputs = [
+  "fighter_health",
+  "fighter_damage",
+  "fighter_hit",
+  "fighter_defense",
+  "fighter_crit",
+  "fighter_dodge",
+];
+for (const id of statInputs) {
+  const el = document.getElementById(id);
+  el.addEventListener("input", updateModifiedFighterCost); // Renamed function
+}
 
 function getBonusesFromItem(item) {
   const bonuses = {

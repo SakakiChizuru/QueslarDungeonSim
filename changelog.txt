@@ -1,5 +1,5 @@
 2025-11-27
-- It turns out that the defense of crusader is unaffected by the number of dead fighters. This has been disabled in the sim as well while we figure this out
+- Added fighter cost in gold
 
 2025-11-22
 - INTRODUCING: Armory. Import your fighters as usual through the API and find your fighter items in the armory on the right. Simply drag the fighter items on a fighter to equip them

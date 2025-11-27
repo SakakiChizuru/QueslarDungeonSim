@@ -112,7 +112,9 @@
     "AVG_SURVIVOR_HEALTH": "Average total health of surviving mobs: {0} hp",
     "CHANCE_60_MIN": "Probability of winning within the next 60 minutes: {0}%",
     "IMPORTING": "Importing...",
-    "NO_ITEM": "No Item"
+    "NO_ITEM": "No Item",
+    "MODIFIED_FIGHTER_GOLD": "Modified fighter gold",
+    "FIGHTER_GOLD": "Fighter gold"
   },
   "ConsoleMessages": {
     "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters",

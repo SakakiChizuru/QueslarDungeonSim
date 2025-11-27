@@ -536,11 +536,10 @@ export class Battle {
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.CRUSADER
     ) {
-      // target_defense_pre =
-      //   (1 + 0.2 * this.dead_fighters.length) * target.defense_pre;
-      // target_defense = 1 - calculateDefense(target_defense_pre);
+      target_defense_pre =
+        (1 + 0.2 * this.dead_fighters.length) * target.defense_pre;
+      target_defense = 1 - calculateDefense(target_defense_pre);
       target_dodge = (1 + 0.2 * this.dead_fighters.length) * target_dodge;
-      target_defense = 1 - calculateDefense(target.defense_pre);
     }
 
     if (
