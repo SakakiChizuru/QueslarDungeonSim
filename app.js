@@ -499,6 +499,7 @@ function renderGrid() {
         del.dataset.i18n = "UIElement.DELETE";
         del.textContent = I18N.getUIElement("Delete");
         del.style.width = "55px";
+        del.style.height = "25px";
         del.addEventListener("click", (e) => {
           e.stopPropagation();
           gridState[i][j] = null;
@@ -512,6 +513,7 @@ function renderGrid() {
         duplicate.dataset.i18n = "UIElement.DUPLICATE";
         duplicate.title = I18N.getUIElement("Duplicate");
         duplicate.style.width = "55px";
+        duplicate.style.height = "25px";
         duplicate.appendChild(createDuplicateIcon());
         duplicate.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -530,6 +532,8 @@ function renderGrid() {
         add.className = "btn small add";
         add.dataset.i18n = "UIElement.ADD";
         add.textContent = I18N.getUIElement("Add");
+        add.style.width = "55px";
+        add.style.height = "30px";
         add.addEventListener("click", (e) => {
           e.stopPropagation();
           openFighterEditor(i, j);
@@ -583,12 +587,12 @@ function renderBench() {
 
     const nameContainer = document.createElement("div");
     nameContainer.style.cssText = "flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; width: 100%;";
-    
+
     const name = document.createElement("span");
     name.className = "name";
     name.style.cssText = "text-align: center; width: 100%;";
     name.appendChild(createFighterInfoElement(fighter));
-    
+
     nameContainer.appendChild(name);
     benchItem.appendChild(nameContainer);
 
@@ -598,7 +602,7 @@ function renderBench() {
     const del = document.createElement("button");
     del.className = "btn small delete";
     del.textContent = "×";
-    del.style.cssText = "font-size: 0.7em; padding: 0.2em; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;";
+    del.style.cssText = "font-size: 0.8em; padding: 0.2em; width: 40px; height: 20px; display: flex; align-items: center; justify-content: center;";
     del.addEventListener("click", (e) => {
       e.stopPropagation();
       benchState.splice(index, 1);
@@ -609,7 +613,7 @@ function renderBench() {
     const duplicate = document.createElement("button");
     duplicate.className = "btn small duplicate";
     duplicate.title = I18N.getUIElement("Duplicate");
-    duplicate.style.cssText = "padding: 0.2em; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;";
+    duplicate.style.cssText = "padding: 0.2em; width: 40px; height: 20px; display: flex; align-items: center; justify-content: center;";
     duplicate.appendChild(createDuplicateIcon());
     duplicate.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -699,8 +703,8 @@ function renderArmory() {
     duplicate.style.width = "100%";
     duplicate.style.padding = "0.1em 0.2em"; // Compress padding
     const duplicateIcon = createDuplicateIcon();
-    duplicateIcon.style.width = "12px";
-    duplicateIcon.style.height = "12px";
+    duplicateIcon.style.width = "16px";
+    duplicateIcon.style.height = "16px";
     duplicate.appendChild(duplicateIcon);
     duplicate.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -794,7 +798,7 @@ function calculateAndDisplayTieredStats() {
   ALL_STAT_TYPES.forEach(statType => {
     const input = itemStatsLevelTiersContainer.querySelector(`input[data-stat-type="${statType}"]`);
     const tier = parseInt(input.value) || 0;
-    
+
     if (tier > 0) {
       const calculatedValue = calculateTierLevel(statType, level, tier);
       stats[statType] = calculatedValue;
@@ -808,7 +812,7 @@ function calculateAndDisplayTieredStats() {
         stats[statType] = 0; // Ensure stats not present have a value of 0
     }
   });
-  calculatedStatsDisplay.textContent = displayText || I18N.getUIElement("NO_TIERED_STATS_SELECTED");
+  calculatedStatsDisplay.textContent = displayText || I18N.getTranslation("NO_TIERED_STATS_SELECTED");
   return stats;
 }
 
@@ -836,7 +840,7 @@ function openItemEditor(index) {
 
   const item =
     index !== -1 ? armoryState[index] : { name: "", rarity: "", stats: [], level: 1, tiers: {} };
-  
+
   // Clear all containers that might be populated
   itemStatsFreeValuesContainerTab.innerHTML = "";
   itemStatsLevelTiersContainer.innerHTML = "";
@@ -1233,7 +1237,7 @@ function runBattles() {
   let level = Math.max(1, parseInt(mobLevelEl.value) || 1);
   let n = Math.max(1, parseInt(numBattlesEl.value) || 1);
   if (n > 1000000) n = 1000000;
-  
+
   mobLevelEl.value = level;
   numBattlesEl.value = n;
   saveState();
@@ -1273,7 +1277,7 @@ function runBattles() {
   } else {
     const victoryChance = (fighterWins / actualBattlesToRun) * 100;
     const avgHealthSurvivors = battlesWithSurvivors > 0 ? Math.round(totalMobsHealth / battlesWithSurvivors) : 0;
-    
+
     outputEl.innerHTML = `${formatString(I18N.getUIElement("VICTORY_CHANCE"), victoryChance.toFixed(2))}<br>
                            ${formatString(I18N.getUIElement("AVG_SURVIVOR_HEALTH"), avgHealthSurvivors)}<br>
                            ${formatString(I18N.getUIElement("CHANCE_60_MIN"), ((1.0 - (1.0 - victoryChance / 100.0) ** 60) * 100.0).toFixed(2))}`;
@@ -1318,7 +1322,7 @@ loadSnapshotBtn.addEventListener("click", () => {
     } catch (e) {
       jsonString = decodedBinaryString;
     }
-    
+
     const snapshotData = JSON.parse(jsonString);
 
     if (snapshotData.grid) {
@@ -1465,7 +1469,7 @@ function processImportedData(apiData) {
         }
         return { ...statObject, value: calculateStatValue(stat) }; // Pass original stat to calculateStatValue
       }) : [];
-      
+
       const existingItemIndex = armoryState.findIndex(item => item.name === apiItemData.name);
 
       if (existingItemIndex !== -1) {
@@ -1517,10 +1521,10 @@ function createFighterFromApiData(apiData) {
     const classMapping = { assassin: "Assassin", brawler: "Brawler", hunter: "Hunter", mage: "Mage", priest: "Priest", shadow_dancer: "Shadow Dancer", shadowdancer: "Shadow Dancer", berserker: "Berserker", paladin: "Paladin", crusader: "Crusader", sentinel: "Sentinel", bastion: "Bastion" };
         const fighterClass = classMapping[apiData.class.toLowerCase()] || "No Class";
         const stats = apiData.stats || {};
-        
+
         const equipment = apiData.equipment || {};
     const equipmentStats = Array.isArray(equipment.stats) ? equipment.stats : [];
-    
+
     const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0 };
     equipmentStats.forEach((stat) => {
       const value = calculateStatValue(stat);
@@ -1594,7 +1598,7 @@ async function loadChangelog() {
         html += `<div style="margin-left: 1em; margin-bottom: 0.3em;">• ${line.replace(/^-/, '').trim()}</div>`;
       }
     });
-    
+
     changelogModal.querySelector(".modal div:last-child").innerHTML = html || I18N.getTranslation("NO_CHANGELOG_ENTRIES");
     if (latestDate && lastUpdatedEl) lastUpdatedEl.textContent = `Last updated: ${latestDate}`;
 
