@@ -92,3 +92,28 @@ export function calculateFighterCost(fighterStats) {
     costOfLvl(fighter_crit) +
     costOfLvl(fighter_dodge);
 }
+
+
+
+export function caclulateTierLevel(stat, level, tier) {
+  const tierMultipliers = {
+    1: 1.1,
+    2: 1.2,
+    3: 1.3,
+    4: 1.4,
+    5: 1.5,
+    6: 1.75,
+    7: 2,
+    8: 2.25,
+    9: 2.5,
+    10: 2.75,
+    11: 3,
+    12: 3.5,
+  };
+  if (stat === 'health') return (50 + Math.sqrt(level) * Math.min(level / 3 , 3) * 50) * 100 * tierMultipliers[tier];
+  if (stat === 'damage') return (25 + Math.sqrt(level) * Math.min(level / 3 , 3) * 25) * 25 * tierMultipliers[tier]
+  if (stat === 'defense') return (30 + Math.sqrt(level) * Math.min(level / 3 , 3) * 30) * 10 * tierMultipliers[tier];
+  if (stat === 'critDamage') return (10 + Math.sqrt(level) * Math.min(level / 3 , 3) * 10) * 0.0025 * tierMultipliers[tier];
+  if (stat === 'hit') return (15 + Math.sqrt(level) * Math.min(level / 1.5 , 3) * 15) * 50 * tierMultipliers[tier];
+  if (stat === 'dodge') return (15 + Math.sqrt(level) * Math.min(level / 1.5 , 3) * 15) * 50 * tierMultipliers[tier];
+}
