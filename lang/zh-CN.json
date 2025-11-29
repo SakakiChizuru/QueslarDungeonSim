@@ -58,6 +58,11 @@
   "edit_fighter_tooltip": "左侧输入各属性的升级次数。右侧为佣兵物品的最终数值。",
   "edit_item": "编辑物品",
   "item_name_placeholder": "物品名称",
+  "level_tiers_tab": "等级/层级",
+  "free_values_tab": "自由数值",
+  "level_label": "等级",
+  "calculated_stats_label": "计算属性",
+  "NO_TIERED_STATS_SELECTED": "未选择分层属性或等级为0。",
 
   "Below All For App.js [This line using as Comment]": "Below All For App.js [This line using as Comment]",
   "ITEM_RARITY_CUSTOM": "自定义",
@@ -68,6 +73,7 @@
   "stat_hit": "命中",
   "stat_defense": "防御",
   "stat_crit_damage": "暴击伤害",
+  "stat_critdamage": "暴击伤害",
   "stat_dodge": "闪避",
 
   "class_descriptions": {

@@ -58,6 +58,11 @@
   "edit_fighter_tooltip": "On the left column, insert the number of upgrades for each stats. On the right column, the final values of the Fighter Item",
   "edit_item": "Edit Item",
   "item_name_placeholder": "Item Name",
+  "level_tiers_tab": "Level/Tiers",
+  "free_values_tab": "Free values",
+  "level_label": "Level",
+  "calculated_stats_label": "Calculated Stats",
+  "NO_TIERED_STATS_SELECTED": "No tiered stats selected or level is 0.",
 
   "Below All For App.js [This line using as Comment]": "Below All For App.s [This line using as Comment]",
   "ITEM_RARITY_CUSTOM": "Custom",
@@ -68,6 +73,7 @@
   "stat_hit": "Hit",
   "stat_defense": "Defense",
   "stat_crit_damage": "Crit Damage",
+  "stat_critdamage": "Crit Damage",
   "stat_dodge": "Dodge",
 
   "class_descriptions": {

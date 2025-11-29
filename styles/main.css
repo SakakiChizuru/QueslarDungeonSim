@@ -313,21 +313,6 @@ input[type="checkbox"] {
 }
 .fighter-cell .name {
     flex: 1;
-    text-align: center;
-}
-.btn.small {
-    padding: 0.24em 0.48em;
-    font-size: 0.84em;
-    border-radius: 3px;
-    margin: 0.03em 0;
-    box-sizing: border-box;
-    min-width: 20px;
-}
-.btn.small.duplicate {
-    min-width: 20px;
-}
-.fighter-cell .name {
-    flex: 1;
     text-align: left;
     font-size: 0.9em;
     margin: 0;
@@ -856,4 +841,43 @@ footer {
     font-size: 0.8em;
     opacity: 0.7;
     color: #a0aec0;
+}
+
+/* Tab styles for itemModal */
+.tabs {
+    display: flex;
+    margin-top: 1em;
+    border-bottom: 1px solid #2c3242;
+}
+
+.tab-button {
+    background: #36405a;
+    color: #e6eaf3;
+    border: none;
+    padding: 0.6em 1em;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s, color 0.2s;
+    margin-right: 2px;
+}
+
+.tab-button:hover:not(.active) {
+    background: #4a5568;
+}
+
+.tab-button.active {
+    background: #23283a;
+    color: #4fa3ff;
+    border-bottom: 2px solid #4fa3ff;
+}
+
+.tab-content {
+    display: none;
+    padding-top: 1em;
+}
+
+.tab-content.active {
+    display: block;
 }

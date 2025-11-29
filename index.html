@@ -596,6 +596,7 @@
         <div id="itemModal" class="modal-backdrop">
             <div class="modal">
                 <div
+                    class="row"
                     style="
                         display: flex;
                         align-items: center;
@@ -608,29 +609,96 @@
                         Close
                     </button>
                 </div>
-                <div class="grid">
-                    <div style="grid-column: 1 / -1">
-                        <label data-i18n="name_label">Name</label>
-                        <input
-                            id="itemName"
-                            type="text"
-                            placeholder="Item Name"
-                            data-i18n-placeholder="item_name_placeholder"
-                            style="
-                                width: 100%;
-                                padding: 0.5em 0.7em;
-                                border-radius: 6px;
-                                border: 1px solid #2c3242;
-                                background: #181c24;
-                                color: #e6eaf3;
-                                box-sizing: border-box;
-                            "
-                        />
+                <!-- Universal Name Input -->
+                <div style="display: flex; align-items: center; gap: 0.5em; margin-top: 1em;">
+                    <label data-i18n="name_label" style="flex-shrink: 0;">Name</label>
+                    <input
+                        id="itemName"
+                        type="text"
+                        placeholder="Item Name"
+                        data-i18n-placeholder="item_name_placeholder"
+                        style="
+                            flex: 1; /* Allow input to grow */
+                            padding: 0.5em 0.7em;
+                            border-radius: 6px;
+                            border: 1px solid #2c3242;
+                            background: #181c24;
+                            color: #e6eaf3;
+                            box-sizing: border-box;
+                        "
+                    />
+                </div>
+
+                <!-- Tabbed content for new items -->
+                <div id="itemTabbedContent">
+                    <div class="tabs">
+                        <button
+                            class="tab-button active"
+                            data-tab="levelTiers"
+                            data-i18n="level_tiers_tab"
+                        >
+                            Level/Tiers
+                        </button>
+                        <button
+                            class="tab-button"
+                            data-tab="freeValues"
+                            data-i18n="free_values_tab"
+                        >
+                            Free values
+                        </button>
                     </div>
-                    <div id="itemStatsContainer" style="grid-column: 1 / -1">
-                        <!-- Stats will be populated here -->
+                    <div class="tab-content active" id="levelTiersContent">
+                        <div style="display: flex; align-items: center; gap: 0.5em; margin-top: 1em;">
+                            <label data-i18n="level_label" style="flex-shrink: 0;">Level</label>
+                            <input
+                                id="itemLevel"
+                                type="number"
+                                value="1"
+                                min="1"
+                                step="1"
+                                style="
+                                    flex: 1; /* Allow input to grow */
+                                    padding: 0.5em 0.7em;
+                                    border-radius: 6px;
+                                    border: 1px solid #2c3242;
+                                    background: #181c24;
+                                    color: #e6eaf3;
+                                    box-sizing: border-box;
+                                "
+                            />
+                        </div>
+                        <div id="itemStatsLevelTiersContainer" style="grid-column: 1 / -1; margin-top: 1em;">
+                            <!-- Level/Tiers stats will be populated here -->
+                        </div>
+                        <div style="grid-column: 1 / -1; margin-top: 1em;">
+                            <label data-i18n="calculated_stats_label">Calculated Stats</label>
+                            <div id="calculatedStatsDisplay" style="
+                                background: #181c24;
+                                border: 1px solid #2c3242;
+                                border-radius: 6px;
+                                padding: 0.5em 0.7em;
+                                color: #e6eaf3;
+                                min-height: 8.5em;
+                                white-space: pre-wrap;
+                            ">
+                            <!-- Calculated stats will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="freeValuesContent">
+                        <div id="itemStatsFreeValuesContainerTab" style="grid-column: 1 / -1; margin-top: 1em;">
+                            <!-- Free values stats for tabbed interface will be populated here -->
+                        </div>
                     </div>
                 </div>
+
+                <!-- Original content for existing items -->
+                <div id="itemOriginalFreeValuesForm" style="display: none;">
+                    <div id="itemStatsOriginalFreeValuesContainer" style="grid-column: 1 / -1; margin-top: 1em;">
+                        <!-- Original free values stats will be populated here -->
+                    </div>
+                </div>
+
                 <div
                     class="row"
                     style="margin-top: 0.8em; justify-content: flex-end"

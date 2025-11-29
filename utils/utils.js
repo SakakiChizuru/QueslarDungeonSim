@@ -95,7 +95,7 @@ export function calculateFighterCost(fighterStats) {
 
 
 
-export function caclulateTierLevel(stat, level, tier) {
+export function calculateTierLevel(stat, level, tier) {
   const tierMultipliers = {
     1: 1.1,
     2: 1.2,
