@@ -1,3 +1,6 @@
+2025-12-23
+- Shortened the generated snapshot code
+
 2025-11-29
 - Added possibility to create custom Fighter Items trough level and tiers
 - Added Fighter Item level to display in armory

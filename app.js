@@ -72,6 +72,19 @@ const STAT_SERIALIZATION_MAP = {
 };
 const STAT_DESERIALIZATION_MAP = Object.fromEntries(Object.entries(STAT_SERIALIZATION_MAP).map(([k, v]) => [v, k]));
 
+// Serialization and Deserialization Maps for Data Compression
+const CLASS_SERIALIZATION_MAP = {
+    [FighterClasses.ASSASSIN]: 'as', [FighterClasses.BRAWLER]: 'br', [FighterClasses.HUNTER]: 'hu', [FighterClasses.MAGE]: 'ma',
+    [FighterClasses.PRIEST]: 'pr', [FighterClasses.SHADOW_DANCER]: 'sd', [FighterClasses.BERSERKER]: 'be', [FighterClasses.PALADIN]: 'pa',
+    [FighterClasses.CRUSADER]: 'cr', [FighterClasses.SENTINEL]: 'se', [FighterClasses.BASTION]: 'ba', [FighterClasses.NONE]: 'no',
+};
+const CLASS_DESERIALIZATION_MAP = Object.fromEntries(Object.entries(CLASS_SERIALIZATION_MAP).map(([k, v]) => [v, k]));
+
+const ITEM_STAT_TYPE_SERIALIZATION_MAP = {
+    health: 'h', damage: 'd', hit: 'hi', defense: 'de', critDamage: 'cd', dodge: 'do'
+};
+const ITEM_STAT_TYPE_DESERIALIZATION_MAP = Object.fromEntries(Object.entries(ITEM_STAT_TYPE_SERIALIZATION_MAP).map(([k, v]) => [v, k]));
+
 //Create i18n Manager
 const I18N = new I18nManager();
 let classDescriptions = null;
@@ -238,16 +251,25 @@ function serializeFighter(f) {
     if (!f) return null;
     const raw = f.__raw || {};
     const serialized = {
-        fc: f.fighter_class,
-        name: f.name,
+        fc: CLASS_SERIALIZATION_MAP[f.fighter_class] || f.fighter_class,
     };
+
+    const defaultName = I18N.getFighterName(f.fighter_class.replace(" ", "_"));
+    if (f.name !== defaultName) {
+        serialized.n = f.name;
+    }
 
     for (const [key, shortKey] of Object.entries(STAT_SERIALIZATION_MAP)) {
         if (raw[key]) serialized[shortKey] = raw[key];
     }
 
-    if (f.isDuplicate) serialized.d = true;
-    if (f.base) serialized.base = f.base;
+    if (f.isDuplicate) serialized.d = 1;
+    if (f.base) {
+        serialized.b = {
+            n: f.base.name,
+            fc: CLASS_SERIALIZATION_MAP[f.base.fighter_class] || f.base.fighter_class,
+        };
+    }
     if (f.equippedItemId) serialized.eId = f.equippedItemId;
 
     return serialized;
@@ -256,17 +278,31 @@ function serializeFighter(f) {
 function deserializeFighter(obj) {
     if (!obj || !obj.fc) return null;
 
-    const data = { name: obj.name };
+    const fighterClass = CLASS_DESERIALIZATION_MAP[obj.fc] || obj.fc;
+    const data = {};
+
+    data.name = obj.n || obj.name || I18N.getFighterName(fighterClass.replace(" ", "_"));
+
     for (const [shortKey, longKey] of Object.entries(STAT_DESERIALIZATION_MAP)) {
         data[longKey] = Math.max(0, obj[shortKey] || 0);
     }
 
-    data.isDuplicate = obj.d || false;
-    data.base = obj.base || null;
+    data.isDuplicate = obj.d === 1 || obj.d === true;
+
+    if (obj.b || obj.base) {
+        const baseRaw = obj.b || obj.base;
+        data.base = {
+            name: baseRaw.n || baseRaw.name,
+            fighter_class: CLASS_DESERIALIZATION_MAP[baseRaw.fc] || baseRaw.fc,
+        };
+    } else {
+        data.base = null;
+    }
+
     data.equippedItemId = obj.eId || null;
 
     try {
-        const fighter = new Fighter(obj.fc, data);
+        const fighter = new Fighter(fighterClass, data);
         fighter.__raw = { ...data };
         fighter.name = data.name;
         return fighter;
@@ -277,29 +313,80 @@ function deserializeFighter(obj) {
 }
 
 function serializeItem(item) {
-  if (!item) return null;
-  return {
-    id: item.id, // Shorten _id to id
-    name: item.name,
-    r: item.rarity, // Shorten rarity to r
-    s: item.stats, // Shorten stats to s
-    lvl: item.level, // Add item level
-    tiers: item.tiers, // Add item tiers
-  };
+    if (!item) return null;
+    const serialized = {
+        id: item.id,
+        n: item.name,
+        r: item.rarity,
+    };
+
+    if (item.level && item.level > 1) {
+        serialized.lvl = item.level;
+    }
+
+    if (item.stats && item.stats.length > 0) {
+        serialized.s = item.stats.map(stat => {
+            const s = {
+                t: ITEM_STAT_TYPE_SERIALIZATION_MAP[stat.type] || stat.type,
+                v: stat.value,
+            };
+            if (stat.tier) {
+                s.ti = stat.tier;
+            }
+            return s;
+        });
+    }
+
+    if (item.tiers && Object.keys(item.tiers).length > 0) {
+        serialized.t = {};
+        for (const [key, value] of Object.entries(item.tiers)) {
+            const shortKey = ITEM_STAT_TYPE_SERIALIZATION_MAP[key] || key;
+            serialized.t[shortKey] = value;
+        }
+    }
+
+    return serialized;
 }
 
 function deserializeItem(obj) {
   if (!obj) return null;
   try {
-    // Map shortened keys back to original names for ArmoryItem constructor
     const itemData = {
       _id: obj.id,
-      name: obj.name,
+      name: obj.n || obj.name,
       rarity: obj.r,
-      stats: obj.s,
-      level: obj.lvl, // Deserialize item level
-      tiers: obj.tiers, // Deserialize item tiers
+      level: obj.lvl || obj.level || 1,
     };
+
+    const statsRaw = obj.s || obj.stats;
+    if (statsRaw) {
+      itemData.stats = statsRaw.map(stat => {
+        const newStat = {};
+        const type = stat.t ? (ITEM_STAT_TYPE_DESERIALIZATION_MAP[stat.t] || stat.t) : stat.type;
+        const value = stat.v !== undefined ? stat.v : stat.value;
+        const tier = stat.ti !== undefined ? stat.ti : stat.tier;
+        
+        newStat.type = type;
+        newStat.value = value;
+        if(tier !== undefined) newStat.tier = tier;
+
+        return newStat;
+      });
+    } else {
+      itemData.stats = [];
+    }
+
+    const tiersRaw = obj.t || obj.tiers;
+    if (tiersRaw) {
+        itemData.tiers = {};
+        for (const [key, value] of Object.entries(tiersRaw)) {
+            const longKey = ITEM_STAT_TYPE_DESERIALIZATION_MAP[key] || key;
+            itemData.tiers[longKey] = value;
+        }
+    } else {
+        itemData.tiers = {};
+    }
+
     return new ArmoryItem(itemData);
   } catch (error) {
     console.warn(I18N.getConsoleMsg("ERR_FAIL_LOAD_ITEM"), obj, error);
