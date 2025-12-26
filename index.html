@@ -9,18 +9,24 @@
         <link rel="stylesheet" href="./styles/main.css" />
     </head>
     <body>
-        <header style="display: flex; flex-direction: row">
-            <h1 data-i18n="header">
-                Queslar Rewritten Dungeon Simulator
-                <span
-                    style="
-                        color: #ff4444;
-                        font-size: 0.6em;
-                        vertical-align: super;
-                    "
-                    >BETA</span
-                >
-            </h1>
+        <header style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding-left: 0.9em; padding-right: 1.2em;">
+            <div style="display: flex; align-items: center;">
+                <h1 data-i18n="header" style="margin-right: 20px;">
+                    Queslar Rewritten Dungeon Simulator
+                    <span
+                        style="
+                            color: #ff4444;
+                            font-size: 0.6em;
+                            vertical-align: super;
+                        "
+                        >BETA</span
+                    >
+                </h1>
+                <div class="main-tabs">
+                    <button class="main-tab-button active" data-tab="dungeon">Dungeon</button>
+                    <button class="main-tab-button" data-tab="caves">Caves</button>
+                </div>
+            </div>
             <div class="language-switcher">
                 <span class="language-label" data-i18n="language_en">EN</span>
                 <label class="language-slider">
@@ -40,242 +46,488 @@
             </div>
         </header>
 
-        <div class="app-layout">
-            <div class="bench-section">
-                <div
-                    class="label"
-                    style="margin-bottom: 0.5em"
-                    data-i18n="bench"
-                >
-                    Bench
-                </div>
-                <div
-                    style="
-                        font-size: 0.8em;
-                        color: #8892b0;
-                        margin-bottom: 0.8em;
-                    "
-                    data-i18n="bench_description"
-                >
-                    Drag fighters between bench and battle slots
-                </div>
-                <div id="benchGrid" class="bench-grid"></div>
-                <div
-                    id="addToBench"
-                    class="add-to-bench"
-                    data-i18n="add_fighter"
-                >
-                    + Add Fighter
-                </div>
-            </div>
-
-            <div class="main-content">
-                <div class="form-grid">
-                    <div class="card">
-                        <label class="label" data-i18n="dungeon_level"
-                            >Dungeon level</label
-                        >
-                        <input
-                            id="mobLevel"
-                            type="number"
-                            value="200"
-                            min="1"
-                            step="1"
-                        />
+        <div id="dungeon-content" class="tab-content active">
+            <div class="app-layout" style="margin-top: -1.5em;">
+                <div class="bench-section">
+                    <div
+                        class="label"
+                        style="margin-bottom: 0.5em"
+                        data-i18n="bench"
+                    >
+                        Bench
                     </div>
-                    <div class="card">
-                        <label class="label" data-i18n="number_of_battles"
-                            >Number of battles<span
-                                class="info-icon"
-                                tabindex="0"
-                                data-tooltip="number_of_battles_tooltip"
-                            ></span
-                        ></label>
-                        <div
-                            class="row"
-                            style="gap: 0.8em; align-items: center"
-                        >
+                    <div
+                        style="
+                            font-size: 0.8em;
+                            color: #8892b0;
+                            margin-bottom: 0.8em;
+                        "
+                        data-i18n="bench_description"
+                    >
+                        Drag fighters between bench and battle slots
+                    </div>
+                    <div id="benchGrid" class="bench-grid"></div>
+                    <div
+                        id="addToBench"
+                        class="add-to-bench"
+                        data-i18n="add_fighter"
+                    >
+                        + Add Fighter
+                    </div>
+                </div>
+
+                <div class="main-content">
+                    <div class="form-grid">
+                        <div class="card">
+                            <label class="label" data-i18n="dungeon_level"
+                                >Dungeon level</label
+                            >
                             <input
-                                id="numBattles"
+                                id="mobLevel"
                                 type="number"
-                                value="1"
+                                value="200"
                                 min="1"
                                 step="1"
+                                style="width: 300px;"
                             />
-                            <label class="row" style="gap: 0.4em">
-                                <input id="verbose" type="checkbox" />
-                                <span data-i18n="verbose">Verbose</span>
-                            </label>
                         </div>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-top: -1em">
-                    <label class="label" data-i18n="api_key">
-                        API Key<span
-                            class="info-icon"
-                            tabindex="0"
-                            data-tooltip="api_key_tooltip"
-                        ></span>
-                    </label>
-                    <div class="row" style="gap: 0.8em; align-items: center">
-                        <input
-                            id="apiKey"
-                            type="text"
-                            placeholder="Enter your Queslar API key"
-                            data-i18n-placeholder="api_key_placeholder"
-                            style="flex: 1"
-                        />
-                        <button
-                            id="importBtn"
-                            class="btn"
-                            data-i18n="import_button"
-                        >
-                            Import
-                        </button>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-top: -0.3em">
-                    <label class="label">
-                        <span data-i18n="snapshot_code">Snapshot Code</span>
-                        <span
-                            class="info-icon"
-                            tabindex="0"
-                            data-tooltip="snapshot_code_tooltip"
-                        ></span>
-                    </label>
-                    <div class="row" style="gap: 0.8em; align-items: center">
-                        <input
-                            id="snapshotOutputField"
-                            type="text"
-                            placeholder="Generated snapshot code will appear here"
-                            data-i18n-placeholder="snapshot_code_placeholder"
-                            style="flex: 1; cursor: text"
-                        />
-                        <button
-                            id="createSnapshotBtn"
-                            class="btn secondary"
-                            data-i18n="create_snapshot_button"
-                        >
-                            Create Snapshot
-                        </button>
-                        <button
-                            id="loadSnapshotBtn"
-                            class="btn secondary"
-                            data-i18n="load_snapshot_button"
-                        >
-                            Load Snapshot
-                        </button>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-top: -0.3em">
-                    <div
-                        class="row"
-                        style="
-                            margin-bottom: 0.5em;
-                            justify-content: space-between;
-                            align-items: baseline;
-                        "
-                    >
-                        <div
-                            style="
-                                display: flex;
-                                align-items: baseline;
-                                gap: 0.5em;
-                            "
-                        >
-                            <span
-                                class="label"
-                                style="margin: 0"
-                                data-i18n="battle_formation"
-                                >Battle Formation</span
-                            >
+                        <div class="card">
+                            <label class="label" data-i18n="number_of_battles"
+                                >Number of battles<span
+                                    class="info-icon"
+                                    tabindex="0"
+                                    data-tooltip="number_of_battles_tooltip"
+                                ></span
+                            ></label>
                             <div
-                                style="
-                                    font-size: 0.8em;
-                                    color: #8892b0;
-                                    margin-top: 0.3em;
-                                "
-                                data-i18n="battle_formation_description"
+                                class="row"
+                                style="gap: 0.8em; align-items: center"
                             >
-                                Click to edit • Drag to move/swap
+                                <input
+                                    id="numBattles"
+                                    type="number"
+                                    value="1"
+                                    min="1"
+                                    step="1"
+                                />
+                                <label class="row" style="gap: 0.4em">
+                                    <input id="verbose" type="checkbox" />
+                                    <span data-i18n="verbose">Verbose</span>
+                                </label>
                             </div>
                         </div>
-                        <div
-                            id="totalFightersCost"
-                            class="label"
-                            style="margin: 0"
-                            data-i18n="total_fighters_cost"
-                        ></div>
                     </div>
-                    <div
-                        class="battle-formation-container"
-                        style="display: flex; gap: 0.8em"
-                    >
-                        <div
-                            id="fightersGrid"
-                            class="fighters-grid"
-                            style="flex: 1"
-                        ></div>
-                        <div
-                            class="col"
-                            style="
-                                display: flex;
-                                flex-direction: column;
-                                gap: 0.8em;
-                            "
-                        >
+
+                    <div class="card" style="margin-top: -1em">
+                        <label class="label" data-i18n="api_key">
+                            API Key<span
+                                class="info-icon"
+                                tabindex="0"
+                                data-tooltip="api_key_tooltip"
+                            ></span>
+                        </label>
+                        <div class="row" style="gap: 0.8em; align-items: center">
+                            <input
+                                id="apiKey"
+                                type="text"
+                                placeholder="Enter your Queslar API key"
+                                data-i18n-placeholder="api_key_placeholder"
+                                style="flex: 1"
+                            />
                             <button
-                                id="fightBtn"
-                                class="btn primary"
-                                data-i18n="fight_button"
+                                id="importBtn"
+                                class="btn"
+                                data-i18n="import_button"
                             >
-                                ⚔️ Fight
-                            </button>
-                            <button
-                                id="clearLogBtn"
-                                class="btn secondary"
-                                data-i18n="clear_output_button"
-                            >
-                                Clear Output
+                                Import
                             </button>
                         </div>
                     </div>
+
+                    <div class="card" style="margin-top: -0.4em">
+                        <label class="label">
+                            <span data-i18n="snapshot_code">Snapshot Code</span>
+                            <span
+                                class="info-icon"
+                                tabindex="0"
+                                data-tooltip="snapshot_code_tooltip"
+                            ></span>
+                        </label>
+                        <div class="row" style="gap: 0.8em; align-items: center">
+                            <input
+                                id="snapshotOutputField"
+                                type="text"
+                                placeholder="Generated snapshot code will appear here"
+                                data-i18n-placeholder="snapshot_code_placeholder"
+                                style="flex: 1; cursor: text"
+                            />
+                            <button
+                                id="createSnapshotBtn"
+                                class="btn secondary"
+                                data-i18n="create_snapshot_button"
+                            >
+                                Create Snapshot
+                            </button>
+                            <button
+                                id="loadSnapshotBtn"
+                                class="btn secondary"
+                                data-i18n="load_snapshot_button"
+                            >
+                                Load Snapshot
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: -0.4em">
+                        <div
+                            class="row"
+                            style="
+                                margin-bottom: 0.5em;
+                                justify-content: space-between;
+                                align-items: baseline;
+                            "
+                        >
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: baseline;
+                                    gap: 0.5em;
+                                "
+                            >
+                                <span
+                                    class="label"
+                                    style="margin: 0"
+                                    data-i18n="battle_formation"
+                                    >Battle Formation</span
+                                >
+                                <div
+                                    style="
+                                        font-size: 0.8em;
+                                        color: #8892b0;
+                                        margin-top: 0.3em;
+                                    "
+                                    data-i18n="battle_formation_description"
+                                >
+                                    Click to edit • Drag to move/swap
+                                </div>
+                            </div>
+                            <div
+                                id="totalFightersCost"
+                                class="label"
+                                style="margin: 0"
+                                data-i18n="total_fighters_cost"
+                            ></div>
+                        </div>
+                        <div
+                            class="battle-formation-container"
+                            style="display: flex; gap: 0.8em"
+                        >
+                            <div
+                                id="fightersGrid"
+                                class="fighters-grid"
+                                style="flex: 1"
+                            ></div>
+                            <div
+                                class="col"
+                                style="
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 0.8em;
+                                "
+                            >
+                                <button
+                                    id="fightBtn"
+                                    class="btn primary"
+                                    data-i18n="fight_button"
+                                >
+                                    ⚔️ Fight
+                                </button>
+                                <button
+                                    id="clearLogBtn"
+                                    class="btn secondary"
+                                    data-i18n="clear_output_button"
+                                >
+                                    Clear Output
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: -0.4em">
+                        <label class="label" data-i18n="output">Output</label>
+                        <div id="output" class="output"></div>
+                    </div>
                 </div>
 
-                <div class="card" style="margin-top: -0.3em">
-                    <label class="label" data-i18n="output">Output</label>
-                    <div id="output" class="output"></div>
+                <div class="armory-section">
+                    <div
+                        class="label"
+                        style="margin-bottom: 0.5em"
+                        data-i18n="armory"
+                    >
+                        Armory
+                    </div>
+                    <div
+                        style="
+                            font-size: 0.8em;
+                            color: #8892b0;
+                            margin-bottom: 0.8em;
+                        "
+                        data-i18n="armory_description"
+                    >
+                        Click on items to edit. Drag on fighter to equip.
+                    </div>
+                    <div id="armoryGrid" class="armory-grid"></div>
+                    <div
+                        id="addToArmory"
+                        class="add-to-bench"
+                        data-i18n="add_fighter_item"
+                    >
+                        + Add Fighter Item
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="armory-section">
-                <div
-                    class="label"
-                    style="margin-bottom: 0.5em"
-                    data-i18n="armory"
-                >
-                    Armory
+        <div id="caves-content" class="tab-content">
+            <div class="app-layout" style="margin-top: -1.5em;">
+                <div class="bench-section">
+                    <div
+                        class="label"
+                        style="margin-bottom: 0.5em"
+                        data-i18n="bench"
+                    >
+                        Bench
+                    </div>
+                    <div
+                        style="
+                            font-size: 0.8em;
+                            color: #8892b0;
+                            margin-bottom: 0.8em;
+                        "
+                        data-i18n="bench_description"
+                    >
+                        Drag fighters between bench and battle slots
+                    </div>
+                    <div id="benchGrid-caves" class="bench-grid"></div>
+                    <div
+                        id="addToBench-caves"
+                        class="add-to-bench"
+                        data-i18n="add_fighter"
+                    >
+                        + Add Fighter
+                    </div>
                 </div>
-                <div
-                    style="
-                        font-size: 0.8em;
-                        color: #8892b0;
-                        margin-bottom: 0.8em;
-                    "
-                    data-i18n="armory_description"
-                >
-                    Click on items to edit. Drag on fighter to equip.
+
+                <div class="main-content">
+                    <div class="form-grid">
+                        <div class="card">
+                            <label class="label" data-i18n="dungeon_level"
+                                >Caves level</label
+                            >
+                            <input
+                                id="mobLevel-caves"
+                                type="number"
+                                value="200"
+                                min="1"
+                                step="1"
+                                style="width: 300px;"
+                            />
+                        </div>
+                        <div class="card">
+                            <label class="label" data-i18n="number_of_battles"
+                                >Number of battles<span
+                                    class="info-icon"
+                                    tabindex="0"
+                                    data-tooltip="number_of_battles_tooltip"
+                                ></span
+                            ></label>
+                            <div
+                                class="row"
+                                style="gap: 0.8em; align-items: center"
+                            >
+                                <input
+                                    id="numBattles-caves"
+                                    type="number"
+                                    value="1"
+                                    min="1"
+                                    step="1"
+                                />
+                                <label class="row" style="gap: 0.4em">
+                                    <input id="verbose-caves" type="checkbox" />
+                                    <span data-i18n="verbose">Verbose</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: -1em">
+                        <label class="label" data-i18n="api_key">
+                            API Key<span
+                                class="info-icon"
+                                tabindex="0"
+                                data-tooltip="api_key_tooltip"
+                            ></span>
+                        </label>
+                        <div class="row" style="gap: 0.8em; align-items: center">
+                            <input
+                                id="apiKey-caves"
+                                type="text"
+                                placeholder="Enter your Queslar API key"
+                                data-i18n-placeholder="api_key_placeholder"
+                                style="flex: 1"
+                            />
+                            <button
+                                id="importBtn-caves"
+                                class="btn"
+                                data-i18n="import_button"
+                            >
+                                Import
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: -0.4em">
+                        <label class="label">
+                            <span data-i18n="snapshot_code">Snapshot Code</span>
+                            <span
+                                class="info-icon"
+                                tabindex="0"
+                                data-tooltip="snapshot_code_tooltip"
+                            ></span>
+                        </label>
+                        <div class="row" style="gap: 0.8em; align-items: center">
+                            <input
+                                id="snapshotOutputField-caves"
+                                type="text"
+                                placeholder="Generated snapshot code will appear here"
+                                data-i18n-placeholder="snapshot_code_placeholder"
+                                style="flex: 1; cursor: text"
+                            />
+                            <button
+                                id="createSnapshotBtn-caves"
+                                class="btn secondary"
+                                data-i18n="create_snapshot_button"
+                            >
+                                Create Snapshot
+                            </button>
+                            <button
+                                id="loadSnapshotBtn-caves"
+                                class="btn secondary"
+                                data-i18n="load_snapshot_button"
+                            >
+                                Load Snapshot
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: -0.4em">
+                        <div
+                            class="row"
+                            style="
+                                margin-bottom: 0.5em;
+                                justify-content: space-between;
+                                align-items: baseline;
+                            "
+                        >
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: baseline;
+                                    gap: 0.5em;
+                                "
+                            >
+                                <span
+                                    class="label"
+                                    style="margin: 0"
+                                    data-i18n="battle_formation"
+                                    >Battle Formation</span
+                                >
+                                <div
+                                    style="
+                                        font-size: 0.8em;
+                                        color: #8892b0;
+                                        margin-top: 0.3em;
+                                    "
+                                    data-i18n="battle_formation_description"
+                                >
+                                    Click to edit • Drag to move/swap
+                                </div>
+                            </div>
+                            <div
+                                id="totalFightersCost-caves"
+                                class="label"
+                                style="margin: 0"
+                                data-i18n="total_fighters_cost"
+                            ></div>
+                        </div>
+                        <div
+                            class="battle-formation-container"
+                            style="display: flex; gap: 0.8em"
+                        >
+                            <div
+                                id="fightersGrid-caves"
+                                class="fighters-grid"
+                                style="flex: 1"
+                            ></div>
+                            <div
+                                class="col"
+                                style="
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 0.8em;
+                                "
+                            >
+                                <button
+                                    id="fightBtn-caves"
+                                    class="btn primary"
+                                    data-i18n="fight_button"
+                                >
+                                    ⚔️ Fight
+                                </button>
+                                <button
+                                    id="clearLogBtn-caves"
+                                    class="btn secondary"
+                                    data-i18n="clear_output_button"
+                                >
+                                    Clear Output
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: -0.4em">
+                        <label class="label" data-i18n="output">Output</label>
+                        <div id="output-caves" class="output"></div>
+                    </div>
                 </div>
-                <div id="armoryGrid" class="armory-grid"></div>
-                <div
-                    id="addToArmory"
-                    class="add-to-bench"
-                    data-i18n="add_fighter_item"
-                >
-                    + Add Fighter Item
+
+                <div class="armory-section">
+                    <div
+                        class="label"
+                        style="margin-bottom: 0.5em"
+                        data-i18n="armory"
+                    >
+                        Armory
+                    </div>
+                    <div
+                        style="
+                            font-size: 0.8em;
+                            color: #8892b0;
+                            margin-bottom: 0.8em;
+                        "
+                        data-i18n="armory_description"
+                    >
+                        Click on items to edit. Drag on fighter to equip.
+                    </div>
+                    <div id="armoryGrid-caves" class="armory-grid"></div>
+                    <div
+                        id="addToArmory-caves"
+                        class="add-to-bench"
+                        data-i18n="add_fighter_item"
+                    >
+                        + Add Fighter Item
+                    </div>
                 </div>
             </div>
         </div>

@@ -19,8 +19,23 @@ header {
     top: 0;
     background: #23283a;
     border-bottom: 1px solid #2c3242;
-    padding: 0.9em 1.2em;
+    padding: 0.9em 0; /* Remove horizontal padding here, it's handled by inner divs */
     z-index: 5;
+    display: flex; /* Already set in HTML, but good to keep here */
+    flex-direction: row; /* Already set in HTML, but good to keep here */
+    align-items: center; /* Already set in HTML, but good to keep here */
+    justify-content: space-between; /* Already set in HTML, but good to keep here */
+}
+header > div { /* Target the direct child divs of header */
+    display: flex;
+    align-items: center;
+}
+header h1 {
+    margin: 0; /* Remove default h1 margin */
+    padding-left: 1.2em; /* Add back left padding for the h1 */
+}
+.language-switcher {
+    padding-right: 1.2em; /* Add back right padding for the language switcher */
 }
 .app-layout {
     display: flex;
@@ -127,7 +142,6 @@ header {
 }
 h1 {
     font-size: 1.4em;
-    margin: 0;
     color: #e6eaf3;
 }
 
@@ -216,11 +230,6 @@ input[type="checkbox"] {
     border-color: #2c3242;
 }
 
-#clearLogBtn {
-    padding: 0.8em 1.8em; /* 10% less horizontal padding than primary button */
-    font-size: 0.1em; /* Match primary button font size */
-}
-
 #createSnapshotBtn,
 #loadSnapshotBtn {
     padding: 0.6em 1em; /* Match .btn padding */
@@ -268,14 +277,15 @@ input[type="checkbox"] {
     gap: 0.8em;
 }
 
+#clearLogBtn-caves,
 #clearLogBtn {
     padding: 1em 2em;
     font-size: 0.95em;
     width: 100%;
 }
 
-#createSnapshotBtn,
-#loadSnapshotBtn {
+#createSnapshotBtn-caves,
+#loadSnapshotBtn-caves {
     padding: 0.6em 1em;
     font-size: 0.8em;
 }
@@ -391,7 +401,7 @@ footer {
     white-space: nowrap;
     font-size: 14px;
     z-index: 1001;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border: 1px solid #36405a;
 }
 .info-icon {
@@ -883,4 +893,32 @@ footer {
 
 .tab-content.active {
     display: block;
+}
+
+.main-tabs {
+    display: flex;
+    /* margin-top: 1em; */ /* Removed margin-top */
+    border-bottom: 1px solid #2c3242;
+    margin-left: 20px; /* Add some space between h1 and tabs */
+}
+
+.main-tab-button {
+    background: transparent;
+    color: #8892b0;
+    border: none;
+    padding: 0.8em 1.2em;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1em;
+    transition: color 0.2s, border-bottom 0.2s;
+    border-bottom: 3px solid transparent;
+}
+
+.main-tab-button:hover {
+    color: #e6eaf3;
+}
+
+.main-tab-button.active {
+    color: #4fa3ff;
+    border-bottom: 3px solid #4fa3ff;
 }
