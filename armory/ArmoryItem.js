@@ -1,9 +1,9 @@
 export class ArmoryItem {
     constructor({
         _id,
-        name,
+        name = "Unnamed Item",
         rarity,
-        stats,
+        stats = [],
         level = 1, // Default level to 1
         tiers = {},
     }) {
