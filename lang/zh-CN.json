@@ -136,6 +136,10 @@
     "TOTAL_FIGHTERS_COST": "佣兵总花费: "
   },
 
+  "CAVES_WON_ENCOUNTERS": "佣兵赢了 {1} 次遭遇战中的 {0} 次。",
+  "CAVES_SURVIVED_FIGHTERS": "{0} 名佣兵存活。",
+  "CAVES_FIGHTER_HP_REMAINING": "- {0}: {1}/{2} HP 剩余。",
+
   "ConsoleMessages": {
     "SUCC_IMPORT_FIGHTER": "已成功导入 {0} 名佣兵",
 

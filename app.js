@@ -892,37 +892,68 @@ class DungeonSim {
         this.numBattlesEl.value = n;
         this.saveState();
 
-        let fighterWins = 0, totalMobsHealth = 0, battlesWithSurvivors = 0;
-        let lastBattleLog = [];
-        const originalConsoleLog = console.log;
-        const shouldLogVerbose = this.verboseEl ? this.verboseEl.checked : false;
-        const actualBattlesToRun = shouldLogVerbose ? 1 : n;
+        if (this.tabName === 'caves') {
+            const fighters = this.buildFightersSquad();
+            let encountersWon = 0;
+            let totalEncounters = 0;
 
-        try {
-            if (shouldLogVerbose) console.log = (...args) => lastBattleLog.push(args.join(" "));
-            for (let k = 0; k < actualBattlesToRun; k++) {
-                const fighters = this.buildFightersSquad();
+            for (let k = 0; k < n; k++) {
+                if (fighters.fighters.every(f => !f || f.current_health <= 0)) {
+                    break; // Stop if all fighters are dead
+                }
+                totalEncounters++;
+
                 const mobs = new MobsSquad(level);
-                const battle = new Battle(fighters, mobs, shouldLogVerbose ? 1 : 0);
-                const [winner, , , mobHealth] = battle.battle();
-                if (winner === "fighters") fighterWins++;
-                if (winner === "mobs") {
-                    totalMobsHealth += mobHealth;
-                    battlesWithSurvivors++;
+                const battle = new Battle(fighters, mobs, 0); // Verbose for caves can be handled later if needed.
+                const [winner, , ,] = battle.battle();
+
+                if (winner === "fighters") {
+                    encountersWon++;
                 }
             }
-        } finally {
-            console.log = originalConsoleLog;
-        }
 
-        if (shouldLogVerbose) {
-            this.outputEl.innerHTML = lastBattleLog.join("\n");
-        } else {
-            const victoryChance = (fighterWins / actualBattlesToRun) * 100;
-            const avgHealthSurvivors = battlesWithSurvivors > 0 ? Math.round(totalMobsHealth / battlesWithSurvivors) : 0;
-            this.outputEl.innerHTML = `${formatString(I18N.getUIElement("VICTORY_CHANCE"), victoryChance.toFixed(2))}<br>
-                                     ${formatString(I18N.getUIElement("AVG_SURVIVOR_HEALTH"), avgHealthSurvivors)}<br>
-                                     ${formatString(I18N.getUIElement("CHANCE_60_MIN"), ((1.0 - (1.0 - victoryChance / 100.0) ** 60) * 100.0).toFixed(2))}`;
+            this.outputEl.innerHTML = formatString(I18N.getTranslation("CAVES_WON_ENCOUNTERS"), encountersWon, n);
+            const remainingFighters = fighters.fighters.filter(f => f && f.current_health > 0);
+            this.outputEl.innerHTML += `<br>${formatString(I18N.getTranslation("CAVES_SURVIVED_FIGHTERS"), remainingFighters.length)}`;
+            remainingFighters.forEach(f => {
+                const className = I18N.getFighterName(f.fighter_class.replace(" ", "_").toUpperCase());
+                this.outputEl.innerHTML += `<br>${formatString(I18N.getTranslation("CAVES_FIGHTER_HP_REMAINING"), className, f.current_health, f.total_health)}`;
+            });
+
+        } else { // Dungeon logic (existing logic)
+            let fighterWins = 0, totalMobsHealth = 0, battlesWithSurvivors = 0;
+            let lastBattleLog = [];
+            const originalConsoleLog = console.log;
+            const shouldLogVerbose = this.verboseEl ? this.verboseEl.checked : false;
+            const actualBattlesToRun = shouldLogVerbose ? 1 : n;
+
+            try {
+                if (shouldLogVerbose) console.log = (...args) => lastBattleLog.push(args.join(" "));
+                for (let k = 0; k < actualBattlesToRun; k++) {
+                    const fighters = this.buildFightersSquad();
+                    const mobs = new MobsSquad(level);
+                    const battle = new Battle(fighters, mobs, shouldLogVerbose ? 1 : 0);
+                    const [winner, , , mobHealth] = battle.battle();
+                    if (winner === "fighters") fighterWins++;
+                    if (winner === "mobs") {
+                        totalMobsHealth += mobHealth;
+                        battlesWithSurvivors++;
+                    }
+                }
+            } finally {
+                console.log = originalConsoleLog;
+            }
+
+            if (shouldLogVerbose) {
+                this.outputEl.innerHTML = lastBattleLog.join("\n");
+            }
+            else {
+                const victoryChance = (fighterWins / actualBattlesToRun) * 100;
+                const avgHealthSurvivors = battlesWithSurvivors > 0 ? Math.round(totalMobsHealth / battlesWithSurvivors) : 0;
+                this.outputEl.innerHTML = `${formatString(I18N.getUIElement("VICTORY_CHANCE"), victoryChance.toFixed(2))}<br>
+                                         ${formatString(I18N.getUIElement("AVG_SURVIVOR_HEALTH"), avgHealthSurvivors)}<br>
+                                         ${formatString(I18N.getUIElement("CHANCE_60_MIN"), ((1.0 - (1.0 - victoryChance / 100.0) ** 60) * 100.0).toFixed(2))}`;
+            }
         }
     }
 

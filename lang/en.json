@@ -128,6 +128,9 @@
     "FIGHTER_GOLD": "Fighter gold",
     "TOTAL_FIGHTERS_COST": "Total fighters cost: "
   },
+  "CAVES_WON_ENCOUNTERS": "Fighters won {0} out of {1} encounters.",
+  "CAVES_SURVIVED_FIGHTERS": "{0} fighters survived.",
+  "CAVES_FIGHTER_HP_REMAINING": "- {0}: {1}/{2} HP remaining.",
   "ConsoleMessages": {
     "SUCC_IMPORT_FIGHTER": "Successfully imported {0} fighters",
     "ERR_FAIL_LOAD_FIGHTER": "Failed to deserialize fighter:",
