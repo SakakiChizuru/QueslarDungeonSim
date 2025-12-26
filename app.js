@@ -287,7 +287,7 @@ class DungeonSim {
 
         this.mobLevelEl.addEventListener("input", () => this.saveState());
         this.numBattlesEl.addEventListener("input", () => this.saveState());
-        this.verboseEl.addEventListener("input", () => this.saveState());
+        if (this.verboseEl) this.verboseEl.addEventListener("input", () => this.saveState());
         this.apiKeyEl.addEventListener("input", () => this.saveState());
         dontShowImportWarningEl.addEventListener("change", () => this.saveState());
     }
@@ -301,7 +301,7 @@ class DungeonSim {
         localStorage.setItem(this.LS_KEYS.armory, JSON.stringify(armoryRaw));
         localStorage.setItem(this.LS_KEYS.mobLevel, String(this.mobLevelEl.value || ""));
         localStorage.setItem(this.LS_KEYS.numBattles, String(this.numBattlesEl.value || ""));
-        localStorage.setItem(this.LS_KEYS.verbose, this.verboseEl.checked ? "1" : "0");
+        if (this.verboseEl) localStorage.setItem(this.LS_KEYS.verbose, this.verboseEl.checked ? "1" : "0");
         localStorage.setItem(this.LS_KEYS.apiKey, String(this.apiKeyEl.value || ""));
         localStorage.setItem(
             this.LS_KEYS.dontShowImportWarning,
@@ -361,7 +361,7 @@ class DungeonSim {
 
         if (mob) this.mobLevelEl.value = Math.max(1, parseInt(mob) || 1);
         if (num) this.numBattlesEl.value = Math.max(1, parseInt(num) || 1);
-        if (ver) this.verboseEl.checked = ver === "1";
+        if (ver && this.verboseEl) this.verboseEl.checked = ver === "1";
         if (api) this.apiKeyEl.value = api;
 
         const dontShow = localStorage.getItem(this.LS_KEYS.dontShowImportWarning);
@@ -895,8 +895,8 @@ class DungeonSim {
         let fighterWins = 0, totalMobsHealth = 0, battlesWithSurvivors = 0;
         let lastBattleLog = [];
         const originalConsoleLog = console.log;
-        const actualBattlesToRun = this.verboseEl.checked ? 1 : n;
-        const shouldLogVerbose = this.verboseEl.checked;
+        const shouldLogVerbose = this.verboseEl ? this.verboseEl.checked : false;
+        const actualBattlesToRun = shouldLogVerbose ? 1 : n;
 
         try {
             if (shouldLogVerbose) console.log = (...args) => lastBattleLog.push(args.join(" "));
@@ -1291,6 +1291,7 @@ function initializeApp() {
             e.target.classList.add('active');
             const tabId = e.target.dataset.tab;
             document.getElementById(`${tabId}-content`).classList.add('active');
+            localStorage.setItem('activeTab', tabId);
 
             activeSim = (tabId === 'dungeon') ? dungeonSim : cavesSim;
             activeSim.renderGrid();
@@ -1301,10 +1302,22 @@ function initializeApp() {
 
     dungeonSim = new DungeonSim('dungeon');
     cavesSim = new DungeonSim('caves');
-    activeSim = dungeonSim;
+
+    const savedTabId = localStorage.getItem('activeTab') || 'dungeon';
+    activeSim = (savedTabId === 'dungeon') ? dungeonSim : cavesSim;
+
+    mainTabs.querySelectorAll('.main-tab-button').forEach(btn => btn.classList.remove('active'));
+    tabContents.forEach(content => content.classList.remove('active'));
+    mainTabs.querySelector(`[data-tab="${savedTabId}"]`).classList.add('active');
+    document.getElementById(`${savedTabId}-content`).classList.add('active');
 
     dungeonSim.init();
     cavesSim.init();
+
+    // Explicitly re-render the active sim's content to ensure it's displayed correctly on load
+    activeSim.renderGrid();
+    activeSim.renderBench();
+    activeSim.renderArmory();
 
     saveFighterBtn.addEventListener("click", () => activeSim.saveFighter());
     closeFighterModal.addEventListener("click", () => activeSim.closeFighterEditor());

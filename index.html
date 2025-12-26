@@ -23,8 +23,8 @@
                     >
                 </h1>
                 <div class="main-tabs">
-                    <button class="main-tab-button active" data-tab="dungeon">Dungeon</button>
-                    <button class="main-tab-button" data-tab="caves">Caves</button>
+                    <button class="main-tab-button active" data-tab="dungeon" data-i18n="dungeon_tab">Dungeon</button>
+                    <button class="main-tab-button" data-tab="caves" data-i18n="caves_tab">Caves</button>
                 </div>
             </div>
             <div class="language-switcher">
@@ -322,8 +322,8 @@
                 <div class="main-content">
                     <div class="form-grid">
                         <div class="card">
-                            <label class="label" data-i18n="dungeon_level"
-                                >Caves level</label
+                            <label class="label" data-i18n="caves_mob_level"
+                                >Mob level</label
                             >
                             <input
                                 id="mobLevel-caves"
@@ -335,13 +335,8 @@
                             />
                         </div>
                         <div class="card">
-                            <label class="label" data-i18n="number_of_battles"
-                                >Number of battles<span
-                                    class="info-icon"
-                                    tabindex="0"
-                                    data-tooltip="number_of_battles_tooltip"
-                                ></span
-                            ></label>
+                            <label class="label" data-i18n="caves_number_of_mob_encounters"
+                                >Number of mob encounters</label>
                             <div
                                 class="row"
                                 style="gap: 0.8em; align-items: center"
@@ -352,11 +347,8 @@
                                     value="1"
                                     min="1"
                                     step="1"
+                                    style="width: 300px;"
                                 />
-                                <label class="row" style="gap: 0.4em">
-                                    <input id="verbose-caves" type="checkbox" />
-                                    <span data-i18n="verbose">Verbose</span>
-                                </label>
                             </div>
                         </div>
                     </div>
