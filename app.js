@@ -1395,7 +1395,7 @@ async function loadChangelog() {
     let latestDate = "";
 
     lines.forEach(line => {
-      if (/^\\d{4}-\\d{2}-\\d{2}$/.test(line.trim())) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(line.trim())) {
         const currentDate = line.trim();
         if (!latestDate) latestDate = currentDate;
         html += `<h4>${currentDate}</h4>`;
