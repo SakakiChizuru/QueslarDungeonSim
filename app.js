@@ -949,7 +949,6 @@ class DungeonSim {
 
         // Reset tab active states
         tabButtons.forEach(button => button.classList.remove("active"));
-        document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
 
         // Populate universal item name input
         itemNameInput.value = item.name;
@@ -1108,7 +1107,7 @@ class DungeonSim {
         tabButtons.forEach(button => button.classList.remove("active"));
         clickedButton.classList.add("active"); // Use clickedButton
 
-        document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+        itemTabbedContent.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active")); // Changed selector
         const targetTabContent = document.getElementById(clickedButton.dataset.tab + "Content"); // Use clickedButton.dataset.tab
         if (targetTabContent) targetTabContent.classList.add("active");
 
