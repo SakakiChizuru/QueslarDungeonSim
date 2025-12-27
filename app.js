@@ -268,6 +268,7 @@ class DungeonSim {
         this.renderBench();
         this.renderArmory();
         this.attachEventListeners();
+        this.setupItemTabListeners(); // New call
 
         I18N.on("languageChanged", () => {
             this.renderGrid();
@@ -290,6 +291,12 @@ class DungeonSim {
         if (this.verboseEl) this.verboseEl.addEventListener("input", () => this.saveState());
         this.apiKeyEl.addEventListener("input", () => this.saveState());
         dontShowImportWarningEl.addEventListener("change", () => this.saveState());
+    }
+
+    setupItemTabListeners() {
+        tabButtons.forEach(button => {
+            button.addEventListener("click", () => this.handleItemTabClick(button));
+        });
     }
 
     saveState() {
@@ -348,6 +355,7 @@ class DungeonSim {
                     const item = deserializeItem(data);
                     if (item) this.armoryState.push(item);
                 });
+                this.renderArmory();
             }
         } catch (error) {
             console.warn(`Failed to load armory state for ${this.tabName}:`, error);
@@ -368,7 +376,15 @@ class DungeonSim {
         if (dontShow) dontShowImportWarningEl.checked = dontShow === "1";
     }
 
+    ensureActiveTabVisibility() {
+        const activeTabContent = document.getElementById(`${this.tabName}-content`);
+        if (activeTabContent) {
+            activeTabContent.classList.add('active'); // Re-add active class to ensure display: block
+        }
+    }
+
     updateTotalFightersCost() {
+
         let totalCost = 0;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 2; j++) {
@@ -662,6 +678,108 @@ class DungeonSim {
         });
     }
 
+    renderLevelTiersInputs(item) {
+        itemStatsLevelTiersContainer.innerHTML = ""; // Clear previous inputs
+
+        ALL_STAT_TYPES.forEach(statType => {
+            const tierValue = item.tiers ? (item.tiers[statType] || 0) : 0;
+
+            const statRow = document.createElement("div");
+            statRow.style.display = "grid";
+            statRow.style.gridTemplateColumns = "1fr auto 1fr"; // Label, "T", input
+            statRow.style.gap = "0.8em";
+            statRow.style.alignItems = "center";
+
+            const label = document.createElement("label");
+            label.textContent = I18N.getTranslation(
+                "stat_" + statType.replace(/([A-Z])/g, "_$1").toLowerCase(),
+            );
+            statRow.appendChild(label);
+
+            const tSpan = document.createElement("span");
+            tSpan.textContent = "T";
+            tSpan.style.marginRight = "0.2em"; // Small space between "T" and input
+            statRow.appendChild(tSpan);
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.dataset.statType = statType;
+            input.min = "0";
+            input.max = "12";
+            input.value = tierValue;
+            input.addEventListener("input", () => this.calculateAndDisplayTieredStats());
+            statRow.appendChild(input);
+
+            itemStatsLevelTiersContainer.appendChild(statRow);
+        });
+
+        itemLevelInput.addEventListener("input", () => this.calculateAndDisplayTieredStats());
+    }
+
+    calculateAndDisplayTieredStats() {
+        const level = parseInt(itemLevelInput.value) || 1;
+        const stats = {};
+        let displayText = "";
+
+        ALL_STAT_TYPES.forEach(statType => {
+            const input = itemStatsLevelTiersContainer.querySelector(`input[data-stat-type="${statType}"]`);
+            const tier = parseInt(input.value) || 0;
+
+            if (tier > 0) {
+                const calculatedValue = calculateTierLevel(statType, level, tier);
+                stats[statType] = calculatedValue;
+                if (statType === "critDamage") {
+                    const displayValue = calculatedValue * 100; // Multiply by 100 for display
+                    displayText += `${I18N.getTranslation("stat_" + statType.toLowerCase())}: ${displayValue.toFixed(2)}% (T${tier})\n`;
+                } else {
+                    displayText += `${I18N.getTranslation("stat_" + statType.toLowerCase())}: ${Math.round(calculatedValue)} (T${tier})\n`;
+                }
+            } else {
+                stats[statType] = 0; // Ensure stats not present have a value of 0
+            }
+        });
+        calculatedStatsDisplay.textContent = displayText || I18N.getTranslation("NO_TIERED_STATS_SELECTED");
+        return stats;
+    }
+
+    renderOriginalFreeValuesInputs(item) {
+        itemStatsOriginalFreeValuesContainer.innerHTML = ""; // Clear previous inputs
+
+        ALL_STAT_TYPES.forEach((statType) => {
+            const existingStat = item.stats.find((s) => s.type === statType);
+            let value = existingStat ? existingStat.value : 0;
+
+            const statRow = document.createElement("div");
+            statRow.style.display = "grid";
+            statRow.style.gridTemplateColumns = "1fr 1fr 30px";
+            statRow.style.gap = "0.8em";
+            statRow.style.alignItems = "center";
+
+            const label = document.createElement("label");
+            let labelText = I18N.getTranslation(
+                "stat_" + statType.replace(/([A-Z])/g, "_$1").toLowerCase(),
+            );
+            const tier = item.tiers ? (item.tiers[statType] || 0) : 0;
+            if (tier > 0) {
+                labelText += ` (T${tier})`;
+            }
+            label.textContent = labelText;
+            statRow.appendChild(label);
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.dataset.statType = statType;
+            input.value = statType === "critDamage" ? value.toFixed(2) : Math.round(value);
+            statRow.appendChild(input);
+
+            const percentSign = document.createElement("span");
+            percentSign.textContent = statType === "critDamage" ? "%" : "";
+            statRow.appendChild(percentSign);
+
+            itemStatsOriginalFreeValuesContainer.appendChild(statRow);
+        });
+    }
+
     openFighterEditor(i, j) {
         this.editingCell = { i, j };
         this.editingBench = { index: -1, isAddNew: false };
@@ -690,6 +808,7 @@ class DungeonSim {
         this.editingCell = { i: -1, j: -1 };
         this.editingBench = { index: -1, isAddNew: false };
         fighterModal.style.display = "none";
+        this.ensureActiveTabVisibility(); // Ensure the active tab is visible
     }
 
     populateFighterModal(fighter) {
@@ -814,17 +933,96 @@ class DungeonSim {
 
     openItemEditor(index) {
         if (index !== -1) {
-            this.editingArmory = { index, isAddNew: false };
+            this.editingArmory = { index: index, isAddNew: false };
+        } else {
+            this.editingArmory = { index: -1, isAddNew: true };
         }
-        const item = index !== -1 ? this.armoryState[index] : { name: "", rarity: "", stats: [], level: 1, tiers: {} };
+
+        const item =
+            index !== -1 ? this.armoryState[index] : { name: "", rarity: "", stats: [], level: 1, tiers: {} };
+
+        // Clear all containers that might be populated
+        itemStatsFreeValuesContainerTab.innerHTML = "";
+        itemStatsLevelTiersContainer.innerHTML = "";
+        itemStatsOriginalFreeValuesContainer.innerHTML = "";
+        calculatedStatsDisplay.textContent = "";
+
+        // Reset tab active states
+        tabButtons.forEach(button => button.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+
+        // Populate universal item name input
         itemNameInput.value = item.name;
-        // Logic to populate item modal...
+
+        if (this.editingArmory.isAddNew) {
+            // Show tabbed content, hide original free values form
+            itemTabbedContent.style.display = "block";
+            itemOriginalFreeValuesForm.style.display = "none";
+
+            // For new items, activate "Level/Tiers" tab by default
+            const defaultTabButton = itemModal.querySelector('.tab-button[data-tab="levelTiers"]');
+            const defaultTabContent = document.getElementById("levelTiersContent");
+            if (defaultTabButton) defaultTabButton.classList.add("active");
+            if (defaultTabContent) defaultTabContent.classList.add("active");
+
+            // Populate item level input
+            itemLevelInput.value = item.level || 1;
+
+            // Render Level/Tiers tab content
+            this.renderLevelTiersInputs(item);
+            this.calculateAndDisplayTieredStats(); // Initial calculation
+
+            // Prepare Free Values tab content (it will be populated if user switches to it)
+            ALL_STAT_TYPES.forEach((statType) => {
+                const existingStat = item.stats.find((s) => s.type === statType);
+                let value = existingStat ? existingStat.value : 0;
+
+                const statRow = document.createElement("div");
+                statRow.style.display = "grid";
+                statRow.style.gridTemplateColumns = "1fr 1fr 30px";
+                statRow.style.gap = "0.8em";
+                statRow.style.alignItems = "center";
+
+                const label = document.createElement("label");
+                let labelText = I18N.getTranslation(
+                    "stat_" + statType.replace(/([A-Z])/g, "_$1").toLowerCase(),
+                );
+                const tier = item.tiers ? (item.tiers[statType] || 0) : 0;
+                if (tier > 0) {
+                    labelText += ` (T${tier})`;
+                }
+                label.textContent = labelText;
+                statRow.appendChild(label);
+
+                const input = document.createElement("input");
+                input.type = "number";
+                input.dataset.statType = statType;
+                input.value = statType === "critDamage" ? value.toFixed(2) : value;
+                statRow.appendChild(input);
+
+                const percentSign = document.createElement("span");
+                percentSign.textContent = statType === "critDamage" ? "%" : "";
+                statRow.appendChild(percentSign);
+
+                itemStatsFreeValuesContainerTab.appendChild(statRow);
+            });
+
+        } else {
+            // Hide tabbed content, show original free values form
+            itemTabbedContent.style.display = "none";
+            itemOriginalFreeValuesForm.style.display = "block";
+
+            // Render original free values form content
+            this.renderOriginalFreeValuesInputs(item);
+        }
+
         itemModal.style.display = "flex";
     }
 
     closeItemEditor() {
         this.editingArmory = { index: -1, isAddNew: false };
         itemModal.style.display = "none";
+        this.ensureActiveTabVisibility(); // Ensure the active tab is visible
     }
 
     saveItem() {
@@ -833,31 +1031,67 @@ class DungeonSim {
         let itemToSave;
         if (this.editingArmory.isAddNew) {
             itemToSave = {
-            _id: `new_item_${Date.now()}`,
-            name: itemNameInput.value,
-            rarity: I18N.getTranslation("ITEM_RARITY_CUSTOM"),
-            stats: [],
-            level: 1,
-            tiers: {}
+                _id: `new_item_${Date.now()}`, // Generate a unique ID for new items
+                name: itemNameInput.value,
+                rarity: I18N.getTranslation("ITEM_RARITY_CUSTOM"), // Default rarity for new items
+                stats: [],
+                level: 1,
+                tiers: {}
             };
         } else {
             itemToSave = this.armoryState[this.editingArmory.index];
             itemToSave.name = itemNameInput.value;
-            itemToSave.stats = [];
+            itemToSave.stats = []; // Clear existing stats to rebuild from form
             itemToSave.tiers = {};
             itemToSave.level = 1;
         }
 
+        // Determine which form is active
         if (itemTabbedContent.style.display === "block") {
             const activeTab = itemModal.querySelector(".tab-button.active").dataset.tab;
 
             if (activeTab === "freeValues") {
-                // ...
+                const statInputs = itemStatsFreeValuesContainerTab.querySelectorAll(
+                    "input[data-stat-type]",
+                );
+                statInputs.forEach((input) => {
+                    const statType = input.dataset.statType;
+                    let value = parseFloat(input.value) || 0;
+
+                    if (value !== 0) {
+                        itemToSave.stats.push({ type: statType, value: value });
+                    }
+                });
             } else if (activeTab === "levelTiers") {
-                // ...
+                const level = parseInt(itemLevelInput.value) || 1;
+                const calculatedStats = this.calculateAndDisplayTieredStats(); // This function returns the calculated stats object
+
+                itemToSave.level = level;
+                ALL_STAT_TYPES.forEach(statType => {
+                    const input = itemStatsLevelTiersContainer.querySelector(`input[data-stat-type="${statType}"]`);
+                    const tier = parseInt(input.value) || 0;
+                    if (tier > 0) {
+                        let valueToSave = calculatedStats[statType];
+                        if (statType === 'critDamage') {
+                            valueToSave *= 100; // Multiply by 100 for critDamage
+                        }
+                        itemToSave.stats.push({ type: statType, value: valueToSave, tier: tier });
+                        itemToSave.tiers[statType] = tier; // Save the tier value
+                    }
+                });
             }
-        } else {
-            // ...
+        } else { // itemOriginalFreeValuesForm is active
+            const statInputs = itemStatsOriginalFreeValuesContainer.querySelectorAll(
+                "input[data-stat-type]",
+            );
+            statInputs.forEach((input) => {
+                const statType = input.dataset.statType;
+                let value = parseFloat(input.value) || 0;
+
+                if (value !== 0) {
+                    itemToSave.stats.push({ type: statType, value: value });
+                }
+            });
         }
 
 
@@ -868,6 +1102,56 @@ class DungeonSim {
         this.saveState();
         this.renderArmory();
         this.closeItemEditor();
+    }
+
+    handleItemTabClick(clickedButton) { // Changed 'e' to 'clickedButton'
+        tabButtons.forEach(button => button.classList.remove("active"));
+        clickedButton.classList.add("active"); // Use clickedButton
+
+        document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+        const targetTabContent = document.getElementById(clickedButton.dataset.tab + "Content"); // Use clickedButton.dataset.tab
+        if (targetTabContent) targetTabContent.classList.add("active");
+
+        const activeTab = clickedButton.dataset.tab; // Use clickedButton.dataset.tab
+
+        if (activeTab === "freeValues" && this.editingArmory.isAddNew) {
+            itemStatsFreeValuesContainerTab.innerHTML = ""; // Clear existing
+            const item = { name: "", rarity: "", stats: [], level: 1, tiers: {} }; // Placeholder for new item
+
+            ALL_STAT_TYPES.forEach((statType) => {
+                const existingStat = item.stats.find((s) => s.type === statType);
+                let value = existingStat ? existingStat.value : 0;
+
+                const statRow = document.createElement("div");
+                statRow.style.display = "grid";
+                statRow.style.gridTemplateColumns = "1fr 1fr 30px";
+                statRow.style.gap = "0.8em";
+                statRow.style.alignItems = "center";
+
+                const label = document.createElement("label");
+                let labelText = I18N.getTranslation(
+                    "stat_" + statType.replace(/([A-Z])/g, "_$1").toLowerCase(),
+                );
+                const tier = item.tiers ? (item.tiers[statType] || 0) : 0;
+                if (tier > 0) {
+                    labelText += ` (T${tier})`;
+                }
+                label.textContent = labelText;
+                statRow.appendChild(label);
+
+                const input = document.createElement("input");
+                input.type = "number";
+                input.dataset.statType = statType;
+                input.value = statType === "critDamage" ? value.toFixed(2) : value;
+                statRow.appendChild(input);
+
+                const percentSign = document.createElement("span");
+                percentSign.textContent = statType === "critDamage" ? "%" : "";
+                statRow.appendChild(percentSign);
+
+                itemStatsFreeValuesContainerTab.appendChild(statRow);
+            });
+        }
     }
 
     buildFightersSquad() {
@@ -1358,20 +1642,35 @@ function initializeApp() {
     closeItemModal.addEventListener("click", () => activeSim.closeItemEditor());
     setupModalBackdropClose(itemModal, () => activeSim.closeItemEditor());
 
+
+
     confirmImportBtn.addEventListener("click", () => {
         if (dontShowImportWarningEl.checked) {
             localStorage.setItem(activeSim.LS_KEYS.dontShowImportWarning, "1");
         }
         importConfirmModal.style.display = "none";
         activeSim.performImport(activeSim.apiKeyEl.value.trim());
+        activeSim.ensureActiveTabVisibility(); // Ensure the active tab is visible
     });
-    cancelImportBtn.addEventListener("click", () => { importConfirmModal.style.display = "none"; });
-    setupModalBackdropClose(importConfirmModal, () => { importConfirmModal.style.display = "none"; });
+    cancelImportBtn.addEventListener("click", () => {
+        importConfirmModal.style.display = "none";
+        activeSim.ensureActiveTabVisibility(); // Ensure the active tab is visible
+    });
+    setupModalBackdropClose(importConfirmModal, () => {
+        importConfirmModal.style.display = "none";
+        activeSim.ensureActiveTabVisibility(); // Ensure the active tab is visible
+    });
 
     loadChangelog();
     changelogLink.addEventListener("click", () => { changelogModal.style.display = "flex"; });
-    closeChangelog.addEventListener("click", () => { changelogModal.style.display = "none"; });
-    setupModalBackdropClose(changelogModal, () => { changelogModal.style.display = "none"; });
+    closeChangelog.addEventListener("click", () => {
+        changelogModal.style.display = "none";
+        activeSim.ensureActiveTabVisibility(); // Ensure the active tab is visible
+    });
+    setupModalBackdropClose(changelogModal, () => {
+        changelogModal.style.display = "none";
+        activeSim.ensureActiveTabVisibility(); // Ensure the active tab is visible
+    });
 
     const statInputs = ["fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge"];
     for (const id of statInputs) {
