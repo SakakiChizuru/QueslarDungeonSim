@@ -383,6 +383,38 @@ class DungeonSim {
         }
     }
 
+    getBonusesFromItem(item) {
+        const bonuses = {
+            object_health: 0,
+            object_damage: 0,
+            object_hit: 0,
+            object_defense: 0,
+            object_crit: 0,
+            object_dodge: 0,
+        };
+        if (!item || !item.stats) return bonuses;
+
+        item.stats.forEach((stat) => {
+            const statType = stat.type.toLowerCase();
+            const value = stat.value || 0;
+
+            if (statType.includes("health")) bonuses.object_health += value;
+            else if (statType.includes("damage") && !statType.includes("crit"))
+                bonuses.object_damage += value;
+            else if (statType.includes("hit")) bonuses.object_hit += value;
+            else if (statType.includes("defense")) bonuses.object_defense += value;
+            else if (
+                statType === "critdamage" ||
+                statType === "crit_damage" ||
+                statType === "critical_damage"
+            ) {
+                bonuses.object_crit += value;
+            }
+            else if (statType.includes("dodge")) bonuses.object_dodge += value;
+        });
+        return bonuses;
+    }
+
     updateTotalFightersCost() {
 
         let totalCost = 0;
@@ -1515,6 +1547,53 @@ class DungeonSim {
                 this.benchState.splice(dragged.index, 1);
                 this.benchState.splice(targetData.index, 0, sourceFighter);
                 this.renderBench();
+            }
+        } else if (dragged.type === "armory" && targetType === "armory") {
+            if (dragged.index !== targetData.index) {
+                const sourceItem = this.armoryState[dragged.index];
+                this.armoryState.splice(dragged.index, 1);
+                this.armoryState.splice(targetData.index, 0, sourceItem);
+                this.renderArmory();
+            }
+        } else if (
+            dragged.type === "armory" &&
+            (targetType === "grid" || targetType === "bench")
+        ) {
+            // Equip item onto a fighter
+            const draggedItem = dragged.item;
+            let originalFighter = null;
+            if (targetType === "grid") {
+                originalFighter = this.gridState[targetData.i][targetData.j];
+            } else {
+                // bench
+                originalFighter = this.benchState[targetData.index];
+            }
+
+            if (originalFighter) {
+                const itemBonuses = this.getBonusesFromItem(draggedItem); // Changed to this.getBonusesFromItem
+                console.log("Equipping item:", draggedItem.name, "to fighter:", originalFighter.name);
+                console.log("Item Bonuses:", itemBonuses);
+
+                const newFighterData = { ...originalFighter.__raw };
+                Object.assign(newFighterData, itemBonuses);
+                newFighterData.equippedItemId = draggedItem.id;
+
+                console.log("New fighter data after equipping item:", newFighterData);
+
+                const newFighter = new Fighter(
+                    originalFighter.fighter_class,
+                    newFighterData,
+                );
+                newFighter.__raw = newFighterData;
+
+                // Replace the old fighter
+                if (targetType === "grid") {
+                    this.gridState[targetData.i][targetData.j] = newFighter;
+                    this.renderGrid();
+                } else {
+                    this.benchState[targetData.index] = newFighter;
+                    this.renderBench();
+                }
             }
         }
         this.saveState();
