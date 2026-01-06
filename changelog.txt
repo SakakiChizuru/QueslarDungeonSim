@@ -1,3 +1,6 @@
+2025-01-06
+- Added "Dungeon Attempts per Minute" field and updated probability check for different times (10, 30, 60 minutes)
+
 2025-12-26
 - INTRODUCING: Caves simulator. Simulate your cave fighters against any number of battles against a fixed mob. Still experimental, use at your own risk
 

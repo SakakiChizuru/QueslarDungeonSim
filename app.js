@@ -225,6 +225,7 @@ class DungeonSim {
         this.fightersGridEl = document.getElementById(getElementId("fightersGrid"));
         this.verboseEl = document.getElementById(getElementId("verbose"));
         this.mobLevelEl = document.getElementById(getElementId("mobLevel"));
+        this.dungeonsPerMinuteEl = document.getElementById(getElementId("dungeonsPerMinute"));
         this.numBattlesEl = document.getElementById(getElementId("numBattles"));
         this.outputEl = document.getElementById(getElementId("output"));
         this.fightBtn = document.getElementById(getElementId("fightBtn"));
@@ -245,6 +246,7 @@ class DungeonSim {
             bench: `${tabName}:benchState:v1`,
             armory: `${tabName}:armoryState:v1`,
             mobLevel: `${tabName}:mobLevel`,
+            dungeonsPerMinute: `${tabName}:dungeonsPerMinute`,
             numBattles: `${tabName}:numBattles`,
             verbose: `${tabName}:verbose`,
             apiKey: `${tabName}:apiKey`,
@@ -287,6 +289,7 @@ class DungeonSim {
         this.addToArmoryBtn.addEventListener("click", () => this.openAddToArmoryEditor());
 
         this.mobLevelEl.addEventListener("input", () => this.saveState());
+        if (this.dungeonsPerMinuteEl) this.dungeonsPerMinuteEl.addEventListener("input", () => this.saveState());
         this.numBattlesEl.addEventListener("input", () => this.saveState());
         if (this.verboseEl) this.verboseEl.addEventListener("input", () => this.saveState());
         this.apiKeyEl.addEventListener("input", () => this.saveState());
@@ -307,6 +310,9 @@ class DungeonSim {
         localStorage.setItem(this.LS_KEYS.bench, JSON.stringify(benchRaw));
         localStorage.setItem(this.LS_KEYS.armory, JSON.stringify(armoryRaw));
         localStorage.setItem(this.LS_KEYS.mobLevel, String(this.mobLevelEl.value || ""));
+        if (this.dungeonsPerHourEl) {
+            localStorage.setItem(this.LS_KEYS.dungeonsPerHour, String(this.dungeonsPerHourEl.value || ""));
+        }
         localStorage.setItem(this.LS_KEYS.numBattles, String(this.numBattlesEl.value || ""));
         if (this.verboseEl) localStorage.setItem(this.LS_KEYS.verbose, this.verboseEl.checked ? "1" : "0");
         localStorage.setItem(this.LS_KEYS.apiKey, String(this.apiKeyEl.value || ""));
@@ -363,11 +369,13 @@ class DungeonSim {
         }
 
         const mob = localStorage.getItem(this.LS_KEYS.mobLevel);
+        const dung = localStorage.getItem(this.LS_KEYS.dungeonsPerMinute);
         const num = localStorage.getItem(this.LS_KEYS.numBattles);
         const ver = localStorage.getItem(this.LS_KEYS.verbose);
         const api = localStorage.getItem(this.LS_KEYS.apiKey);
 
         if (mob) this.mobLevelEl.value = Math.max(1, parseInt(mob) || 1);
+        if (dung && this.dungeonsPerHourEl) this.dungeonsPerHourEl.value = Math.max(1, parseInt(dung) || 1);
         if (num) this.numBattlesEl.value = Math.max(1, parseInt(num) || 1);
         if (ver && this.verboseEl) this.verboseEl.checked = ver === "1";
         if (api) this.apiKeyEl.value = api;
@@ -1265,9 +1273,15 @@ class DungeonSim {
             else {
                 const victoryChance = (fighterWins / actualBattlesToRun) * 100;
                 const avgHealthSurvivors = battlesWithSurvivors > 0 ? Math.round(totalMobsHealth / battlesWithSurvivors) : 0;
+                const dungeonsPerMinute = this.dungeonsPerMinuteEl.value;
+                const attempts10Minutes = Math.round(dungeonsPerMinute * 10);
+                const attempts30Minutes = Math.round(dungeonsPerMinute * 20);
+                const attempts60Minutes = Math.round(dungeonsPerMinute * 60);
                 this.outputEl.innerHTML = `${formatString(I18N.getUIElement("VICTORY_CHANCE"), victoryChance.toFixed(2))}<br>
                                          ${formatString(I18N.getUIElement("AVG_SURVIVOR_HEALTH"), avgHealthSurvivors)}<br>
-                                         ${formatString(I18N.getUIElement("CHANCE_60_MIN"), ((1.0 - (1.0 - victoryChance / 100.0) ** 60) * 100.0).toFixed(2))}`;
+                                         ${formatString(I18N.getUIElement("CHANCE_10_MIN"), ((1.0 - (1.0 - victoryChance / 100.0) ** attempts10Minutes) * 100.0).toFixed(2))}<br>
+                                         ${formatString(I18N.getUIElement("CHANCE_30_MIN"), ((1.0 - (1.0 - victoryChance / 100.0) ** attempts30Minutes) * 100.0).toFixed(2))}<br>
+                                         ${formatString(I18N.getUIElement("CHANCE_60_MIN"), ((1.0 - (1.0 - victoryChance / 100.0) ** attempts60Minutes) * 100.0).toFixed(2))}`;
             }
         }
     }

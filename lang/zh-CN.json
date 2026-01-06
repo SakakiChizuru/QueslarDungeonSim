@@ -5,6 +5,7 @@
   "bench_description": "在替补席和战斗槽之间拖拽佣兵",
   "add_fighter": "+ 添加佣兵",
   "dungeon_level": "地下城等级",
+  "dungeon_per_minute": "每分鐘的嘗試次數",
   "caves_mob_level": "怪物等级",
   "number_of_battles": "战斗次数<span class=\"info-icon\" tabindex=\"0\" data-tooltip=\"详细模式只在战斗次数为1时生效\"></span>",
   "caves_number_of_mob_encounters": "遇敌次数<span class=\"info-icon\" tabindex=\"0\" data-tooltip=\"caves_number_of_mob_encounters_tooltip\"></span>",
@@ -127,6 +128,8 @@
 
     "VICTORY_CHANCE": "胜利几率: {0}%",
     "AVG_SURVIVOR_HEALTH": "平均幸存怪物总血量: {0}",
+    "CHANCE_10_MIN": "10分钟内获胜几率: {0}%",
+    "CHANCE_30_MIN": "30分钟内获胜几率: {0}%",
     "CHANCE_60_MIN": "60分钟内获胜几率: {0}%",
 
     "IMPORTING": "导入中...",
