@@ -310,8 +310,8 @@ class DungeonSim {
         localStorage.setItem(this.LS_KEYS.bench, JSON.stringify(benchRaw));
         localStorage.setItem(this.LS_KEYS.armory, JSON.stringify(armoryRaw));
         localStorage.setItem(this.LS_KEYS.mobLevel, String(this.mobLevelEl.value || ""));
-        if (this.dungeonsPerHourEl) {
-            localStorage.setItem(this.LS_KEYS.dungeonsPerHour, String(this.dungeonsPerHourEl.value || ""));
+        if (this.dungeonsPerMinuteEl) {
+            localStorage.setItem(this.LS_KEYS.dungeonsPerMinute, String(this.dungeonsPerMinuteEl.value || ""));
         }
         localStorage.setItem(this.LS_KEYS.numBattles, String(this.numBattlesEl.value || ""));
         if (this.verboseEl) localStorage.setItem(this.LS_KEYS.verbose, this.verboseEl.checked ? "1" : "0");
@@ -375,7 +375,7 @@ class DungeonSim {
         const api = localStorage.getItem(this.LS_KEYS.apiKey);
 
         if (mob) this.mobLevelEl.value = Math.max(1, parseInt(mob) || 1);
-        if (dung && this.dungeonsPerHourEl) this.dungeonsPerHourEl.value = Math.max(1, parseInt(dung) || 1);
+        if (dung && this.dungeonsPerMinuteEl) this.dungeonsPerMinuteEl.value = Math.max(1, parseFloat(dung) || 1);
         if (num) this.numBattlesEl.value = Math.max(1, parseInt(num) || 1);
         if (ver && this.verboseEl) this.verboseEl.checked = ver === "1";
         if (api) this.apiKeyEl.value = api;
