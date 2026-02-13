@@ -1,5 +1,5 @@
 import { calculateDefense } from "../utils/utils.js";
-import { formatString } from "../utils/i18n.js";  
+import { formatString } from "../utils/i18n.js";
 
 export const FighterClasses = Object.freeze({
   ASSASSIN: "Assassin",
@@ -33,7 +33,7 @@ export class Fighter {
       object_defense = 0,
       object_crit = 0,
       object_dodge = 0,
-      // 新增属性
+      object_lifesteal = 0,
       isDuplicate = false,
       base = null,
       equippedItemId = null
@@ -58,10 +58,10 @@ export class Fighter {
     this.defense = calculateDefense(this.defense_pre);
     this.crit = (0.0 + 0.25 * fighter_crit + object_crit) / 100.0;
     this.dodge = Math.ceil(50.0 + 50.0 * fighter_dodge) + object_dodge;
+    this.lifesteal = object_lifesteal;
 
     this.hit_counter = 0;
-    
-    // 新增属性
+
     this.isDuplicate = isDuplicate;
     this.base = base;
     this.equippedItemId = equippedItemId;

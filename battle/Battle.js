@@ -370,14 +370,7 @@ export class Battle {
 
   _print_debug(i, j, type, current_attack, targets = null) {
     if (this.verbose >= 1) {
-      //console.log(`Round: ${this.current_round}, Attack: ${current_attack}\n`);
-      this._draw_table_row(
-        formatString(
-          this.I18N.getBattleMsg("ROUND_INFO"),
-          this.current_round,
-          current_attack,
-        ),
-      );
+      this._draw_table_row(formatString(this.I18N.getBattleMsg("ROUND_INFO"), this.current_round, current_attack));
       this._draw_health_table(i, j, type, targets);
     }
   }
@@ -394,11 +387,11 @@ export class Battle {
         type === "fighters"
           ? this.I18N.getFighterName(fighters[x][y].fighter_class)
           : //? fighters[x][y].fighter_class
-            formatString(
-              this.I18N.getBattleMsg("HEALTH_TABLE_LINE"),
-              mobs[x][y].mob_class,
-              mobs[x][y].level,
-            );
+          formatString(
+            this.I18N.getBattleMsg("HEALTH_TABLE_LINE"),
+            mobs[x][y].mob_class,
+            mobs[x][y].level,
+          );
       //: `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
       if (selI === x && selJ === y && att_type === type) label += " ⚔️";
       const char = type === "fighters" ? fighters[x][y] : mobs[x][y];
@@ -460,11 +453,9 @@ export class Battle {
           .filter((line) => line.length > 0)
           .join("<br>");
 
-        output += `<td style="width:25%; border: 1px solid white; padding: 8px; ${
-          cellContent.indexOf("⚔️") > 0 ? "background: #b40900;" : ""
-        } ${
-          cellContent.indexOf("🛡️") > 0 ? "background: #0000c4;" : ""
-        } ">${cellContent.replace("EMPTY", "")}</td>`;
+        output += `<td style="width:25%; border: 1px solid white; padding: 8px; ${cellContent.indexOf("⚔️") > 0 ? "background: #b40900;" : ""
+          } ${cellContent.indexOf("🛡️") > 0 ? "background: #0000c4;" : ""
+          } ">${cellContent.replace("EMPTY", "")}</td>`;
       });
       output += "</tr>";
     }
@@ -664,22 +655,19 @@ export class Battle {
             dmg_applied,
           ),
         );
-      /*         console.log(
-          `${attacker_name} hits ${target_name} and deals ${dmg_applied} damage.`,
-        ); */
-      target.current_health = Math.max(
-        0.0,
-        target.current_health - dmg_applied,
-      );
+
+      const dmg_real = Math.min(target.current_health, dmg_applied);
+
+      target.current_health = Math.max(0.0, target.current_health - dmg_applied);
+
+      if (attacker instanceof Fighter && (attacker.lifesteal > 0)) {
+        let lifesteal_amount = Math.floor(dmg_real * attacker.lifesteal / 100);
+        attacker.current_health = Math.min(attacker.current_health + lifesteal_amount, attacker.total_health);
+        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("LIFESTEAL"), attacker_name, lifesteal_amount)) };
+      }
+
     } else {
-      if (this.verbose >= 1)
-        this._draw_table_head(
-          formatString(
-            this.I18N.getBattleMsg("ATK_MISS"),
-            attacker_name,
-            target_name,
-          ),
-        );
+      if (this.verbose >= 1) this._draw_table_head(formatString(this.I18N.getBattleMsg("ATK_MISS"), attacker_name, target_name));
     }
   }
 

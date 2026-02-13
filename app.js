@@ -12,7 +12,7 @@ const importConfirmModal = document.getElementById("importConfirmModal");
 const confirmImportBtn = document.getElementById("confirmImport");
 const cancelImportBtn = document.getElementById("cancelImport");
 const dontShowImportWarningEl = document.getElementById(
-  "dontShowImportWarning",
+    "dontShowImportWarning",
 );
 
 const fighterModal = document.getElementById("fighterModal");
@@ -46,15 +46,15 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 // --- CONSTANTS & GLOBAL HELPERS ---
 const FIGHTER_STAT_FIELDS = [
     "fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge",
-    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge",
+    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge", "object_lifesteal",
 ];
 const STAT_SERIALIZATION_MAP = {
     fighter_health: "fh", fighter_damage: "fd", fighter_hit: "fi", fighter_defense: "fdef", fighter_crit: "fcr", fighter_dodge: "fdo",
-    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo",
+    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo", object_lifesteal: "ols",
 };
 const STAT_DESERIALIZATION_MAP = Object.fromEntries(Object.entries(STAT_SERIALIZATION_MAP).map(([k, v]) => [v, k]));
 
-const ALL_STAT_TYPES = ["health", "damage", "hit", "defense", "critDamage", "dodge"];
+const ALL_STAT_TYPES = ["health", "damage", "hit", "defense", "critDamage", "dodge", "lifesteal"];
 
 //Create i18n Manager
 const I18N = new I18nManager();
@@ -62,18 +62,18 @@ let classDescriptions = null;
 await I18N.initPromise;
 
 I18N.initPromise.then(() => {
-  classDescriptions = I18N.getClassDescription();
+    classDescriptions = I18N.getClassDescription();
 });
 
 window.i18nManager = I18N;
 
 function createDuplicateIcon() {
-  const div = document.createElement('div');
-  div.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    const div = document.createElement('div');
+    div.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M15 3H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"></path>
     <path d="M19 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2"></path>
   </svg>`.trim();
-  return div.firstChild;
+    return div.firstChild;
 }
 
 function duplicateItem(originalItem) {
@@ -89,10 +89,10 @@ classTooltip.id = "classTooltip";
 document.body.appendChild(classTooltip);
 
 for (const value of Object.values(FighterClasses)) {
-  const opt = document.createElement("option");
-  opt.value = value;
-  opt.textContent = I18N.getFighterName(value.replace(" ", "_"));
-  fighterClassSelect.appendChild(opt);
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = I18N.getFighterName(value.replace(" ", "_"));
+    fighterClassSelect.appendChild(opt);
 }
 
 fighterClassSelect.style.display = "none";
@@ -106,66 +106,66 @@ const dropdownOptions = document.createElement("div");
 dropdownOptions.className = "custom-dropdown-options";
 
 Object.values(FighterClasses).forEach((className) => {
-  const option = document.createElement("div");
-  option.className = "custom-dropdown-option";
-  option.textContent = I18N.getFighterName(className.replace(" ", "_").toUpperCase());
-  option.dataset.i18n = `FighterName.${className.replace(" ", "_").toUpperCase()}`;
-  option.dataset.value = className;
-  option.addEventListener("mouseenter", (e) => {
-    const description = classDescriptions[className];
-    if (description) {
-      classTooltip.textContent = description;
-      classTooltip.style.left = `${e.pageX + 10}px`;
-      classTooltip.style.top = `${e.pageY - 30}px`;
-      classTooltip.classList.add("visible");
-    }
-  });
-  option.addEventListener("mousemove", (e) => {
-    if (classTooltip.classList.contains("visible")) {
-      classTooltip.style.left = `${e.pageX + 10}px`;
-      classTooltip.style.top = `${e.pageY - 30}px`;
-    }
-  });
-  option.addEventListener("mouseleave", () => { classTooltip.classList.remove("visible"); });
-  option.addEventListener("click", () => {
-    fighterClassSelect.value = className;
-    dropdownButton.innerHTML = `${I18N.getFighterName(className)} <span>▼</span>`;
-    dropdownOptions.classList.remove("open");
-    dropdownButton.classList.remove("open");
-    classTooltip.classList.remove("visible");
-    fighterClassSelect.dispatchEvent(new Event("change"));
-  });
-  dropdownOptions.appendChild(option);
+    const option = document.createElement("div");
+    option.className = "custom-dropdown-option";
+    option.textContent = I18N.getFighterName(className.replace(" ", "_").toUpperCase());
+    option.dataset.i18n = `FighterName.${className.replace(" ", "_").toUpperCase()}`;
+    option.dataset.value = className;
+    option.addEventListener("mouseenter", (e) => {
+        const description = classDescriptions[className];
+        if (description) {
+            classTooltip.textContent = description;
+            classTooltip.style.left = `${e.pageX + 10}px`;
+            classTooltip.style.top = `${e.pageY - 30}px`;
+            classTooltip.classList.add("visible");
+        }
+    });
+    option.addEventListener("mousemove", (e) => {
+        if (classTooltip.classList.contains("visible")) {
+            classTooltip.style.left = `${e.pageX + 10}px`;
+            classTooltip.style.top = `${e.pageY - 30}px`;
+        }
+    });
+    option.addEventListener("mouseleave", () => { classTooltip.classList.remove("visible"); });
+    option.addEventListener("click", () => {
+        fighterClassSelect.value = className;
+        dropdownButton.innerHTML = `${I18N.getFighterName(className)} <span>▼</span>`;
+        dropdownOptions.classList.remove("open");
+        dropdownButton.classList.remove("open");
+        classTooltip.classList.remove("visible");
+        fighterClassSelect.dispatchEvent(new Event("change"));
+    });
+    dropdownOptions.appendChild(option);
 });
 
 dropdownButton.addEventListener("click", () => {
-  dropdownOptions.classList.toggle("open");
-  dropdownButton.classList.toggle("open");
+    dropdownOptions.classList.toggle("open");
+    dropdownButton.classList.toggle("open");
 });
 document.addEventListener("click", (e) => {
-  if (!customDropdown.contains(e.target)) {
-    dropdownOptions.classList.remove("open");
-    dropdownButton.classList.remove("open");
-    classTooltip.classList.remove("visible");
-  }
+    if (!customDropdown.contains(e.target)) {
+        dropdownOptions.classList.remove("open");
+        dropdownButton.classList.remove("open");
+        classTooltip.classList.remove("visible");
+    }
 });
 customDropdown.appendChild(dropdownButton);
 customDropdown.appendChild(dropdownOptions);
 fighterClassSelect.parentNode.insertBefore(customDropdown, fighterClassSelect.nextSibling);
 
 function duplicateFighter(originalFighter) {
-  if (!originalFighter) return null;
-  const originalRawData = originalFighter.__raw || {};
-  const newRawData = { ...originalRawData };
-  newRawData.isDuplicate = true;
-  newRawData.base = {
-    name: originalFighter.name,
-    fighter_class: originalFighter.fighter_class,
-  };
-  newRawData.name = formatString(I18N.getUIElement("DUPLICATE_NAME"), originalFighter.name);
-  const duplicate = new Fighter(originalFighter.fighter_class, newRawData);
-  duplicate.__raw = { ...newRawData };
-  return duplicate;
+    if (!originalFighter) return null;
+    const originalRawData = originalFighter.__raw || {};
+    const newRawData = { ...originalRawData };
+    newRawData.isDuplicate = true;
+    newRawData.base = {
+        name: originalFighter.name,
+        fighter_class: originalFighter.fighter_class,
+    };
+    newRawData.name = formatString(I18N.getUIElement("DUPLICATE_NAME"), originalFighter.name);
+    const duplicate = new Fighter(originalFighter.fighter_class, newRawData);
+    duplicate.__raw = { ...newRawData };
+    return duplicate;
 }
 
 function serializeFighter(f) {
@@ -202,19 +202,19 @@ function deserializeFighter(obj) {
 }
 
 function serializeItem(item) {
-  if (!item) return null;
-  return { id: item.id, name: item.name, r: item.rarity, s: item.stats, lvl: item.level, tiers: item.tiers };
+    if (!item) return null;
+    return { id: item.id, name: item.name, r: item.rarity, s: item.stats, lvl: item.level, tiers: item.tiers };
 }
 
 function deserializeItem(obj) {
-  if (!obj) return null;
-  try {
-    const itemData = { _id: obj.id, name: obj.name, rarity: obj.r, stats: obj.s, level: obj.lvl, tiers: obj.tiers };
-    return new ArmoryItem(itemData);
-  } catch (error) {
-    console.warn(I18N.getConsoleMsg("ERR_FAIL_LOAD_ITEM"), obj, error);
-    return null;
-  }
+    if (!obj) return null;
+    try {
+        const itemData = { _id: obj.id, name: obj.name, rarity: obj.r, stats: obj.s, level: obj.lvl, tiers: obj.tiers };
+        return new ArmoryItem(itemData);
+    } catch (error) {
+        console.warn(I18N.getConsoleMsg("ERR_FAIL_LOAD_ITEM"), obj, error);
+        return null;
+    }
 }
 
 class DungeonSim {
@@ -399,6 +399,7 @@ class DungeonSim {
             object_defense: 0,
             object_crit: 0,
             object_dodge: 0,
+            object_lifesteal: 0,
         };
         if (!item || !item.stats) return bonuses;
 
@@ -419,6 +420,7 @@ class DungeonSim {
                 bonuses.object_crit += value;
             }
             else if (statType.includes("dodge")) bonuses.object_dodge += value;
+            else if (statType.includes("lifesteal")) bonuses.object_lifesteal += value;
         });
         return bonuses;
     }
@@ -437,6 +439,7 @@ class DungeonSim {
                         fighter_defense: fighter.__raw.fighter_defense || 0,
                         fighter_crit: fighter.__raw.fighter_crit || 0,
                         fighter_dodge: fighter.__raw.fighter_dodge || 0,
+                        fighter_lifesteal: fighter.__raw.fighter_lifesteal || 0,
                     };
                     totalCost += calculateFighterCost(fighterStats);
                 }
@@ -768,7 +771,7 @@ class DungeonSim {
             if (tier > 0) {
                 const calculatedValue = calculateTierLevel(statType, level, tier);
                 stats[statType] = calculatedValue;
-                if (statType === "critDamage") {
+                if (statType === "critDamage" || statType === "lifesteal") {
                     const displayValue = calculatedValue * 100; // Multiply by 100 for display
                     displayText += `${I18N.getTranslation("stat_" + statType.toLowerCase())}: ${displayValue.toFixed(2)}% (T${tier})\n`;
                 } else {
@@ -809,11 +812,11 @@ class DungeonSim {
             const input = document.createElement("input");
             input.type = "number";
             input.dataset.statType = statType;
-            input.value = statType === "critDamage" ? value.toFixed(2) : Math.round(value);
+            input.value = (statType === "critDamage" || statType === "lifesteal") ? value.toFixed(2) : Math.round(value);
             statRow.appendChild(input);
 
             const percentSign = document.createElement("span");
-            percentSign.textContent = statType === "critDamage" ? "%" : "";
+            percentSign.textContent = (statType === "critDamage" || statType === "lifesteal") ? "%" : "";
             statRow.appendChild(percentSign);
 
             itemStatsOriginalFreeValuesContainer.appendChild(statRow);
@@ -891,6 +894,7 @@ class DungeonSim {
             fighter_defense: (fighter && fighter.__raw && typeof fighter.__raw.fighter_defense === "number") ? fighter.__raw.fighter_defense : 0,
             fighter_crit: (fighter && fighter.__raw && typeof fighter.__raw.fighter_crit === "number") ? fighter.__raw.fighter_crit : 0,
             fighter_dodge: (fighter && fighter.__raw && typeof fighter.__raw.fighter_dodge === "number") ? fighter.__raw.fighter_dodge : 0,
+            fighter_lifesteal: (fighter && fighter.__raw && typeof fighter.__raw.fighter_lifesteal === "number") ? fighter.__raw.fighter_lifesteal : 0,
         };
         const initialCost = calculateFighterCost(initialFighterStats);
         staticFighterCostEl.textContent = `${I18N.getUIElement("FIGHTER_GOLD")}: ${millify(initialCost)}`;
@@ -916,6 +920,7 @@ class DungeonSim {
             fighter_defense: Number(document.getElementById("fighter_defense").value) || 0,
             fighter_crit: Number(document.getElementById("fighter_crit").value) || 0,
             fighter_dodge: Number(document.getElementById("fighter_dodge").value) || 0,
+            fighter_lifesteal: Number(document.getElementById("fighter_lifesteal").value) || 0,
         };
         const totalCost = calculateFighterCost(fighterStats);
         modifiedFighterCostEl.textContent = `${I18N.getUIElement("MODIFIED_FIGHTER_GOLD")}: ${millify(totalCost)}`;
@@ -1036,11 +1041,11 @@ class DungeonSim {
                 const input = document.createElement("input");
                 input.type = "number";
                 input.dataset.statType = statType;
-                input.value = statType === "critDamage" ? value.toFixed(2) : value;
+                input.value = (statType === "critDamage" || statType === "lifesteal") ? value.toFixed(2) : value;
                 statRow.appendChild(input);
 
                 const percentSign = document.createElement("span");
-                percentSign.textContent = statType === "critDamage" ? "%" : "";
+                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal") ? "%" : "";
                 statRow.appendChild(percentSign);
 
                 itemStatsFreeValuesContainerTab.appendChild(statRow);
@@ -1111,8 +1116,8 @@ class DungeonSim {
                     const tier = parseInt(input.value) || 0;
                     if (tier > 0) {
                         let valueToSave = calculatedStats[statType];
-                        if (statType === 'critDamage') {
-                            valueToSave *= 100; // Multiply by 100 for critDamage
+                        if (statType === 'critDamage' || statType === 'lifesteal') {
+                            valueToSave *= 100; // Multiply by 100 for critDamage and lifesteal
                         }
                         itemToSave.stats.push({ type: statType, value: valueToSave, tier: tier });
                         itemToSave.tiers[statType] = tier; // Save the tier value
@@ -1181,11 +1186,11 @@ class DungeonSim {
                 const input = document.createElement("input");
                 input.type = "number";
                 input.dataset.statType = statType;
-                input.value = statType === "critDamage" ? value.toFixed(2) : value;
+                input.value = (statType === "critDamage" || statType === "lifesteal") ? value.toFixed(2) : value;
                 statRow.appendChild(input);
 
                 const percentSign = document.createElement("span");
-                percentSign.textContent = statType === "critDamage" ? "%" : "";
+                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal") ? "%" : "";
                 statRow.appendChild(percentSign);
 
                 itemStatsFreeValuesContainerTab.appendChild(statRow);
@@ -1356,12 +1361,12 @@ class DungeonSim {
             this.importBtn.textContent = I18N.getUIElement("IMPORTING");
 
             const response = await fetch(
-              "https://http.v2.queslar.com/api/character/fighter/presets",
-              { headers: { "QUESLAR-API-KEY": apiKey } },
+                "https://http.v2.queslar.com/api/character/fighter/presets",
+                { headers: { "QUESLAR-API-KEY": apiKey } },
             );
 
             if (!response.ok) {
-              throw new Error(formatString(I18N.getAlertMsg("ERR_HTTP_ERROR"), response.status));
+                throw new Error(formatString(I18N.getAlertMsg("ERR_HTTP_ERROR"), response.status));
             }
             const data = await response.json();
             const result = this.processImportedData(data);
@@ -1369,93 +1374,93 @@ class DungeonSim {
                 console.warn(I18N.getConsoleMsg("ERR_IMPORT_FAIL"), result.message);
                 alert(result.message);
             }
-          } catch (error) {
+        } catch (error) {
             console.error(I18N.getConsoleMsg("ERR_IMPORT_FAIL"), error);
             alert(formatString(I18N.getAlertMsg("ERR_IMPORT_FAIL"), error.message));
-          } finally {
+        } finally {
             this.importBtn.disabled = false;
             this.importBtn.textContent = I18N.getTranslation("import_button");
-          }
+        }
     }
 
     processImportedData(apiData) {
         try {
             if (!apiData.output || !Array.isArray(apiData.output)) {
-              return { success: false, message: I18N.getConsoleMsg("IVLD_API_FORMAT") };
+                return { success: false, message: I18N.getConsoleMsg("IVLD_API_FORMAT") };
             }
 
             const presetAssignment = this.tabName === 'dungeon' ? 'dungeon' : 'cave';
             const preset = apiData.output.find(p => p.preset?.assignment === presetAssignment);
 
             if (!preset) {
-              return { success: false, message: I18N.getConsoleMsg("INFO_NO_AVIL_PRESET") };
+                return { success: false, message: I18N.getConsoleMsg("INFO_NO_AVIL_PRESET") };
             }
 
             this.gridState.forEach(row => row.fill(null));
 
             let importedCount = 0;
             (preset.fighters || []).forEach((fighterData) => {
-              try {
-                const fighter = createFighterFromApiData(fighterData);
-                if (!fighter) return;
+                try {
+                    const fighter = createFighterFromApiData(fighterData);
+                    if (!fighter) return;
 
-                const { row, column } = fighterData.placement || {};
-                let placed = false;
-                if (row !== undefined && column !== undefined && column >= 0 && column < 3 && row >= 0 && row < 2 && !this.gridState[column][row]) {
-                    this.gridState[column][row] = fighter;
-                    placed = true;
-                } else {
-                    for (let i = 0; i < 3 && !placed; i++) {
-                      for (let j = 0; j < 2 && !placed; j++) {
-                        if (!this.gridState[i][j]) {
-                          this.gridState[i][j] = fighter;
-                          placed = true;
+                    const { row, column } = fighterData.placement || {};
+                    let placed = false;
+                    if (row !== undefined && column !== undefined && column >= 0 && column < 3 && row >= 0 && row < 2 && !this.gridState[column][row]) {
+                        this.gridState[column][row] = fighter;
+                        placed = true;
+                    } else {
+                        for (let i = 0; i < 3 && !placed; i++) {
+                            for (let j = 0; j < 2 && !placed; j++) {
+                                if (!this.gridState[i][j]) {
+                                    this.gridState[i][j] = fighter;
+                                    placed = true;
+                                }
+                            }
                         }
-                      }
                     }
-                }
-                if (placed) importedCount++;
-                else console.warn(I18N.getConsoleMsg("ERR_GRID_FULL"), fighterData.name);
+                    if (placed) importedCount++;
+                    else console.warn(I18N.getConsoleMsg("ERR_GRID_FULL"), fighterData.name);
 
-              } catch (error) {
-                console.warn("Failed to import fighter:", fighterData.name, error.message);
-              }
+                } catch (error) {
+                    console.warn("Failed to import fighter:", fighterData.name, error.message);
+                }
             });
 
             const apiItemsToProcess = new Map();
             (preset.fighters || []).forEach(f => {
-              if (f.equipment?._id) apiItemsToProcess.set(f.equipment._id, f.equipment);
+                if (f.equipment?._id) apiItemsToProcess.set(f.equipment._id, f.equipment);
             });
 
             apiItemsToProcess.forEach((apiItemData) => {
-              const tiersFromApi = {};
-              const calculatedStats = Array.isArray(apiItemData.stats) ? apiItemData.stats.map(stat => {
-                const statObject = { ...stat };
-                if (stat.type && stat.tier !== undefined) {
-                  tiersFromApi[stat.type] = stat.tier;
-                  statObject.tier = stat.tier;
+                const tiersFromApi = {};
+                const calculatedStats = Array.isArray(apiItemData.stats) ? apiItemData.stats.map(stat => {
+                    const statObject = { ...stat };
+                    if (stat.type && stat.tier !== undefined) {
+                        tiersFromApi[stat.type] = stat.tier;
+                        statObject.tier = stat.tier;
+                    }
+                    return { ...statObject, value: calculateStatValue(stat) };
+                }) : [];
+
+                const existingItemIndex = this.armoryState.findIndex(item => item.name === apiItemData.name);
+
+                if (existingItemIndex !== -1) {
+                    Object.assign(this.armoryState[existingItemIndex], {
+                        id: apiItemData._id,
+                        rarity: apiItemData.rarity,
+                        stats: calculatedStats,
+                        level: apiItemData.level || 1,
+                        tiers: tiersFromApi,
+                    });
+                } else {
+                    this.armoryState.push(new ArmoryItem({
+                        ...apiItemData,
+                        stats: calculatedStats,
+                        level: apiItemData.level || 1,
+                        tiers: tiersFromApi,
+                    }));
                 }
-                return { ...statObject, value: calculateStatValue(stat) };
-              }) : [];
-
-              const existingItemIndex = this.armoryState.findIndex(item => item.name === apiItemData.name);
-
-              if (existingItemIndex !== -1) {
-                Object.assign(this.armoryState[existingItemIndex], {
-                  id: apiItemData._id,
-                  rarity: apiItemData.rarity,
-                  stats: calculatedStats,
-                  level: apiItemData.level || 1,
-                  tiers: tiersFromApi,
-                });
-              } else {
-                this.armoryState.push(new ArmoryItem({
-                  ...apiItemData,
-                  stats: calculatedStats,
-                  level: apiItemData.level || 1,
-                  tiers: tiersFromApi,
-                }));
-              }
             });
 
             this.saveState();
@@ -1464,10 +1469,10 @@ class DungeonSim {
             this.renderArmory();
 
             return { success: true, fightersCount: importedCount };
-          } catch (error) {
+        } catch (error) {
             console.error("Error processing imported data:", error);
             return { success: false, message: formatString(I18N.getConsoleMsg("ERR_PROC_IMPORT_DATA"), error.message) };
-          }
+        }
     }
 
     handleDragStart(e) {
@@ -1488,7 +1493,7 @@ class DungeonSim {
     }
 
     handleDragEnd(e) {
-        if(e.target) e.target.classList.remove("dragging");
+        if (e.target) e.target.classList.remove("dragging");
         document.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
         activeSim.draggedElement = null;
         activeSim.draggedData = null;
@@ -1585,14 +1590,10 @@ class DungeonSim {
 
             if (originalFighter) {
                 const itemBonuses = this.getBonusesFromItem(draggedItem); // Changed to this.getBonusesFromItem
-                console.log("Equipping item:", draggedItem.name, "to fighter:", originalFighter.name);
-                console.log("Item Bonuses:", itemBonuses);
 
                 const newFighterData = { ...originalFighter.__raw };
                 Object.assign(newFighterData, itemBonuses);
                 newFighterData.equippedItemId = draggedItem.id;
-
-                console.log("New fighter data after equipping item:", newFighterData);
 
                 const newFighter = new Fighter(
                     originalFighter.fighter_class,
@@ -1623,63 +1624,66 @@ function calculateStatValue(stat) {
     if (tier > 12) console.warn(formatString(I18N.getConsoleMsg("WARN_EQUIP_TIER_EXCEEDS_MAX"), tier));
 
     const baseValue = Math.max(0, parseFloat(stat.value) || 0);
-    return stat.type.toLowerCase().includes("critdamage") ? baseValue * multiplier * 100 : Math.round(baseValue * multiplier);
+    return stat.type.toLowerCase().includes("critdamage", "lifesteal") ? baseValue * multiplier * 100 : Math.round(baseValue * multiplier);
 }
 
 function createFighterFromApiData(apiData) {
     try {
-      if (!apiData?.class) throw new Error(I18N.getConsoleMsg("ERR_IVLD_FIGHTER_CLS"));
+        if (!apiData?.class) throw new Error(I18N.getConsoleMsg("ERR_IVLD_FIGHTER_CLS"));
 
-      const classMapping = { assassin: "Assassin", brawler: "Brawler", hunter: "Hunter", mage: "Mage", priest: "Priest", shadow_dancer: "Shadow Dancer", shadowdancer: "Shadow Dancer", berserker: "Berserker", paladin: "Paladin", crusader: "Crusader", sentinel: "Sentinel", bastion: "Bastion" };
-          const fighterClass = classMapping[apiData.class.toLowerCase()] || "No Class";
-          const stats = apiData.stats || {};
+        const classMapping = { assassin: "Assassin", brawler: "Brawler", hunter: "Hunter", mage: "Mage", priest: "Priest", shadow_dancer: "Shadow Dancer", shadowdancer: "Shadow Dancer", berserker: "Berserker", paladin: "Paladin", crusader: "Crusader", sentinel: "Sentinel", bastion: "Bastion" };
+        const fighterClass = classMapping[apiData.class.toLowerCase()] || "No Class";
+        const stats = apiData.stats || {};
 
-          const equipment = apiData.equipment || {};
-      const equipmentStats = Array.isArray(equipment.stats) ? equipment.stats : [];
+        const equipment = apiData.equipment || {};
+        const equipmentStats = Array.isArray(equipment.stats) ? equipment.stats : [];
 
-      const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0 };
-      equipmentStats.forEach((stat) => {
-        const value = calculateStatValue(stat);
-        const type = stat.type.toLowerCase();
+        const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0 };
+        equipmentStats.forEach((stat) => {
+            const value = calculateStatValue(stat);
+            const type = stat.type.toLowerCase();
 
-        if (type.includes("critdamage") || type.includes("crit_damage") || type.includes("critical_damage")) {
-            equipmentBonuses.critDamage += value;
-        } else if (type.includes("health")) {
-            equipmentBonuses.health += value;
-        } else if (type.includes("damage")) {
-            equipmentBonuses.damage += value;
-        } else if (type.includes("hit")) {
-            equipmentBonuses.hit += value;
-        } else if (type.includes("defense") || type.includes("defence")) {
-            equipmentBonuses.defense += value;
-        } else if (type.includes("dodge") || type.includes("evasion")) {
-            equipmentBonuses.dodge += value;
-        }
-      });
+            if (type.includes("critdamage") || type.includes("crit_damage") || type.includes("critical_damage")) {
+                equipmentBonuses.critDamage += value;
+            } else if (type.includes("health")) {
+                equipmentBonuses.health += value;
+            } else if (type.includes("damage")) {
+                equipmentBonuses.damage += value;
+            } else if (type.includes("hit")) {
+                equipmentBonuses.hit += value;
+            } else if (type.includes("defense") || type.includes("defence")) {
+                equipmentBonuses.defense += value;
+            } else if (type.includes("dodge") || type.includes("evasion")) {
+                equipmentBonuses.dodge += value;
+            } else if (type.includes("lifesteal")) {
+                equipmentBonuses.lifesteal += value;
+            }
+        });
 
-      const fighterData = {
-        name: (apiData.name || fighterClass).trim(),
-        fighter_health: Math.max(0, parseInt(stats.health || 0)),
-        fighter_damage: Math.max(0, parseInt(stats.damage || 0)),
-        fighter_hit: Math.max(0, parseInt(stats.hit || 0)),
-        fighter_defense: Math.max(0, parseInt(stats.defense || 0)),
-        fighter_crit: Math.max(0, parseInt(stats.critDamage || 0)),
-        fighter_dodge: Math.max(0, parseInt(stats.dodge || 0)),
-        object_health: Math.max(0, equipmentBonuses.health),
-        object_damage: Math.max(0, equipmentBonuses.damage),
-        object_hit: Math.max(0, equipmentBonuses.hit),
-        object_defense: Math.max(0, equipmentBonuses.defense),
-        object_crit: Math.max(0, equipmentBonuses.critDamage),
-        object_dodge: Math.max(0, equipmentBonuses.dodge),
-        equippedItemId: equipment ? equipment._id : null,
-      };
+        const fighterData = {
+            name: (apiData.name || fighterClass).trim(),
+            fighter_health: Math.max(0, parseInt(stats.health || 0)),
+            fighter_damage: Math.max(0, parseInt(stats.damage || 0)),
+            fighter_hit: Math.max(0, parseInt(stats.hit || 0)),
+            fighter_defense: Math.max(0, parseInt(stats.defense || 0)),
+            fighter_crit: Math.max(0, parseInt(stats.critDamage || 0)),
+            fighter_dodge: Math.max(0, parseInt(stats.dodge || 0)),
+            object_health: Math.max(0, equipmentBonuses.health),
+            object_damage: Math.max(0, equipmentBonuses.damage),
+            object_hit: Math.max(0, equipmentBonuses.hit),
+            object_defense: Math.max(0, equipmentBonuses.defense),
+            object_crit: Math.max(0, equipmentBonuses.critDamage),
+            object_dodge: Math.max(0, equipmentBonuses.dodge),
+            object_lifesteal: Math.max(0, equipmentBonuses.lifesteal),
+            equippedItemId: equipment ? equipment._id : null,
+        };
 
-      const fighter = new Fighter(fighterClass, fighterData);
-      fighter.__raw = { ...fighterData };
-      return fighter;
+        const fighter = new Fighter(fighterClass, fighterData);
+        fighter.__raw = { ...fighterData };
+        return fighter;
     } catch (error) {
-      console.error("Error creating fighter from API data:", error, apiData);
-      throw error;
+        console.error("Error creating fighter from API data:", error, apiData);
+        throw error;
     }
 }
 
@@ -1764,7 +1768,7 @@ function initializeApp() {
         activeSim.ensureActiveTabVisibility(); // Ensure the active tab is visible
     });
 
-    const statInputs = ["fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge"];
+    const statInputs = ["fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge", "fighter_lifesteal"];
     for (const id of statInputs) {
         document.getElementById(id).addEventListener("input", () => activeSim.updateModifiedFighterCost());
     }
@@ -1778,30 +1782,30 @@ function setupModalBackdropClose(modalElement, closeFunction) {
 }
 
 async function loadChangelog() {
-  try {
-    const response = await fetch("./changelog.txt");
-    const content = await response.text();
-    const lines = content.trim().split("\n").filter(line => line.trim());
-    let html = "";
-    let latestDate = "";
+    try {
+        const response = await fetch("./changelog.txt");
+        const content = await response.text();
+        const lines = content.trim().split("\n").filter(line => line.trim());
+        let html = "";
+        let latestDate = "";
 
-    lines.forEach(line => {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(line.trim())) {
-        const currentDate = line.trim();
-        if (!latestDate) latestDate = currentDate;
-        html += `<h4>${currentDate}</h4>`;
-      } else {
-        html += `<div>• ${line.replace(/^-/, '').trim()}</div>`;
-      }
-    });
+        lines.forEach(line => {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(line.trim())) {
+                const currentDate = line.trim();
+                if (!latestDate) latestDate = currentDate;
+                html += `<h4>${currentDate}</h4>`;
+            } else {
+                html += `<div>• ${line.replace(/^-/, '').trim()}</div>`;
+            }
+        });
 
-    changelogModal.querySelector(".modal div:last-child").innerHTML = html || "No changelog entries.";
-    if (latestDate && lastUpdatedEl) lastUpdatedEl.textContent = `Last updated: ${latestDate}`;
+        changelogModal.querySelector(".modal div:last-child").innerHTML = html || "No changelog entries.";
+        if (latestDate && lastUpdatedEl) lastUpdatedEl.textContent = `Last updated: ${latestDate}`;
 
-  } catch (error) {
-    console.warn("Failed to load changelog:", error);
-    changelogModal.querySelector(".modal div:last-child").innerHTML = "Unable to load changelog.";
-  }
+    } catch (error) {
+        console.warn("Failed to load changelog:", error);
+        changelogModal.querySelector(".modal div:last-child").innerHTML = "Unable to load changelog.";
+    }
 }
 
 initializeApp();

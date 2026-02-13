@@ -39,12 +39,14 @@
   "fighter_dodge": "佣兵闪避",
   "fighter_defense": "佣兵防御",
   "fighter_crit": "佣兵暴击",
+  "fighter_lifesteal": "佣兵吸血",
   "item_health": "物品生命值",
   "item_damage": "物品伤害",
   "item_hit": "物品命中",
   "item_dodge": "物品闪避",
   "item_defense": "物品防御",
   "item_crit": "装备暴击 (%)",
+  "item_lifesteal": "装备吸血 (%)",
   "save_button": "保存",
   "confirm_import": "确认导入",
   "import_warning": "这将覆盖当前战斗阵型中的所有佣兵。您确定要继续吗？",
@@ -69,7 +71,6 @@
   "level_label": "等级",
   "calculated_stats_label": "计算属性",
   "NO_TIERED_STATS_SELECTED": "未选择分层属性或等级为0。",
-
   "Below All For App.js [This line using as Comment]": "Below All For App.js [This line using as Comment]",
   "ITEM_RARITY_CUSTOM": "自定义",
   "NO_CHANGELOG_ENTRIES": "未找到更新日志条目。",
@@ -81,7 +82,7 @@
   "stat_crit_damage": "暴击伤害",
   "stat_critdamage": "暴击伤害",
   "stat_dodge": "闪避",
-
+  "stat_lifesteal": "吸血",
   "class_descriptions": {
     "assassin": "刺客优先攻击后排",
     "brawler": "格斗家有15%的几率攻击两次",
@@ -96,7 +97,6 @@
     "bastion": "与堡垒相邻的盟友获得50%的闪避几率和25%的伤害减免",
     "no_class": "无特殊能力"
   },
-
   "FighterName": {
     "ASSASSIN": "刺客",
     "BRAWLER": "格斗家",
@@ -114,50 +114,39 @@
     "EMPTY": "空",
     "NO_CLASS": "无职业"
   },
-
   "UIElement": {
     "ADD": "添加",
     "DELETE": "删除",
     "DUPLICATE": "复制",
-
     "DUPLICATE_NAME": "{0}的复制",
-
     "DROP_FIGHTER_HERE": "将佣兵拖动至此处",
-
     "TOTAL_WONS": "佣兵在{1}场战斗中总共赢了{0}场.",
-
     "VICTORY_CHANCE": "胜利几率: {0}%",
     "AVG_SURVIVOR_HEALTH": "平均幸存怪物总血量: {0}",
     "CHANCE_10_MIN": "10分钟内获胜几率: {0}%",
     "CHANCE_30_MIN": "30分钟内获胜几率: {0}%",
     "CHANCE_60_MIN": "60分钟内获胜几率: {0}%",
-
     "IMPORTING": "导入中...",
     "NO_ITEM": "无物品",
     "MODIFIED_FIGHTER_GOLD": "修改后佣兵花费",
     "FIGHTER_GOLD": "佣兵花费",
     "TOTAL_FIGHTERS_COST": "佣兵总花费: "
   },
-
   "CAVES_WON_ENCOUNTERS": "佣兵赢了 {1} 次遭遇战中的 {0} 次。",
   "CAVES_SURVIVED_FIGHTERS": "{0} 名佣兵存活。",
   "CAVES_FIGHTER_HP_REMAINING": "- {0}: {1}/{2} HP 剩余。",
-
   "ConsoleMessages": {
     "SUCC_IMPORT_FIGHTER": "已成功导入 {0} 名佣兵",
-
     "ERR_FAIL_LOAD_FIGHTER": "无法反序列化佣兵：",
     "ERR_FAIL_LOAD_GRID": "加载战斗阵列状态失败：",
     "ERR_FAIL_LOAD_BENCH": "加载后备席状态失败：",
     "ERR_FAIL_CREA_FIGHTER": "创建佣兵失败：",
     "ERR_IMPORT_FAIL": "导入失败：",
     "ERR_PROC_IMPORT_DATA": "处理导入数据时出错：{0}",
-
     "ERR_IVLD_FIGHTER_DATA": "无效的佣兵数据：目标不是对象",
     "ERR_IVLD_FIGHTER_CLS": "无效或缺失的佣兵职业",
     "ERR_IVLD_FIGHTER_CLS_PLH": "{0} 不是有效的职业，请检查输入。",
     "ERR_IVLD_API_FORMAT": "无效的 API 响应格式：缺少或错误的 'output' 数组。",
-
     "INFO_SEARCH_IN_ITEMS": "正在 {0} 项物品中搜索地城预设",
     "INFO_AVIL_PRESET": "可用的预设：",
     "INFO_NO_AVIL_PRESET": "未找到带有 '地下城' 指派的预设，未导入任何内容。",
@@ -170,7 +159,6 @@
     "WARN_EQUIP_TIER_EXCEEDS_MAX": "装备属性层级 {0} 超过最大值 (12)，使用默认乘数 1.0",
     "ERR_FAIL_LOAD_CHANGELOG": "无法加载更新日志："
   },
-
   "Alerts": {
     "ERR_FAIL_CREA_FIGHTER": "创建佣兵失败,请检查你输入的数值.",
     "ERR_NULL_API": "导入前请先输入API秘钥",
@@ -180,42 +168,38 @@
     "SUCC_SNAPSHOT_LOADED": "快照加载成功！",
     "ERR_SNAPSHOT_LOAD_FAIL": "加载快照失败。请检查代码并重试。"
   },
-
   "BattleInfo": {
     "MOB": "怪物",
     "FIGHTER": "佣兵",
-
     "MOB_ATK_NAME": "等级 {0} 的 {1}",
     "MOB_TGT_NAME": "等级 {0} 的 {1}",
-
-    "HEADERS": ["后排怪物", "前排怪物", "前排佣兵", "后排佣兵"],
-
+    "HEADERS": [
+      "后排怪物",
+      "前排怪物",
+      "前排佣兵",
+      "后排佣兵"
+    ],
     "LOSE_DUE_TO_EXHAUST": "佣兵因疲劳输掉战斗！",
     "HEALTH_0": "血量为 0",
     "HEALTH_TABLE_LINE": "{0} 等级 {1}",
-
     "ROUND_INFO": "轮次: {0}, 攻击回合: {1}",
     "FINAL_ROUND": "轮次最终情况",
-
     "DAMAGE_INFO": "{0} 命中 {1} 造成 {2} 伤害",
     "DAMAGE_INFO_CRIT": "{0} 命中 {1} 造成 {2} 伤害 (暴击!)",
     "ATK_MISS": "{0} 的攻击未命中 {1}.",
     "CRT_RNG_INFO": "暴击随机值：{0}} < 0.1",
     "ATK_CANNOT_DODGE": "{0} 的攻击无法闪避",
     "ATK_RNG_SUCC": "攻击命中判定成功：随机值 {0} < 阈值 {1}",
-
     "SP_SD_EVADED": "暗影舞者闪避成功。下次攻击将造成双倍伤害。",
     "SP_SD_APL_DOUBLEDMG": "暗影舞者造成双倍伤害",
     "SP_BR_DOUBLE": "格斗家造成了两次伤害！",
     "SP_PL_DMG_REDUCTION": "圣骑士的光环提供了15%减伤",
     "SP_BS_DMG_DODGE": "堡垒的光环提供了25%的减伤和50%额外闪避概率",
     "PRIEST_RESURRECTED": "牧师复活了 {0}",
-
     "ERR_IVLD_TGT_ID": "{0} 的攻击没有有效目标",
     "ERR_IVLD_ATKR": "无效的攻击者",
     "ERR_IVLD_TGT": "无效的目标"
   },
-
   "MobInfo": {
     "MOB": "怪物",
     "BOSS": "Boss"
