@@ -439,7 +439,6 @@ class DungeonSim {
                         fighter_defense: fighter.__raw.fighter_defense || 0,
                         fighter_crit: fighter.__raw.fighter_crit || 0,
                         fighter_dodge: fighter.__raw.fighter_dodge || 0,
-                        fighter_lifesteal: fighter.__raw.fighter_lifesteal || 0,
                     };
                     totalCost += calculateFighterCost(fighterStats);
                 }
@@ -894,7 +893,6 @@ class DungeonSim {
             fighter_defense: (fighter && fighter.__raw && typeof fighter.__raw.fighter_defense === "number") ? fighter.__raw.fighter_defense : 0,
             fighter_crit: (fighter && fighter.__raw && typeof fighter.__raw.fighter_crit === "number") ? fighter.__raw.fighter_crit : 0,
             fighter_dodge: (fighter && fighter.__raw && typeof fighter.__raw.fighter_dodge === "number") ? fighter.__raw.fighter_dodge : 0,
-            fighter_lifesteal: (fighter && fighter.__raw && typeof fighter.__raw.fighter_lifesteal === "number") ? fighter.__raw.fighter_lifesteal : 0,
         };
         const initialCost = calculateFighterCost(initialFighterStats);
         staticFighterCostEl.textContent = `${I18N.getUIElement("FIGHTER_GOLD")}: ${millify(initialCost)}`;
@@ -920,7 +918,6 @@ class DungeonSim {
             fighter_defense: Number(document.getElementById("fighter_defense").value) || 0,
             fighter_crit: Number(document.getElementById("fighter_crit").value) || 0,
             fighter_dodge: Number(document.getElementById("fighter_dodge").value) || 0,
-            fighter_lifesteal: Number(document.getElementById("fighter_lifesteal").value) || 0,
         };
         const totalCost = calculateFighterCost(fighterStats);
         modifiedFighterCostEl.textContent = `${I18N.getUIElement("MODIFIED_FIGHTER_GOLD")}: ${millify(totalCost)}`;
@@ -1768,7 +1765,7 @@ function initializeApp() {
         activeSim.ensureActiveTabVisibility(); // Ensure the active tab is visible
     });
 
-    const statInputs = ["fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge", "fighter_lifesteal"];
+    const statInputs = ["fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge"];
     for (const id of statInputs) {
         document.getElementById(id).addEventListener("input", () => activeSim.updateModifiedFighterCost());
     }
