@@ -34,6 +34,7 @@ export class Fighter {
       object_crit = 0,
       object_dodge = 0,
       object_lifesteal = 0,
+      object_crit_chance = 0,
       isDuplicate = false,
       base = null,
       equippedItemId = null
@@ -56,7 +57,8 @@ export class Fighter {
     this.hit = Math.ceil(50 + 50 * fighter_hit) + object_hit;
     this.defense_pre = 25 + 10 * fighter_defense + object_defense;
     this.defense = calculateDefense(this.defense_pre);
-    this.crit = (0.0 + 0.25 * fighter_crit + object_crit) / 100.0;
+    this.crit_damage = (0.0 + 0.25 * fighter_crit + object_crit) / 100.0;
+    this.crit_chance = 0.1 + object_crit_chance / 100.0;
     this.dodge = Math.ceil(50.0 + 50.0 * fighter_dodge) + object_dodge;
     this.lifesteal = object_lifesteal;
 

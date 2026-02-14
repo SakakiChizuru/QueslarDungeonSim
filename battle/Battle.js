@@ -78,11 +78,13 @@ export class Battle {
   }
 
   _do_one_round() {
+
+    // get order of attacks, sorted by hit
     const sorted_attack_list = this._sort_by_hit();
+
     let current_attack = 0;
     for (const row of sorted_attack_list) {
-      const i = row.i,
-        j = row.j;
+      const i = row.i, j = row.j;
       let attacker, target;
       if (row.type === "fighters") {
         attacker = this.fighters.all_fighters[i][j];
@@ -121,6 +123,7 @@ export class Battle {
 
       current_attack += 1;
 
+      // update dead fighters, for crusader
       this.dead_fighters = [];
       for (const [x, y] of [
         [0, 0],
@@ -134,6 +137,7 @@ export class Battle {
         if (f && f.current_health === 0.0) this.dead_fighters.push(f);
       }
 
+      // check for bastion and paladin auras
       if (attacker instanceof Mob) {
         let fighters = this.fighters.all_fighters;
 
@@ -187,6 +191,7 @@ export class Battle {
         }
       }
 
+      // assassin attacks back column first
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.ASSASSIN
@@ -198,6 +203,7 @@ export class Battle {
         }
       }
 
+      // brawler has 15% chance to attack twice
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.BRAWLER
@@ -217,6 +223,7 @@ export class Battle {
         }
       }
 
+      // hunter attacks a whole row dealing 75% damage
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.HUNTER
@@ -235,6 +242,7 @@ export class Battle {
         continue;
       }
 
+      // mage attacks a whole column dealing 50% damage
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.MAGE
@@ -252,6 +260,7 @@ export class Battle {
         continue;
       }
 
+      // berserker attacks with increased damage based on health
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.BERSERKER
@@ -277,8 +286,7 @@ export class Battle {
       this._print_debug(i, j, row.type, current_attack, [target]);
     }
 
-    // Do the Priest resurrection at the end of the round if still _check_battle_is_over
-
+    // priest may resurrect a dead fighter with 25% max health at the end of the round
     this.dead_fighters = [];
     for (const [x, y] of [
       [0, 0],
@@ -291,7 +299,7 @@ export class Battle {
       const f = this.fighters.all_fighters[x][y];
       if (f && f.current_health === 0.0) this.dead_fighters.push(f);
     }
-
+    
     const f = this.fighters.all_fighters;
     const priest = [];
     for (let x = 0; x < 3; x++) {
@@ -339,8 +347,6 @@ export class Battle {
     }
 
     if (this.verbose >= 1) {
-      //console.log("Final Round Situation");
-      //this._draw_table_head("Final Round Situation");
       this._draw_table_head(this.I18N.getBattleMsg("FINAL_ROUND"));
       this._draw_health_table(null, null, null);
       console.log("<br/><br/>");
@@ -423,13 +429,6 @@ export class Battle {
       formattedString(i, j, att_type, x, 1, "fighters"),
     ]);
 
-    /*
-    const headers = [
-      "Mobs Back",
-      "Mobs Front",
-      "Fighters Front",
-      "Fighters Back",
-    ]; */
     const headers = this.I18N.getBattleMsg("headers");
 
     // Calculate column widths
@@ -475,6 +474,8 @@ export class Battle {
   }
 
   _do_standard_attack(attacker, target, damage_mult = 1.0) {
+
+    // define attacker and target names
     let attacker_name, target_name;
     // Add safety check for null/undefined targets
     if (!target) {
@@ -497,11 +498,9 @@ export class Battle {
         attacker.level,
         attacker.mob_class,
       );
-    //attacker_name = `level ${attacker.level} ${attacker.mob_class}`;
     else if (attacker instanceof Fighter)
       attacker_name = this.I18N.getFighterName(attacker.fighter_class);
     else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_ATKR"));
-    //else throw new Error("Invalid attacker");
 
     if (target instanceof Mob)
       target_name = formatString(
@@ -509,20 +508,20 @@ export class Battle {
         target.level,
         target.mob_class,
       );
-    //target_name = `level ${target.level} ${target.mob_class}`;
     else if (target instanceof Fighter)
       target_name = this.I18N.getFighterName(target.fighter_class);
     else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_TGT"));
-    //else throw new Error("Invalid target");
 
     let target_defense = 1 - target.defense;
     let target_defense_pre = target.defense_pre;
     let target_dodge = target.dodge;
     let attacker_hit = attacker.hit;
     let attacker_damage = attacker.damage;
-    let attacker_crit = attacker.crit;
+    let attacker_crit_damage = attacker.crit_damage;
+    let attacker_crit_chance = attacker.crit_chance;
     let additional_dr = 0.0;
 
+    // Crusader defense bonus
     if (
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.CRUSADER
@@ -533,15 +532,18 @@ export class Battle {
       target_dodge = (1 + 0.2 * this.dead_fighters.length) * target_dodge;
     }
 
+    // Crusader attack bonus
     if (
       attacker instanceof Fighter &&
       attacker.fighter_class === FighterClasses.CRUSADER
     ) {
       attacker_hit = (1 + 0.2 * this.dead_fighters.length) * attacker_hit;
       attacker_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_damage;
-      attacker_crit = (1 + 0.2 * this.dead_fighters.length) * attacker_crit;
+      attacker_crit_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_crit_damage;
+      //attacker_crit_chance = (1 + 0.2 * this.dead_fighters.length) * attacker_crit_chance;
     }
 
+    // Shadow dancer evasion roll
     if (
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.SHADOW_DANCER
@@ -558,6 +560,7 @@ export class Battle {
       }
     }
 
+    // Bastion aura
     if (target instanceof Fighter && this.bastion_aura) {
       if (this.verbose >= 1)
         this._draw_table_head(this.I18N.getBattleMsg("SP_BS_DMG_DODGE"), true);
@@ -566,6 +569,7 @@ export class Battle {
       this.bastion_aura = false;
     }
 
+    // Hit chance
     const attacker_chance = Math.min(
       0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75,
       0.95,
@@ -593,14 +597,13 @@ export class Battle {
           ),
           true,
         );
-      /*         console.log(
-          `Successful attack rng: ${rng_attack.toFixed(3)} < ${attacker_chance.toFixed(3)}`,
-        ); */
     }
 
+    // hit roll
     if (rng_attack < attacker_chance) {
       attacker.hit_counter += 1;
 
+      // Shadow dancer double damage
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.SHADOW_DANCER &&
@@ -611,37 +614,37 @@ export class Battle {
             this.I18N.getBattleMsg("SP_SD_APL_DOUBLEDMG"),
             true,
           );
-        //console.log("Shadow Dancer applies double damage");
         attacker_damage = attacker_damage * 2;
         this.shadow_dancer_double_damage = false;
       }
 
+      // Paladin aura -> damage reduction
       if (target instanceof Fighter && this.paladin_aura) {
         if (this.verbose >= 1)
           this._draw_table_head(
             this.I18N.getBattleMsg("SP_PL_DMG_REDUCTION"),
             true,
           );
-        //console.log("Paladin aura adds 15% damage reduction");
         additional_dr = additional_dr + 0.15;
         this.paladin_aura = false;
       }
 
-      let dmg_amount =
-        target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
+      // damage amount
+      let dmg_amount = target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
       let damage_info_key = "DAMAGE_INFO";
+      
+      // crit roll
       const rng_crit = Math.random();
       if (this.verbose >= 2)
         this._draw_table_head(
           formatString(
             this.I18N.getBattleMsg("CRT_RNG_INFO"),
-            rng_attack.toFixed(3),
+            rng_crit.toFixed(3),
           ),
           true,
         );
-      //console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
-      if (rng_crit < 0.1) {
-        dmg_amount = dmg_amount * (1 + attacker_crit);
+      if (rng_crit < attacker_crit_chance) {
+        dmg_amount = dmg_amount * (1 + attacker_crit_damage);
         damage_info_key = "DAMAGE_INFO_CRIT";
       }
       const dmg_final = Math.floor(dmg_amount);
@@ -660,6 +663,7 @@ export class Battle {
 
       target.current_health = Math.max(0.0, target.current_health - dmg_applied);
 
+      // lifesteal
       if (attacker instanceof Fighter && (attacker.lifesteal > 0)) {
         let lifesteal_amount = Math.floor(dmg_real * attacker.lifesteal / 100);
         attacker.current_health = Math.min(attacker.current_health + lifesteal_amount, attacker.total_health);

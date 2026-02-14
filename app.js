@@ -46,15 +46,15 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 // --- CONSTANTS & GLOBAL HELPERS ---
 const FIGHTER_STAT_FIELDS = [
     "fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge",
-    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge", "object_lifesteal",
+    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge", "object_lifesteal", "object_crit_chance",
 ];
 const STAT_SERIALIZATION_MAP = {
     fighter_health: "fh", fighter_damage: "fd", fighter_hit: "fi", fighter_defense: "fdef", fighter_crit: "fcr", fighter_dodge: "fdo",
-    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo", object_lifesteal: "ols",
+    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo", object_lifesteal: "ols", object_crit_chance: "occ",
 };
 const STAT_DESERIALIZATION_MAP = Object.fromEntries(Object.entries(STAT_SERIALIZATION_MAP).map(([k, v]) => [v, k]));
 
-const ALL_STAT_TYPES = ["health", "damage", "hit", "defense", "critDamage", "dodge", "lifesteal"];
+const ALL_STAT_TYPES = ["health", "damage", "hit", "defense", "critDamage", "dodge", "lifesteal", "critChance"];
 
 //Create i18n Manager
 const I18N = new I18nManager();
@@ -400,6 +400,7 @@ class DungeonSim {
             object_crit: 0,
             object_dodge: 0,
             object_lifesteal: 0,
+            object_crit_chance: 0,
         };
         if (!item || !item.stats) return bonuses;
 
@@ -421,6 +422,13 @@ class DungeonSim {
             }
             else if (statType.includes("dodge")) bonuses.object_dodge += value;
             else if (statType.includes("lifesteal")) bonuses.object_lifesteal += value;
+            else if (
+                statType === "critchance" ||
+                statType === "crit_chance" ||
+                statType === "critical_chance"
+            ) {
+                bonuses.object_crit_chance += value;
+            }
         });
         return bonuses;
     }
@@ -770,7 +778,7 @@ class DungeonSim {
             if (tier > 0) {
                 const calculatedValue = calculateTierLevel(statType, level, tier);
                 stats[statType] = calculatedValue;
-                if (statType === "critDamage" || statType === "lifesteal") {
+                if (statType === "critDamage" || statType === "lifesteal" || statType === "critChance") {
                     const displayValue = calculatedValue * 100; // Multiply by 100 for display
                     displayText += `${I18N.getTranslation("stat_" + statType.toLowerCase())}: ${displayValue.toFixed(2)}% (T${tier})\n`;
                 } else {
@@ -811,11 +819,11 @@ class DungeonSim {
             const input = document.createElement("input");
             input.type = "number";
             input.dataset.statType = statType;
-            input.value = (statType === "critDamage" || statType === "lifesteal") ? value.toFixed(2) : Math.round(value);
+            input.value = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance") ? value.toFixed(2) : Math.round(value);
             statRow.appendChild(input);
 
             const percentSign = document.createElement("span");
-            percentSign.textContent = (statType === "critDamage" || statType === "lifesteal") ? "%" : "";
+            percentSign.textContent = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance") ? "%" : "";
             statRow.appendChild(percentSign);
 
             itemStatsOriginalFreeValuesContainer.appendChild(statRow);
@@ -1038,11 +1046,11 @@ class DungeonSim {
                 const input = document.createElement("input");
                 input.type = "number";
                 input.dataset.statType = statType;
-                input.value = (statType === "critDamage" || statType === "lifesteal") ? value.toFixed(2) : value;
+                input.value = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance") ? value.toFixed(2) : value;
                 statRow.appendChild(input);
 
                 const percentSign = document.createElement("span");
-                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal") ? "%" : "";
+                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance") ? "%" : "";
                 statRow.appendChild(percentSign);
 
                 itemStatsFreeValuesContainerTab.appendChild(statRow);
@@ -1113,8 +1121,8 @@ class DungeonSim {
                     const tier = parseInt(input.value) || 0;
                     if (tier > 0) {
                         let valueToSave = calculatedStats[statType];
-                        if (statType === 'critDamage' || statType === 'lifesteal') {
-                            valueToSave *= 100; // Multiply by 100 for critDamage and lifesteal
+                        if (statType === 'critDamage' || statType === 'lifesteal' || statType === 'critChance') {
+                            valueToSave *= 100; // Multiply by 100 for critDamage, lifesteal and critChance
                         }
                         itemToSave.stats.push({ type: statType, value: valueToSave, tier: tier });
                         itemToSave.tiers[statType] = tier; // Save the tier value
@@ -1183,11 +1191,11 @@ class DungeonSim {
                 const input = document.createElement("input");
                 input.type = "number";
                 input.dataset.statType = statType;
-                input.value = (statType === "critDamage" || statType === "lifesteal") ? value.toFixed(2) : value;
+                input.value = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance") ? value.toFixed(2) : value;
                 statRow.appendChild(input);
 
                 const percentSign = document.createElement("span");
-                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal") ? "%" : "";
+                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance") ? "%" : "";
                 statRow.appendChild(percentSign);
 
                 itemStatsFreeValuesContainerTab.appendChild(statRow);
@@ -1621,7 +1629,7 @@ function calculateStatValue(stat) {
     if (tier > 12) console.warn(formatString(I18N.getConsoleMsg("WARN_EQUIP_TIER_EXCEEDS_MAX"), tier));
 
     const baseValue = Math.max(0, parseFloat(stat.value) || 0);
-    return stat.type.toLowerCase().includes("critdamage", "lifesteal") ? baseValue * multiplier * 100 : Math.round(baseValue * multiplier);
+    return stat.type.toLowerCase().includes("critdamage", "lifesteal", "critchance") ? baseValue * multiplier * 100 : Math.round(baseValue * multiplier);
 }
 
 function createFighterFromApiData(apiData) {
@@ -1635,7 +1643,7 @@ function createFighterFromApiData(apiData) {
         const equipment = apiData.equipment || {};
         const equipmentStats = Array.isArray(equipment.stats) ? equipment.stats : [];
 
-        const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0 };
+        const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0, critChance: 0 };
         equipmentStats.forEach((stat) => {
             const value = calculateStatValue(stat);
             const type = stat.type.toLowerCase();
@@ -1654,6 +1662,8 @@ function createFighterFromApiData(apiData) {
                 equipmentBonuses.dodge += value;
             } else if (type.includes("lifesteal")) {
                 equipmentBonuses.lifesteal += value;
+            } else if (type.includes("critchance") || type.includes("crit_chance") || type.includes("critical_chance")) {
+                equipmentBonuses.critChance += value;
             }
         });
 
@@ -1672,6 +1682,7 @@ function createFighterFromApiData(apiData) {
             object_crit: Math.max(0, equipmentBonuses.critDamage),
             object_dodge: Math.max(0, equipmentBonuses.dodge),
             object_lifesteal: Math.max(0, equipmentBonuses.lifesteal),
+            object_crit_chance: Math.max(0, equipmentBonuses.critChance),
             equippedItemId: equipment ? equipment._id : null,
         };
 

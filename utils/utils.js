@@ -117,4 +117,5 @@ export function calculateTierLevel(stat, level, tier) {
   if (stat === 'hit') return (15 + Math.sqrt(level) * level / 1.5 * 15) * 50 * tierMultipliers[tier];
   if (stat === 'dodge') return (15 + Math.sqrt(level) * level / 1.5 * 15) * 50 * tierMultipliers[tier];
   if (stat === 'lifesteal') return (0.005 + level * 0 / 1) * tierMultipliers[tier];
+  if (stat === 'critChance') return (0.005 + level * 0 / 1) * tierMultipliers[tier];
 }
