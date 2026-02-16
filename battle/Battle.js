@@ -521,7 +521,7 @@ export class Battle {
     let attacker_crit_chance = attacker.crit_chance;
     let additional_dr = 0.0;
 
-    // Crusader defense bonus
+    // Crusader defense bonus, including implicits
     if (
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.CRUSADER
@@ -532,7 +532,7 @@ export class Battle {
       target_dodge = (1 + 0.2 * this.dead_fighters.length) * target_dodge;
     }
 
-    // Crusader attack bonus
+    // Crusader attack bonus, including implicits
     if (
       attacker instanceof Fighter &&
       attacker.fighter_class === FighterClasses.CRUSADER

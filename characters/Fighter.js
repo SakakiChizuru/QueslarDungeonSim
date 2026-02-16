@@ -35,6 +35,10 @@ export class Fighter {
       object_dodge = 0,
       object_lifesteal = 0,
       object_crit_chance = 0,
+      object_multistrike = 0,
+      object_thorns = 0,
+      object_regen = 0,
+      object_healing = 0,
       isDuplicate = false,
       base = null,
       equippedItemId = null
@@ -61,6 +65,10 @@ export class Fighter {
     this.crit_chance = 0.1 + object_crit_chance / 100.0;
     this.dodge = Math.ceil(50.0 + 50.0 * fighter_dodge) + object_dodge;
     this.lifesteal = object_lifesteal;
+    this.multistrike = object_multistrike;
+    this.thorns = object_thorns;
+    this.regen = object_regen;
+    this.healing = object_healing;
 
     this.hit_counter = 0;
 

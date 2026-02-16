@@ -118,4 +118,8 @@ export function calculateTierLevel(stat, level, tier) {
   if (stat === 'dodge') return (15 + Math.sqrt(level) * level / 1.5 * 15) * 50 * tierMultipliers[tier];
   if (stat === 'lifesteal') return (0.005 + level * 0 / 1) * tierMultipliers[tier];
   if (stat === 'critChance') return (0.005 + level * 0 / 1) * tierMultipliers[tier];
+  if (stat === 'multistrike') return (10 + level * 0 / 1) * tierMultipliers[tier];
+  if (stat === 'thorns') return (10 + level * 0 / 1) * tierMultipliers[tier];
+  if (stat === 'regen') return (10 + level * 0 / 1) * tierMultipliers[tier];
+  if (stat === 'healing') return (10 + level * 0 / 1) * tierMultipliers[tier];
 }

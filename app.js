@@ -46,15 +46,17 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 // --- CONSTANTS & GLOBAL HELPERS ---
 const FIGHTER_STAT_FIELDS = [
     "fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge",
-    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge", "object_lifesteal", "object_crit_chance",
+    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge", 
+    "object_lifesteal", "object_crit_chance", "multistrike", "thorns", "regen", "healing"
 ];
 const STAT_SERIALIZATION_MAP = {
     fighter_health: "fh", fighter_damage: "fd", fighter_hit: "fi", fighter_defense: "fdef", fighter_crit: "fcr", fighter_dodge: "fdo",
-    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo", object_lifesteal: "ols", object_crit_chance: "occ",
+    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo", 
+    object_lifesteal: "ols", object_crit_chance: "occ", multistrike: "ms", thorns: "th", regen: "rg", healing: "heal",
 };
 const STAT_DESERIALIZATION_MAP = Object.fromEntries(Object.entries(STAT_SERIALIZATION_MAP).map(([k, v]) => [v, k]));
 
-const ALL_STAT_TYPES = ["health", "damage", "hit", "defense", "critDamage", "dodge", "lifesteal", "critChance"];
+const ALL_STAT_TYPES = ["health", "damage", "hit", "defense", "critDamage", "dodge", "lifesteal", "critChance", "multistrike", "thorns", "regen", "healing"];
 
 //Create i18n Manager
 const I18N = new I18nManager();
@@ -401,6 +403,10 @@ class DungeonSim {
             object_dodge: 0,
             object_lifesteal: 0,
             object_crit_chance: 0,
+            object_multistrike: 0,
+            object_thorns: 0,
+            object_regen: 0,
+            object_healing: 0,
         };
         if (!item || !item.stats) return bonuses;
 
@@ -429,6 +435,10 @@ class DungeonSim {
             ) {
                 bonuses.object_crit_chance += value;
             }
+            else if (statType.includes("multistrike")) bonuses.multistrike += value;
+            else if (statType.includes("thorns")) bonuses.thorns += value;
+            else if (statType.includes("regen")) bonuses.regen += value;
+            else if (statType.includes("healing")) bonuses.healing += value;
         });
         return bonuses;
     }
@@ -1643,7 +1653,7 @@ function createFighterFromApiData(apiData) {
         const equipment = apiData.equipment || {};
         const equipmentStats = Array.isArray(equipment.stats) ? equipment.stats : [];
 
-        const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0, critChance: 0 };
+        const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0, critChance: 0, multistrike: 0, thorns: 0, regen: 0, healing: 0};
         equipmentStats.forEach((stat) => {
             const value = calculateStatValue(stat);
             const type = stat.type.toLowerCase();
@@ -1664,6 +1674,14 @@ function createFighterFromApiData(apiData) {
                 equipmentBonuses.lifesteal += value;
             } else if (type.includes("critchance") || type.includes("crit_chance") || type.includes("critical_chance")) {
                 equipmentBonuses.critChance += value;
+            } else if (type.includes("multistrike")) {
+                equipmentBonuses.multistrike += value;
+            } else if (type.includes("thorns")) {
+                equipmentBonuses.thorns += value;
+            } else if (type.includes("regen")) {
+                equipmentBonuses.regen += value;
+            } else if (type.includes("healing")) {
+                equipmentBonuses.healing += value;
             }
         });
 
@@ -1683,6 +1701,10 @@ function createFighterFromApiData(apiData) {
             object_dodge: Math.max(0, equipmentBonuses.dodge),
             object_lifesteal: Math.max(0, equipmentBonuses.lifesteal),
             object_crit_chance: Math.max(0, equipmentBonuses.critChance),
+            object_multistrike: Math.max(0, equipmentBonuses.multistrike),
+            object_thorns: Math.max(0, equipmentBonuses.thorns),
+            object_regen: Math.max(0, equipmentBonuses.regen),
+            object_healing: Math.max(0, equipmentBonuses.healing),
             equippedItemId: equipment ? equipment._id : null,
         };
 
