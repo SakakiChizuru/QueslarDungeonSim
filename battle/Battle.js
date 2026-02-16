@@ -518,8 +518,28 @@ export class Battle {
     let attacker_hit = attacker.hit;
     let attacker_damage = attacker.damage;
     let attacker_crit_damage = attacker.crit_damage;
-    let attacker_crit_chance = attacker.crit_chance;
     let additional_dr = 0.0;
+
+    // Implicits
+
+    let lifesteal = 0;
+    let attacker_crit_chance = 0;
+    let multistrike = 0;
+    let thorns = 0;
+    let regen = 0;
+    let healing = 0;
+
+    if (attacker instanceof Fighter) {
+      lifesteal = attacker.lifesteal;
+      attacker_crit_chance = attacker.crit_chance;
+      multistrike = attacker.multistrike;
+      regen = attacker.regen;
+      healing = attacker.healing;
+    }
+
+    if (target instanceof Fighter) {
+      thorns = target.thorns;
+    }
 
     // Crusader defense bonus, including implicits
     if (
@@ -540,7 +560,12 @@ export class Battle {
       attacker_hit = (1 + 0.2 * this.dead_fighters.length) * attacker_hit;
       attacker_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_damage;
       attacker_crit_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_crit_damage;
-      //attacker_crit_chance = (1 + 0.2 * this.dead_fighters.length) * attacker_crit_chance;
+      attacker_crit_chance = 0.1 + ((1 + 0.2 * this.dead_fighters.length) * (attacker_crit_chance - 0.1));
+      lifesteal = (1 + 0.2 * this.dead_fighters.length) * lifesteal;
+      multistrike = (1 + 0.2 * this.dead_fighters.length) * multistrike;
+      thorns = (1 + 0.2 * this.dead_fighters.length) * thorns;
+      regen = (1 + 0.2 * this.dead_fighters.length) * regen;
+      healing = (1 + 0.2 * this.dead_fighters.length) * healing;
     }
 
     // Shadow dancer evasion roll
@@ -664,10 +689,41 @@ export class Battle {
       target.current_health = Math.max(0.0, target.current_health - dmg_applied);
 
       // lifesteal
-      if (attacker instanceof Fighter && (attacker.lifesteal > 0)) {
-        let lifesteal_amount = Math.floor(dmg_real * attacker.lifesteal / 100);
+      if (attacker instanceof Fighter && (lifesteal > 0)) {
+        let lifesteal_amount = Math.floor(dmg_real * lifesteal / 100);
         attacker.current_health = Math.min(attacker.current_health + lifesteal_amount, attacker.total_health);
         if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("LIFESTEAL"), attacker_name, lifesteal_amount)) };
+      }
+
+      // thorns
+      if (target instanceof Fighter && (thorns > 0)) {
+        attacker.current_health = Math.max(0.0, attacker.current_health - thorns);
+        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("THORNS"), attacker_name, target_name, thorns)) };
+      }
+
+      // regen
+      if (attacker instanceof Fighter && (regen > 0)) {
+        attacker.current_health = Math.min(attacker.current_health + regen, attacker.total_health);
+        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("REGEN"), attacker_name, regen)) };
+      }
+
+      // healing
+      if (target instanceof Fighter && (healing > 0)) {
+        let selectedFighter = null;
+        let smallestHealth = Infinity;
+
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 2; j++) {
+            const f = this.fighters.all_fighters[i][j];
+            if (f && f.current_health > 0.0 && f.current_health < smallestHealth) {
+              smallestHealth = f.current_health;
+              selectedFighter = f;
+            }
+          }
+        }
+
+        selectedFighter.current_health = Math.min(selectedFighter.current_health + healing, selectedFighter.total_health);
+        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), selectedFighter.name, healing)) };
       }
 
     } else {
