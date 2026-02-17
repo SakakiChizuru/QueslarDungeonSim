@@ -34,6 +34,7 @@ export class Battle {
     this.cannot_be_dodged = false;
     this.paladin_aura = false;
     this.bastion_aura = false;
+    this.multistriker_attack = false;
 
     // Imports i18nManager from global;
     this.I18N = window.i18nManager;
@@ -137,6 +138,26 @@ export class Battle {
         if (f && f.current_health === 0.0) this.dead_fighters.push(f);
       }
 
+      // roll for multistrike
+
+      console.log("multistrike", attacker.multistrike);
+
+
+      if (attacker instanceof Fighter && attacker.multistrike > 0) {
+        let multistrike = attacker.multistrike;
+
+        if (attacker.fighter_class === FighterClasses.CRUSADER) {
+          if (this.dead_fighters.length > 0) multistrike = (1 + 0.2 * this.dead_fighters.length) * multistrike;
+        }
+
+        const rng_multistrike = Math.random();
+        if (rng_multistrike < multistrike) {
+          if (this.verbose >= 1)
+            this._draw_table_head(this.I18N.getBattleMsg("MULTISTRIKE"));
+          this.multistriker_attack = true;
+        }
+      }
+
       // check for bastion and paladin auras
       if (attacker instanceof Mob) {
         let fighters = this.fighters.all_fighters;
@@ -234,10 +255,27 @@ export class Battle {
           break;
         } else {
           for (const lcl_target of targets_hunter) {
-            if (lcl_target)
+            if (lcl_target) {
               this._do_standard_attack(attacker, lcl_target, 0.75);
+            }
           }
         }
+
+        if (this.multistriker_attack) {
+          const targets_hunter = this._find_target_for_hunter();
+          if (targets_hunter === null) {
+            this.continue_flag = false;
+            break;
+          } else {
+            for (const lcl_target of targets_hunter) {
+              if (lcl_target) {
+                this._do_standard_attack(attacker, lcl_target, 0.75);
+              }
+            }
+          }
+          this.multistriker_attack = false;
+        }
+
         this._print_debug(i, j, row.type, current_attack, targets_hunter);
         continue;
       }
@@ -253,9 +291,27 @@ export class Battle {
           break;
         } else {
           for (const lcl_target of targets_mage) {
-            if (lcl_target) this._do_standard_attack(attacker, lcl_target, 0.5);
+            if (lcl_target) {
+              this._do_standard_attack(attacker, lcl_target, 0.5);
+            }
           }
         }
+
+        if (this.multistriker_attack) {
+          const targets_mage = this._find_target_for_mage();
+          if (targets_mage === null) {
+            this.continue_flag = false;
+            break;
+          } else {
+            for (const lcl_target of targets_mage) {
+              if (lcl_target) {
+                this._do_standard_attack(attacker, lcl_target, 0.5);
+              }
+            }
+          }
+          this.multistriker_attack = false;
+        }
+
         this._print_debug(i, j, row.type, current_attack, targets_mage);
         continue;
       }
@@ -278,11 +334,19 @@ export class Battle {
           damage_mult = 1.75;
         }
         this._do_standard_attack(attacker, target, damage_mult);
+        if (this.multistriker_attack) {
+          this._do_standard_attack(attacker, target, damage_mult);
+          this.multistriker_attack = false;
+        }
         this._print_debug(i, j, row.type, current_attack, [target]);
         continue;
       }
 
       this._do_standard_attack(attacker, target);
+      if (this.multistriker_attack) {
+        this._do_standard_attack(attacker, target);
+        this.multistriker_attack = false;
+      }
       this._print_debug(i, j, row.type, current_attack, [target]);
     }
 
@@ -603,25 +667,12 @@ export class Battle {
     if (this.cannot_be_dodged) {
       rng_attack = -1.0;
       if (this.verbose >= 1)
-        this._draw_table_head(
-          formatString(
-            this.I18N.getBattleMsg("ATK_CANNOT_DODGE"),
-            attacker_name,
-          ),
-          true,
-        );
+        this._draw_table_head(formatString(this.I18N.getBattleMsg("ATK_CANNOT_DODGE"), attacker_name), true);
       this.cannot_be_dodged = false;
     } else {
       rng_attack = Math.random();
       if (this.verbose >= 2)
-        this._draw_table_head(
-          formatString(
-            this.I18N.getBattleMsg("ATK_RNG_SUCC"),
-            rng_attack.toFixed(3),
-            attacker_chance.toFixed(3),
-          ),
-          true,
-        );
+        this._draw_table_head(formatString(this.I18N.getBattleMsg("ATK_RNG_SUCC"), rng_attack.toFixed(3), attacker_chance.toFixed(3)), true);
     }
 
     // hit roll
