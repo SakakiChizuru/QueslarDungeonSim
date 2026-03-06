@@ -139,10 +139,6 @@ export class Battle {
       }
 
       // roll for multistrike
-
-      console.log("multistrike", attacker.multistrike);
-
-
       if (attacker instanceof Fighter && attacker.multistrike > 0) {
         let multistrike = attacker.multistrike;
 
@@ -363,7 +359,7 @@ export class Battle {
       const f = this.fighters.all_fighters[x][y];
       if (f && f.current_health === 0.0) this.dead_fighters.push(f);
     }
-    
+
     const f = this.fighters.all_fighters;
     const priest = [];
     for (let x = 0; x < 3; x++) {
@@ -708,7 +704,7 @@ export class Battle {
       // damage amount
       let dmg_amount = target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
       let damage_info_key = "DAMAGE_INFO";
-      
+
       // crit roll
       const rng_crit = Math.random();
       if (this.verbose >= 2)

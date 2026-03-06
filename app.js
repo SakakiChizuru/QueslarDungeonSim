@@ -46,12 +46,12 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 // --- CONSTANTS & GLOBAL HELPERS ---
 const FIGHTER_STAT_FIELDS = [
     "fighter_health", "fighter_damage", "fighter_hit", "fighter_defense", "fighter_crit", "fighter_dodge",
-    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge", 
+    "object_health", "object_damage", "object_hit", "object_defense", "object_crit", "object_dodge",
     "object_lifesteal", "object_crit_chance", "object_multistrike", "object_thorns", "object_regen", "object_healing"
 ];
 const STAT_SERIALIZATION_MAP = {
     fighter_health: "fh", fighter_damage: "fd", fighter_hit: "fi", fighter_defense: "fdef", fighter_crit: "fcr", fighter_dodge: "fdo",
-    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo", 
+    object_health: "oh", object_damage: "od", object_hit: "oi", object_defense: "odef", object_crit: "ocr", object_dodge: "odo",
     object_lifesteal: "ols", object_crit_chance: "occ", object_multistrike: "oms", object_thorns: "oth", object_regen: "org", object_healing: "oheal",
 };
 const STAT_DESERIALIZATION_MAP = Object.fromEntries(Object.entries(STAT_SERIALIZATION_MAP).map(([k, v]) => [v, k]));
@@ -1653,7 +1653,7 @@ function createFighterFromApiData(apiData) {
         const equipment = apiData.equipment || {};
         const equipmentStats = Array.isArray(equipment.stats) ? equipment.stats : [];
 
-        const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0, critChance: 0, multistrike: 0, thorns: 0, regen: 0, healing: 0};
+        const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0, critChance: 0, multistrike: 0, thorns: 0, regen: 0, healing: 0 };
         equipmentStats.forEach((stat) => {
             const value = calculateStatValue(stat);
             const type = stat.type.toLowerCase();
@@ -1838,4 +1838,40 @@ async function loadChangelog() {
     }
 }
 
-initializeApp();
+// Ensure the browser has fully populated DOM and restored states before our JS kicks in.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initializeApp, 50));
+} else {
+    setTimeout(initializeApp, 50);
+}
+
+// --- APRIL FOOLS PRANK ---
+const checkAprilFools = () => {
+    const now = new Date();
+    // Check if it's April 1st in UTC
+    if (now.getUTCMonth() === 3 && now.getUTCDate() === 1) {
+    // if (true) {
+        document.getElementById('prankText1').innerHTML = `Hello,<br><br>
+        I need just a moment of your attention.<br><br>
+        Please understand that maintaining this Simulator requires a significant amount of effort:<br>
+        I have to read the patch notes, update the logic, fix bugs, and pester Blah to give me all the missing details he was too lazy to provide.<br><br>
+        After reviewing recent activity, your username has been flagged for <b>heavy usage</b> and consequently your access has been <b>suspended</b> until you pay a small fee.<br><br>
+        To restore full access, please send <b>100 credits to anfneub</b>.<br>
+        Thank you for supporting essential infrastructure.`;
+
+        document.getElementById('prankBackdrop').style.display = 'flex';
+        document.getElementById('prankModal1').style.display = 'block';
+        document.getElementById('prankModal2').style.display = 'none';
+
+        document.getElementById('prankBtn1').addEventListener('click', () => {
+            document.getElementById('prankModal1').style.display = 'none';
+            document.getElementById('prankModal2').style.display = 'block';
+        });
+
+        document.getElementById('prankBtn2').addEventListener('click', () => {
+            document.getElementById('prankBackdrop').style.display = 'none';
+        });
+    }
+};
+
+checkAprilFools();
