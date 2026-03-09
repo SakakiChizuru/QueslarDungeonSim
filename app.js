@@ -788,7 +788,7 @@ class DungeonSim {
             if (tier > 0) {
                 const calculatedValue = calculateTierLevel(statType, level, tier);
                 stats[statType] = calculatedValue;
-                if (statType === "critDamage" || statType === "lifesteal" || statType === "critChance" || statType === "multistrike") {
+                if (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) {
                     const displayValue = calculatedValue * 100; // Multiply by 100 for display
                     displayText += `${I18N.getTranslation("stat_" + statType.toLowerCase())}: ${displayValue.toFixed(2)}% (T${tier})\n`;
                 } else {
@@ -829,11 +829,11 @@ class DungeonSim {
             const input = document.createElement("input");
             input.type = "number";
             input.dataset.statType = statType;
-            input.value = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance" || statType === "multistrike") ? value.toFixed(2) : Math.round(value);
+            input.value = (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) ? value.toFixed(2) : Math.round(value);
             statRow.appendChild(input);
 
             const percentSign = document.createElement("span");
-            percentSign.textContent = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance" || statType === "multistrike") ? "%" : "";
+            percentSign.textContent = (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) ? "%" : "";
             statRow.appendChild(percentSign);
 
             itemStatsOriginalFreeValuesContainer.appendChild(statRow);
@@ -892,12 +892,12 @@ class DungeonSim {
             const el = document.getElementById(id);
             if (!el) continue;
             let value = (fighter && fighter.__raw && typeof fighter.__raw[id] === "number") ? fighter.__raw[id] : 0;
-            if (id === "object_crit") {
+            if (["object_crit", "object_crit_chance", "object_multistrike", "object_thorns", "object_regen", "object_lifesteal"].includes(id)) {
                 el.value = value.toFixed(2);
                 const labelEl = document.querySelector(`label[for="${id}"]`);
                 if (labelEl) {
                     if (!labelEl.dataset.originalText) labelEl.dataset.originalText = labelEl.textContent;
-                    labelEl.textContent = `${labelEl.dataset.originalText} (%)`;
+                    labelEl.textContent = `${labelEl.dataset.originalText} (-%)`;
                 }
             } else {
                 el.value = Math.round(value);
@@ -950,7 +950,7 @@ class DungeonSim {
             const input = document.getElementById(field);
             if (input) {
                 let value = Math.max(0, parseFloat(input.value) || 0);
-                data[field] = field === "object_crit" ? Math.round(value * 100) / 100 : Math.round(value);
+                data[field] = (["object_crit", "object_crit_chance", "object_multistrike", "object_thorns", "object_regen", "object_lifesteal"].includes(field)) ? Math.round(value * 100) / 100 : Math.round(value);
             }
         });
 
@@ -1056,11 +1056,11 @@ class DungeonSim {
                 const input = document.createElement("input");
                 input.type = "number";
                 input.dataset.statType = statType;
-                input.value = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance" || statType === "multistrike") ? value.toFixed(2) : value;
+                input.value = (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) ? value.toFixed(2) : value;
                 statRow.appendChild(input);
 
                 const percentSign = document.createElement("span");
-                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance" || statType === "multistrike") ? "%" : "";
+                percentSign.textContent = (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) ? "%" : "";
                 statRow.appendChild(percentSign);
 
                 itemStatsFreeValuesContainerTab.appendChild(statRow);
@@ -1131,7 +1131,7 @@ class DungeonSim {
                     const tier = parseInt(input.value) || 0;
                     if (tier > 0) {
                         let valueToSave = calculatedStats[statType];
-                        if (statType === 'critDamage' || statType === 'lifesteal' || statType === 'critChance' || statType === 'multistrike') {
+                        if (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) {
                             valueToSave *= 100; // Multiply by 100 for percentages
                         }
                         itemToSave.stats.push({ type: statType, value: valueToSave, tier: tier });
@@ -1201,11 +1201,11 @@ class DungeonSim {
                 const input = document.createElement("input");
                 input.type = "number";
                 input.dataset.statType = statType;
-                input.value = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance" || statType === "multistrike") ? value.toFixed(2) : value;
+                input.value = (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) ? value.toFixed(2) : value;
                 statRow.appendChild(input);
 
                 const percentSign = document.createElement("span");
-                percentSign.textContent = (statType === "critDamage" || statType === "lifesteal" || statType === "critChance" || statType === "multistrike") ? "%" : "";
+                percentSign.textContent = (["critDamage", "lifesteal", "critChance", "multistrike", "thorns", "regen"].includes(statType)) ? "%" : "";
                 statRow.appendChild(percentSign);
 
                 itemStatsFreeValuesContainerTab.appendChild(statRow);
@@ -1376,7 +1376,7 @@ class DungeonSim {
             this.importBtn.textContent = I18N.getUIElement("IMPORTING");
 
             const response = await fetch(
-                "https://http.v2.queslar.com/api/character/fighter/presets",
+                "https://http.test.v2.queslar.com/api/character/fighter/presets",
                 { headers: { "QUESLAR-API-KEY": apiKey } },
             );
 
@@ -1639,7 +1639,8 @@ function calculateStatValue(stat) {
     if (tier > 12) console.warn(formatString(I18N.getConsoleMsg("WARN_EQUIP_TIER_EXCEEDS_MAX"), tier));
 
     const baseValue = Math.max(0, parseFloat(stat.value) || 0);
-    return stat.type.toLowerCase().includes("critdamage", "lifesteal", "critchance", "multistrike") ? baseValue * multiplier * 100 : Math.round(baseValue * multiplier);
+
+    return ["critdamage", "lifesteal", "critchance", "multistrike", "thorns", "regen"].includes(stat.type.toLowerCase()) ? baseValue * multiplier * 100 : Math.round(baseValue * multiplier);
 }
 
 function createFighterFromApiData(apiData) {
@@ -1655,6 +1656,9 @@ function createFighterFromApiData(apiData) {
 
         const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0, critChance: 0, multistrike: 0, thorns: 0, regen: 0, healing: 0 };
         equipmentStats.forEach((stat) => {
+            console.log(stat.type);
+            if (stat.type === "fighterLifesteal") { stat.type = "lifesteal"; }
+
             const value = calculateStatValue(stat);
             const type = stat.type.toLowerCase();
 
@@ -1850,7 +1854,7 @@ const checkAprilFools = () => {
     const now = new Date();
     // Check if it's April 1st in UTC
     if (now.getUTCMonth() === 3 && now.getUTCDate() === 1) {
-    // if (true) {
+        // if (true) {
         document.getElementById('prankText1').innerHTML = `Hello,<br><br>
         I need just a moment of your attention.<br><br>
         Please understand that maintaining this Simulator requires a significant amount of effort:<br>
