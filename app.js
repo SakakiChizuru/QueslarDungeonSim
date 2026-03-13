@@ -440,6 +440,7 @@ class DungeonSim {
             else if (statType.includes("regen")) bonuses.object_regen += value;
             else if (statType.includes("healing")) bonuses.object_healing += value;
         });
+        console.log(bonuses.object_crit_chance)
         return bonuses;
     }
 
@@ -1656,8 +1657,12 @@ function createFighterFromApiData(apiData) {
 
         const equipmentBonuses = { health: 0, damage: 0, hit: 0, defense: 0, critDamage: 0, dodge: 0, lifesteal: 0, critChance: 0, multistrike: 0, thorns: 0, regen: 0, healing: 0 };
         equipmentStats.forEach((stat) => {
-            console.log(stat.type);
             if (stat.type === "fighterLifesteal") { stat.type = "lifesteal"; }
+            if (stat.type === "fighterRegen") { stat.type = "regen"; }
+            if (stat.type === "fighterHealing") { stat.type = "healing"; }
+            if (stat.type === "fighterMultistrike") { stat.type = "multistrike"; }
+            if (stat.type === "fighterThorns") { stat.type = "thorns"; }
+            if (stat.type === "fighterCritChance") { stat.type = "critChance"; }
 
             const value = calculateStatValue(stat);
             const type = stat.type.toLowerCase();
@@ -1672,7 +1677,7 @@ function createFighterFromApiData(apiData) {
                 equipmentBonuses.hit += value;
             } else if (type.includes("defense") || type.includes("defence")) {
                 equipmentBonuses.defense += value;
-            } else if (type.includes("dodge") || type.includes("evasion")) {
+            } else if (type.includes("dodge")) {
                 equipmentBonuses.dodge += value;
             } else if (type.includes("lifesteal")) {
                 equipmentBonuses.lifesteal += value;
