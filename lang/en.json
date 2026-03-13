@@ -204,7 +204,7 @@
     "DAMAGE_INFO_CRIT": "{0} hits {1} and deals {2} damage. (Critical Hit!)",
     "ATK_MISS": "{0} misses attacking {1}",
     "LIFESTEAL": "{0} stole {1} HP",
-    "THORNS": "{1} thorns deals {2} damage to {0}",
+    "THORNS": "{1} thorns deals {2} damage back to {0}",
     "HEALING": "{0} healed {1} HP",
     "REGEN": "{0} regenerated {1} HP",
     "MULTISTRIKE": "Multistrike successful, attacking twice",

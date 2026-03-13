@@ -346,6 +346,41 @@ export class Battle {
       this._print_debug(i, j, row.type, current_attack, [target]);
     }
 
+    // regen and healing
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 2; j++) {
+        const f = this.fighters.all_fighters[i][j];
+
+        // regen 
+        if (f && f.regen > 0) {
+          let heal_amount = Math.round(f.regen * f.total_health);
+          f.current_health = Math.min(f.current_health + heal_amount, f.total_health);
+          if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("REGEN"), f.fighter_class, heal_amount)) };
+        }
+
+        // healing
+        if (f && f.healing > 0) {
+
+          let selectedFighter = null;
+          let smallestHealthPercent = Infinity;
+
+          for (let x = 0; x < 3; x++) {
+            for (let y = 0; y < 2; y++) {
+              const f = this.fighters.all_fighters[x][y];
+              if (f && (i !== x || j !== y) && f.current_health > 0.0 && f.current_health / f.total_health < smallestHealthPercent) {
+                smallestHealthPercent = f.current_health / f.total_health;
+                selectedFighter = f;
+              }
+            }
+          }
+          if (selectedFighter) {
+            selectedFighter.current_health = Math.min(selectedFighter.current_health + f.healing, selectedFighter.total_health);
+            if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), selectedFighter.fighter_class, f.healing)) };
+          }
+        }
+      }
+    }
+
     // priest may resurrect a dead fighter with 25% max health at the end of the round
     this.dead_fighters = [];
     for (const [x, y] of [
@@ -744,33 +779,9 @@ export class Battle {
 
       // thorns
       if (target instanceof Fighter && (thorns > 0)) {
-        attacker.current_health = Math.max(0.0, attacker.current_health - thorns);
-        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("THORNS"), attacker_name, target_name, thorns)) };
-      }
-
-      // regen
-      if (attacker instanceof Fighter && (regen > 0)) {
-        attacker.current_health = Math.min(attacker.current_health + regen, attacker.total_health);
-        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("REGEN"), attacker_name, regen)) };
-      }
-
-      // healing
-      if (target instanceof Fighter && (healing > 0)) {
-        let selectedFighter = null;
-        let smallestHealth = Infinity;
-
-        for (let i = 0; i < 3; i++) {
-          for (let j = 0; j < 2; j++) {
-            const f = this.fighters.all_fighters[i][j];
-            if (f && f.current_health > 0.0 && f.current_health < smallestHealth) {
-              smallestHealth = f.current_health;
-              selectedFighter = f;
-            }
-          }
-        }
-
-        selectedFighter.current_health = Math.min(selectedFighter.current_health + healing, selectedFighter.total_health);
-        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), selectedFighter.name, healing)) };
+        let thorns_damage = Math.floor(dmg_real * thorns / 100);
+        attacker.current_health = Math.max(0.0, attacker.current_health - thorns_damage);
+        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("THORNS"), attacker_name, target_name, thorns_damage)) };
       }
 
     } else {
