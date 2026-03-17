@@ -55,7 +55,8 @@ export class Fighter {
 
     this.name = name || this.I18N.getFighterName(fighterClass.replace(" ", "_"));
 
-    this.total_health = Math.ceil(500 + 100 * fighter_health) + object_health;
+    this.original_health = Math.ceil(500 + 100 * fighter_health) + object_health;
+    this.total_health = this.original_health;
     this.current_health = this.total_health;
     this.damage = Math.ceil(100 + 25 * fighter_damage) + object_damage;
     this.hit = Math.ceil(50 + 50 * fighter_hit) + object_hit;

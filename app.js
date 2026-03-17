@@ -1409,7 +1409,7 @@ class DungeonSim {
             const preset = apiData.output.find(p => p.preset?.assignment === presetAssignment);
 
             if (!preset) {
-                return { success: false, message: I18N.getConsoleMsg("INFO_NO_AVIL_PRESET") };
+                return { success: false, message: formatString(I18N.getConsoleMsg("INFO_NO_AVIL_PRESET"), presetAssignment) };
             }
 
             this.gridState.forEach(row => row.fill(null));

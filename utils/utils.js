@@ -120,6 +120,6 @@ export function calculateTierLevel(stat, level, tier) {
   if (stat === 'critChance') return (0.02 + Math.sqrt(level) * level / 250.0 * 0.01) * 1 * tierMultipliers[tier];
   if (stat === 'multistrike') return (0.02 + Math.sqrt(level) * level / 250.0 * 0.01) * 1 * tierMultipliers[tier];
   if (stat === 'thorns') return (0.02 + Math.sqrt(level) * level / 7500.0 * 1) * 1 * tierMultipliers[tier];
-  if (stat === 'regen') return (0.02 + Math.sqrt(level) * level / 25000.0 * 1) * 1 * tierMultipliers[tier];
-  if (stat === 'healing') return (50 + Math.sqrt(level) * level / 3 * 50) * 3.3333333333333335 * tierMultipliers[tier];
+  if (stat === 'regen') return (0.01 + Math.sqrt(level) * level / 30000.0 * 1) * 1 * tierMultipliers[tier];
+  if (stat === 'healing') return (50 + Math.sqrt(level) * level / 3 * 25) * 2 * tierMultipliers[tier];
 }

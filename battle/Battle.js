@@ -40,12 +40,37 @@ export class Battle {
     this.I18N = window.i18nManager;
   }
 
+  update_dead_fighters() {
+    this.dead_fighters = [];
+    for (const [x, y] of [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+    ]) {
+      const f = this.fighters.all_fighters[x][y];
+      if (f && f.current_health === 0.0) this.dead_fighters.push(f);
+    }
+  }
+
+  update_crusader_total_health() {
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 2; j++) {
+        const f = this.fighters.all_fighters[i][j];
+        if (f && f.fighter_class === FighterClasses.CRUSADER) {
+          f.total_health = Math.round(f.original_health * (1 + 0.2 * this.dead_fighters.length));
+        }
+      }
+    }
+  }
+
   battle() {
     while (this.continue_flag) {
       this._do_one_round();
       if (this.current_round > 300) break;
-      const winner = this._check_battle_is_over();
-      if (winner) break;
+      if (this._check_battle_is_over()) break;
     }
 
     const tot_mob_health = this._sumMobsHealth();
@@ -125,22 +150,12 @@ export class Battle {
       current_attack += 1;
 
       // update dead fighters, for crusader
-      this.dead_fighters = [];
-      for (const [x, y] of [
-        [0, 0],
-        [1, 0],
-        [2, 0],
-        [0, 1],
-        [1, 1],
-        [2, 1],
-      ]) {
-        const f = this.fighters.all_fighters[x][y];
-        if (f && f.current_health === 0.0) this.dead_fighters.push(f);
-      }
+      this.update_dead_fighters();
+      this.update_crusader_total_health();
 
       // roll for multistrike
       if (attacker instanceof Fighter && attacker.multistrike > 0) {
-        let multistrike = attacker.multistrike;
+        let multistrike = attacker.multistrike / 100.0;
 
         if (attacker.fighter_class === FighterClasses.CRUSADER) {
           if (this.dead_fighters.length > 0) multistrike = (1 + 0.2 * this.dead_fighters.length) * multistrike;
@@ -153,6 +168,7 @@ export class Battle {
           this.multistriker_attack = true;
         }
       }
+
 
       // check for bastion and paladin auras
       if (attacker instanceof Mob) {
@@ -232,6 +248,16 @@ export class Battle {
           if (this.verbose >= 1)
             this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true);
           this._do_standard_attack(attacker, target);
+          
+          if (attacker.multistrike > 0) {
+            const rng_multistrike_brawler = Math.random();
+            if (rng_multistrike_brawler < multistrike) {
+              if (this.verbose >= 1)
+                this._draw_table_head(this.I18N.getBattleMsg("MULTISTRIKE2"));
+              this._do_standard_attack(attacker, target);
+            }
+          }
+
           target = this._find_target("mobs");
           if (target === null) {
             this.continue_flag = false;
@@ -351,9 +377,12 @@ export class Battle {
       for (let j = 0; j < 2; j++) {
         const f = this.fighters.all_fighters[i][j];
 
-        // regen 
+        // regen
         if (f && f.regen > 0) {
-          let heal_amount = Math.round(f.regen * f.total_health);
+          let heal_amount = Math.round(f.regen * f.total_health / 100.0);
+
+          // TODO: if fighter is crusader, increase regen
+
           f.current_health = Math.min(f.current_health + heal_amount, f.total_health);
           if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("REGEN"), f.fighter_class, heal_amount)) };
         }
@@ -375,25 +404,14 @@ export class Battle {
           }
           if (selectedFighter) {
             selectedFighter.current_health = Math.min(selectedFighter.current_health + f.healing, selectedFighter.total_health);
-            if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), selectedFighter.fighter_class, f.healing)) };
+            if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), f.fighter_class, selectedFighter.fighter_class, f.healing)) };
           }
         }
       }
     }
 
     // priest may resurrect a dead fighter with 25% max health at the end of the round
-    this.dead_fighters = [];
-    for (const [x, y] of [
-      [0, 0],
-      [1, 0],
-      [2, 0],
-      [0, 1],
-      [1, 1],
-      [2, 1],
-    ]) {
-      const f = this.fighters.all_fighters[x][y];
-      if (f && f.current_health === 0.0) this.dead_fighters.push(f);
-    }
+    this.update_dead_fighters();
 
     const f = this.fighters.all_fighters;
     const priest = [];
@@ -418,18 +436,9 @@ export class Battle {
           resurrected_fighter.total_health * 0.25,
         );
         resurrected_fighter.hit_counter = 0;
-        this.dead_fighters = [];
-        for (const [x, y] of [
-          [0, 0],
-          [1, 0],
-          [2, 0],
-          [0, 1],
-          [1, 1],
-          [2, 1],
-        ]) {
-          const f = this.fighters.all_fighters[x][y];
-          if (f && f.current_health === 0.0) this.dead_fighters.push(f);
-        }
+
+        this.update_dead_fighters();
+
         if (this.verbose >= 1)
           this._draw_table_head(
             formatString(
@@ -501,12 +510,8 @@ export class Battle {
       let current, total;
       if (type === "fighters") {
         const f = fighters[x][y];
-        const boost =
-          f.fighter_class === FighterClasses.CRUSADER
-            ? 1 + 0.2 * this.dead_fighters.length
-            : 1;
         current = Math.trunc(f.current_health);
-        total = Math.trunc(f.total_health * boost);
+        total = Math.trunc(f.total_health);
       } else {
         const m = mobs[x][y];
         current = Math.trunc(m.current_health);
@@ -615,21 +620,19 @@ export class Battle {
     let attacker_crit_damage = attacker.crit_damage;
     let additional_dr = 0.0;
 
-    // Implicits
+    // Update dead fighters
+    this.update_dead_fighters();
 
+    // Implicits
     let lifesteal = 0;
     let attacker_crit_chance = 0;
     let multistrike = 0;
     let thorns = 0;
-    let regen = 0;
-    let healing = 0;
 
     if (attacker instanceof Fighter) {
       lifesteal = attacker.lifesteal;
       attacker_crit_chance = attacker.crit_chance;
       multistrike = attacker.multistrike;
-      regen = attacker.regen;
-      healing = attacker.healing;
     }
 
     if (target instanceof Fighter) {
@@ -641,6 +644,7 @@ export class Battle {
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.CRUSADER
     ) {
+      target.total_health = Math.round(target.original_health * (1 + 0.2 * this.dead_fighters.length));
       target_defense_pre =
         (1 + 0.2 * this.dead_fighters.length) * target.defense_pre;
       target_defense = 1 - calculateDefense(target_defense_pre);
@@ -652,6 +656,7 @@ export class Battle {
       attacker instanceof Fighter &&
       attacker.fighter_class === FighterClasses.CRUSADER
     ) {
+      attacker.total_health = Math.round(attacker.original_health * (1 + 0.2 * this.dead_fighters.length));
       attacker_hit = (1 + 0.2 * this.dead_fighters.length) * attacker_hit;
       attacker_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_damage;
       attacker_crit_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_crit_damage;
@@ -659,8 +664,6 @@ export class Battle {
       lifesteal = (1 + 0.2 * this.dead_fighters.length) * lifesteal;
       multistrike = (1 + 0.2 * this.dead_fighters.length) * multistrike;
       thorns = (1 + 0.2 * this.dead_fighters.length) * thorns;
-      regen = (1 + 0.2 * this.dead_fighters.length) * regen;
-      healing = (1 + 0.2 * this.dead_fighters.length) * healing;
     }
 
     // Shadow dancer evasion roll
@@ -779,7 +782,7 @@ export class Battle {
 
       // thorns
       if (target instanceof Fighter && (thorns > 0)) {
-        let thorns_damage = Math.floor(dmg_real * thorns / 100);
+        let thorns_damage = Math.floor(dmg_applied * thorns / 100);
         attacker.current_health = Math.max(0.0, attacker.current_health - thorns_damage);
         if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("THORNS"), attacker_name, target_name, thorns_damage)) };
       }
