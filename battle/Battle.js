@@ -34,17 +34,43 @@ export class Battle {
     this.cannot_be_dodged = false;
     this.paladin_aura = false;
     this.bastion_aura = false;
+    this.multistriker_attack = false;
 
     // Imports i18nManager from global;
     this.I18N = window.i18nManager;
+  }
+
+  update_dead_fighters() {
+    this.dead_fighters = [];
+    for (const [x, y] of [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+    ]) {
+      const f = this.fighters.all_fighters[x][y];
+      if (f && f.current_health === 0.0) this.dead_fighters.push(f);
+    }
+  }
+
+  update_crusader_total_health() {
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 2; j++) {
+        const f = this.fighters.all_fighters[i][j];
+        if (f && f.fighter_class === FighterClasses.CRUSADER) {
+          f.total_health = Math.round(f.original_health * (1 + 0.2 * this.dead_fighters.length));
+        }
+      }
+    }
   }
 
   battle() {
     while (this.continue_flag) {
       this._do_one_round();
       if (this.current_round > 300) break;
-      const winner = this._check_battle_is_over();
-      if (winner) break;
+      if (this._check_battle_is_over()) break;
     }
 
     const tot_mob_health = this._sumMobsHealth();
@@ -78,11 +104,13 @@ export class Battle {
   }
 
   _do_one_round() {
+
+    // get order of attacks, sorted by hit
     const sorted_attack_list = this._sort_by_hit();
+
     let current_attack = 0;
     for (const row of sorted_attack_list) {
-      const i = row.i,
-        j = row.j;
+      const i = row.i, j = row.j;
       let attacker, target;
       if (row.type === "fighters") {
         attacker = this.fighters.all_fighters[i][j];
@@ -121,19 +149,28 @@ export class Battle {
 
       current_attack += 1;
 
-      this.dead_fighters = [];
-      for (const [x, y] of [
-        [0, 0],
-        [1, 0],
-        [2, 0],
-        [0, 1],
-        [1, 1],
-        [2, 1],
-      ]) {
-        const f = this.fighters.all_fighters[x][y];
-        if (f && f.current_health === 0.0) this.dead_fighters.push(f);
+      // update dead fighters, for crusader
+      this.update_dead_fighters();
+      // this.update_crusader_total_health();
+
+      // roll for multistrike
+      if (attacker instanceof Fighter && attacker.multistrike > 0) {
+        let multistrike = attacker.multistrike / 100.0;
+
+        if (attacker.fighter_class === FighterClasses.CRUSADER) {
+          if (this.dead_fighters.length > 0) multistrike = (1 + 0.2 * this.dead_fighters.length) * multistrike;
+        }
+
+        const rng_multistrike = Math.random();
+        if (rng_multistrike < multistrike) {
+          if (this.verbose >= 1)
+            this._draw_table_head(this.I18N.getBattleMsg("MULTISTRIKE"));
+          this.multistriker_attack = true;
+        }
       }
 
+
+      // check for bastion and paladin auras
       if (attacker instanceof Mob) {
         let fighters = this.fighters.all_fighters;
 
@@ -187,6 +224,7 @@ export class Battle {
         }
       }
 
+      // assassin attacks back column first
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.ASSASSIN
@@ -198,6 +236,7 @@ export class Battle {
         }
       }
 
+      // brawler has 15% chance to attack twice
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.BRAWLER
@@ -209,6 +248,16 @@ export class Battle {
           if (this.verbose >= 1)
             this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true);
           this._do_standard_attack(attacker, target);
+          
+          if (attacker.multistrike > 0) {
+            const rng_multistrike_brawler = Math.random();
+            if (rng_multistrike_brawler < multistrike) {
+              if (this.verbose >= 1)
+                this._draw_table_head(this.I18N.getBattleMsg("MULTISTRIKE2"));
+              this._do_standard_attack(attacker, target);
+            }
+          }
+
           target = this._find_target("mobs");
           if (target === null) {
             this.continue_flag = false;
@@ -217,6 +266,7 @@ export class Battle {
         }
       }
 
+      // hunter attacks a whole row dealing 75% damage
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.HUNTER
@@ -227,14 +277,32 @@ export class Battle {
           break;
         } else {
           for (const lcl_target of targets_hunter) {
-            if (lcl_target)
+            if (lcl_target) {
               this._do_standard_attack(attacker, lcl_target, 0.75);
+            }
           }
         }
+
+        if (this.multistriker_attack) {
+          const targets_hunter = this._find_target_for_hunter();
+          if (targets_hunter === null) {
+            this.continue_flag = false;
+            break;
+          } else {
+            for (const lcl_target of targets_hunter) {
+              if (lcl_target) {
+                this._do_standard_attack(attacker, lcl_target, 0.75);
+              }
+            }
+          }
+          this.multistriker_attack = false;
+        }
+
         this._print_debug(i, j, row.type, current_attack, targets_hunter);
         continue;
       }
 
+      // mage attacks a whole column dealing 50% damage
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.MAGE
@@ -245,13 +313,32 @@ export class Battle {
           break;
         } else {
           for (const lcl_target of targets_mage) {
-            if (lcl_target) this._do_standard_attack(attacker, lcl_target, 0.5);
+            if (lcl_target) {
+              this._do_standard_attack(attacker, lcl_target, 0.5);
+            }
           }
         }
+
+        if (this.multistriker_attack) {
+          const targets_mage = this._find_target_for_mage();
+          if (targets_mage === null) {
+            this.continue_flag = false;
+            break;
+          } else {
+            for (const lcl_target of targets_mage) {
+              if (lcl_target) {
+                this._do_standard_attack(attacker, lcl_target, 0.5);
+              }
+            }
+          }
+          this.multistriker_attack = false;
+        }
+
         this._print_debug(i, j, row.type, current_attack, targets_mage);
         continue;
       }
 
+      // berserker attacks with increased damage based on health
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.BERSERKER
@@ -269,28 +356,72 @@ export class Battle {
           damage_mult = 1.75;
         }
         this._do_standard_attack(attacker, target, damage_mult);
+        if (this.multistriker_attack) {
+          this._do_standard_attack(attacker, target, damage_mult);
+          this.multistriker_attack = false;
+        }
         this._print_debug(i, j, row.type, current_attack, [target]);
         continue;
       }
 
       this._do_standard_attack(attacker, target);
+      if (this.multistriker_attack) {
+        this._do_standard_attack(attacker, target);
+        this.multistriker_attack = false;
+      }
       this._print_debug(i, j, row.type, current_attack, [target]);
     }
 
-    // Do the Priest resurrection at the end of the round if still _check_battle_is_over
+    // regen and healing
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 2; j++) {
+        const f = this.fighters.all_fighters[i][j];
 
-    this.dead_fighters = [];
-    for (const [x, y] of [
-      [0, 0],
-      [1, 0],
-      [2, 0],
-      [0, 1],
-      [1, 1],
-      [2, 1],
-    ]) {
-      const f = this.fighters.all_fighters[x][y];
-      if (f && f.current_health === 0.0) this.dead_fighters.push(f);
+        // regen
+        if (f && f.regen > 0.0 && f.current_health > 0.0) {
+          let regen_amount = Math.round(f.regen * f.total_health / 100.0);
+
+          if (f.fighter_class === FighterClasses.CRUSADER) {
+            this.update_dead_fighters();
+            regen_amount = Math.round((1 + 0.2 * this.dead_fighters.length) * regen_amount);
+          }
+
+          f.current_health = Math.min(f.current_health + regen_amount, f.total_health);
+          if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("REGEN"), f.fighter_class, regen_amount)) };
+        }
+
+        // healing
+        if (f && f.healing > 0.0 && f.current_health > 0.0) {
+
+          let selectedFighter = null;
+          let smallestHealthPercent = Infinity;
+
+          for (let x = 0; x < 3; x++) {
+            for (let y = 0; y < 2; y++) {
+              const f = this.fighters.all_fighters[x][y];
+              if (f && (i !== x || j !== y) && f.current_health > 0.0 && f.current_health / f.total_health < smallestHealthPercent) {
+                smallestHealthPercent = f.current_health / f.total_health;
+                selectedFighter = f;
+              }
+            }
+          }
+          if (selectedFighter) {
+
+            healing_amount = f.healing;
+            if (f.fighter_class === FighterClasses.CRUSADER) {
+              this.update_dead_fighters();
+              healing_amount = Math.round((1 + 0.2 * this.dead_fighters.length) * healing_amount);
+            }
+
+            selectedFighter.current_health = Math.min(selectedFighter.current_health + healing_amount, selectedFighter.total_health);
+            if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), f.fighter_class, selectedFighter.fighter_class, healing_amount)) };
+          }
+        }
+      }
     }
+
+    // priest may resurrect a dead fighter with 25% max health at the end of the round
+    this.update_dead_fighters();
 
     const f = this.fighters.all_fighters;
     const priest = [];
@@ -315,18 +446,9 @@ export class Battle {
           resurrected_fighter.total_health * 0.25,
         );
         resurrected_fighter.hit_counter = 0;
-        this.dead_fighters = [];
-        for (const [x, y] of [
-          [0, 0],
-          [1, 0],
-          [2, 0],
-          [0, 1],
-          [1, 1],
-          [2, 1],
-        ]) {
-          const f = this.fighters.all_fighters[x][y];
-          if (f && f.current_health === 0.0) this.dead_fighters.push(f);
-        }
+
+        this.update_dead_fighters();
+
         if (this.verbose >= 1)
           this._draw_table_head(
             formatString(
@@ -339,8 +461,6 @@ export class Battle {
     }
 
     if (this.verbose >= 1) {
-      //console.log("Final Round Situation");
-      //this._draw_table_head("Final Round Situation");
       this._draw_table_head(this.I18N.getBattleMsg("FINAL_ROUND"));
       this._draw_health_table(null, null, null);
       console.log("<br/><br/>");
@@ -370,14 +490,7 @@ export class Battle {
 
   _print_debug(i, j, type, current_attack, targets = null) {
     if (this.verbose >= 1) {
-      //console.log(`Round: ${this.current_round}, Attack: ${current_attack}\n`);
-      this._draw_table_row(
-        formatString(
-          this.I18N.getBattleMsg("ROUND_INFO"),
-          this.current_round,
-          current_attack,
-        ),
-      );
+      this._draw_table_row(formatString(this.I18N.getBattleMsg("ROUND_INFO"), this.current_round, current_attack));
       this._draw_health_table(i, j, type, targets);
     }
   }
@@ -394,11 +507,11 @@ export class Battle {
         type === "fighters"
           ? this.I18N.getFighterName(fighters[x][y].fighter_class)
           : //? fighters[x][y].fighter_class
-            formatString(
-              this.I18N.getBattleMsg("HEALTH_TABLE_LINE"),
-              mobs[x][y].mob_class,
-              mobs[x][y].level,
-            );
+          formatString(
+            this.I18N.getBattleMsg("HEALTH_TABLE_LINE"),
+            mobs[x][y].mob_class,
+            mobs[x][y].level,
+          );
       //: `${mobs[x][y].mob_class} lvl ${mobs[x][y].level}`;
       if (selI === x && selJ === y && att_type === type) label += " ⚔️";
       const char = type === "fighters" ? fighters[x][y] : mobs[x][y];
@@ -407,12 +520,8 @@ export class Battle {
       let current, total;
       if (type === "fighters") {
         const f = fighters[x][y];
-        const boost =
-          f.fighter_class === FighterClasses.CRUSADER
-            ? 1 + 0.2 * this.dead_fighters.length
-            : 1;
         current = Math.trunc(f.current_health);
-        total = Math.trunc(f.total_health * boost);
+        total = Math.trunc(f.total_health);
       } else {
         const m = mobs[x][y];
         current = Math.trunc(m.current_health);
@@ -430,13 +539,6 @@ export class Battle {
       formattedString(i, j, att_type, x, 1, "fighters"),
     ]);
 
-    /*
-    const headers = [
-      "Mobs Back",
-      "Mobs Front",
-      "Fighters Front",
-      "Fighters Back",
-    ]; */
     const headers = this.I18N.getBattleMsg("headers");
 
     // Calculate column widths
@@ -460,11 +562,9 @@ export class Battle {
           .filter((line) => line.length > 0)
           .join("<br>");
 
-        output += `<td style="width:25%; border: 1px solid white; padding: 8px; ${
-          cellContent.indexOf("⚔️") > 0 ? "background: #b40900;" : ""
-        } ${
-          cellContent.indexOf("🛡️") > 0 ? "background: #0000c4;" : ""
-        } ">${cellContent.replace("EMPTY", "")}</td>`;
+        output += `<td style="width:25%; border: 1px solid white; padding: 8px; ${cellContent.indexOf("⚔️") > 0 ? "background: #b40900;" : ""
+          } ${cellContent.indexOf("🛡️") > 0 ? "background: #0000c4;" : ""
+          } ">${cellContent.replace("EMPTY", "")}</td>`;
       });
       output += "</tr>";
     }
@@ -484,6 +584,8 @@ export class Battle {
   }
 
   _do_standard_attack(attacker, target, damage_mult = 1.0) {
+
+    // define attacker and target names
     let attacker_name, target_name;
     // Add safety check for null/undefined targets
     if (!target) {
@@ -506,11 +608,9 @@ export class Battle {
         attacker.level,
         attacker.mob_class,
       );
-    //attacker_name = `level ${attacker.level} ${attacker.mob_class}`;
     else if (attacker instanceof Fighter)
       attacker_name = this.I18N.getFighterName(attacker.fighter_class);
     else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_ATKR"));
-    //else throw new Error("Invalid attacker");
 
     if (target instanceof Mob)
       target_name = formatString(
@@ -518,39 +618,65 @@ export class Battle {
         target.level,
         target.mob_class,
       );
-    //target_name = `level ${target.level} ${target.mob_class}`;
     else if (target instanceof Fighter)
       target_name = this.I18N.getFighterName(target.fighter_class);
     else throw new Error(this.I18N.getBattleMsg("ERR_IVLD_TGT"));
-    //else throw new Error("Invalid target");
 
     let target_defense = 1 - target.defense;
     let target_defense_pre = target.defense_pre;
     let target_dodge = target.dodge;
     let attacker_hit = attacker.hit;
     let attacker_damage = attacker.damage;
-    let attacker_crit = attacker.crit;
+    let attacker_crit_damage = attacker.crit_damage;
     let additional_dr = 0.0;
 
+    // Update dead fighters
+    this.update_dead_fighters();
+
+    // Implicits
+    let lifesteal = 0;
+    let attacker_crit_chance = 0;
+    let multistrike = 0;
+    let thorns = 0;
+
+    if (attacker instanceof Fighter) {
+      lifesteal = attacker.lifesteal;
+      attacker_crit_chance = attacker.crit_chance;
+      multistrike = attacker.multistrike;
+    }
+
+    if (target instanceof Fighter) {
+      thorns = target.thorns;
+    }
+
+    // Crusader defense bonus, including implicits
     if (
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.CRUSADER
     ) {
+      target.total_health = Math.round(target.original_health * (1 + 0.2 * this.dead_fighters.length));
       target_defense_pre =
         (1 + 0.2 * this.dead_fighters.length) * target.defense_pre;
       target_defense = 1 - calculateDefense(target_defense_pre);
       target_dodge = (1 + 0.2 * this.dead_fighters.length) * target_dodge;
     }
 
+    // Crusader attack bonus, including implicits
     if (
       attacker instanceof Fighter &&
       attacker.fighter_class === FighterClasses.CRUSADER
     ) {
+      attacker.total_health = Math.round(attacker.original_health * (1 + 0.2 * this.dead_fighters.length));
       attacker_hit = (1 + 0.2 * this.dead_fighters.length) * attacker_hit;
       attacker_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_damage;
-      attacker_crit = (1 + 0.2 * this.dead_fighters.length) * attacker_crit;
+      attacker_crit_damage = (1 + 0.2 * this.dead_fighters.length) * attacker_crit_damage;
+      attacker_crit_chance = 0.1 + ((1 + 0.2 * this.dead_fighters.length) * (attacker_crit_chance - 0.1));
+      lifesteal = (1 + 0.2 * this.dead_fighters.length) * lifesteal;
+      multistrike = (1 + 0.2 * this.dead_fighters.length) * multistrike;
+      thorns = (1 + 0.2 * this.dead_fighters.length) * thorns;
     }
 
+    // Shadow dancer evasion roll
     if (
       target instanceof Fighter &&
       target.fighter_class === FighterClasses.SHADOW_DANCER
@@ -567,6 +693,7 @@ export class Battle {
       }
     }
 
+    // Bastion aura
     if (target instanceof Fighter && this.bastion_aura) {
       if (this.verbose >= 1)
         this._draw_table_head(this.I18N.getBattleMsg("SP_BS_DMG_DODGE"), true);
@@ -575,6 +702,7 @@ export class Battle {
       this.bastion_aura = false;
     }
 
+    // Hit chance
     const attacker_chance = Math.min(
       0.25 + (attacker_hit / (attacker_hit + target_dodge)) * 0.75,
       0.95,
@@ -583,33 +711,19 @@ export class Battle {
     if (this.cannot_be_dodged) {
       rng_attack = -1.0;
       if (this.verbose >= 1)
-        this._draw_table_head(
-          formatString(
-            this.I18N.getBattleMsg("ATK_CANNOT_DODGE"),
-            attacker_name,
-          ),
-          true,
-        );
+        this._draw_table_head(formatString(this.I18N.getBattleMsg("ATK_CANNOT_DODGE"), attacker_name), true);
       this.cannot_be_dodged = false;
     } else {
       rng_attack = Math.random();
       if (this.verbose >= 2)
-        this._draw_table_head(
-          formatString(
-            this.I18N.getBattleMsg("ATK_RNG_SUCC"),
-            rng_attack.toFixed(3),
-            attacker_chance.toFixed(3),
-          ),
-          true,
-        );
-      /*         console.log(
-          `Successful attack rng: ${rng_attack.toFixed(3)} < ${attacker_chance.toFixed(3)}`,
-        ); */
+        this._draw_table_head(formatString(this.I18N.getBattleMsg("ATK_RNG_SUCC"), rng_attack.toFixed(3), attacker_chance.toFixed(3)), true);
     }
 
+    // hit roll
     if (rng_attack < attacker_chance) {
       attacker.hit_counter += 1;
 
+      // Shadow dancer double damage
       if (
         attacker instanceof Fighter &&
         attacker.fighter_class === FighterClasses.SHADOW_DANCER &&
@@ -620,37 +734,37 @@ export class Battle {
             this.I18N.getBattleMsg("SP_SD_APL_DOUBLEDMG"),
             true,
           );
-        //console.log("Shadow Dancer applies double damage");
         attacker_damage = attacker_damage * 2;
         this.shadow_dancer_double_damage = false;
       }
 
+      // Paladin aura -> damage reduction
       if (target instanceof Fighter && this.paladin_aura) {
         if (this.verbose >= 1)
           this._draw_table_head(
             this.I18N.getBattleMsg("SP_PL_DMG_REDUCTION"),
             true,
           );
-        //console.log("Paladin aura adds 15% damage reduction");
         additional_dr = additional_dr + 0.15;
         this.paladin_aura = false;
       }
 
-      let dmg_amount =
-        target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
+      // damage amount
+      let dmg_amount = target_defense * (1 - additional_dr) * attacker_damage * damage_mult;
       let damage_info_key = "DAMAGE_INFO";
+
+      // crit roll
       const rng_crit = Math.random();
       if (this.verbose >= 2)
         this._draw_table_head(
           formatString(
             this.I18N.getBattleMsg("CRT_RNG_INFO"),
-            rng_attack.toFixed(3),
+            rng_crit.toFixed(3),
           ),
           true,
         );
-      //console.log(`Crit rng: ${rng_attack.toFixed(3)} < 0.1`);
-      if (rng_crit < 0.1) {
-        dmg_amount = dmg_amount * (1 + attacker_crit);
+      if (rng_crit < attacker_crit_chance) {
+        dmg_amount = dmg_amount * (1 + attacker_crit_damage);
         damage_info_key = "DAMAGE_INFO_CRIT";
       }
       const dmg_final = Math.floor(dmg_amount);
@@ -664,22 +778,27 @@ export class Battle {
             dmg_applied,
           ),
         );
-      /*         console.log(
-          `${attacker_name} hits ${target_name} and deals ${dmg_applied} damage.`,
-        ); */
-      target.current_health = Math.max(
-        0.0,
-        target.current_health - dmg_applied,
-      );
+
+      const dmg_real = Math.min(target.current_health, dmg_applied);
+
+      target.current_health = Math.max(0.0, target.current_health - dmg_applied);
+
+      // lifesteal
+      if (attacker instanceof Fighter && (lifesteal > 0)) {
+        let lifesteal_amount = Math.floor(dmg_real * lifesteal / 100);
+        attacker.current_health = Math.min(attacker.current_health + lifesteal_amount, attacker.total_health);
+        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("LIFESTEAL"), attacker_name, lifesteal_amount)) };
+      }
+
+      // thorns
+      if (target instanceof Fighter && (thorns > 0)) {
+        let thorns_damage = Math.floor(dmg_applied * thorns / 100);
+        attacker.current_health = Math.max(0.0, attacker.current_health - thorns_damage);
+        if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("THORNS"), attacker_name, target_name, thorns_damage)) };
+      }
+
     } else {
-      if (this.verbose >= 1)
-        this._draw_table_head(
-          formatString(
-            this.I18N.getBattleMsg("ATK_MISS"),
-            attacker_name,
-            target_name,
-          ),
-        );
+      if (this.verbose >= 1) this._draw_table_head(formatString(this.I18N.getBattleMsg("ATK_MISS"), attacker_name, target_name));
     }
   }
 

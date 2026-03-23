@@ -1,5 +1,5 @@
 import { calculateDefense } from "../utils/utils.js";
-import { formatString } from "../utils/i18n.js";  
+import { formatString } from "../utils/i18n.js";
 
 export const FighterClasses = Object.freeze({
   ASSASSIN: "Assassin",
@@ -33,7 +33,12 @@ export class Fighter {
       object_defense = 0,
       object_crit = 0,
       object_dodge = 0,
-      // 新增属性
+      object_lifesteal = 0,
+      object_crit_chance = 0,
+      object_multistrike = 0,
+      object_thorns = 0,
+      object_regen = 0,
+      object_healing = 0,
       isDuplicate = false,
       base = null,
       equippedItemId = null
@@ -50,18 +55,24 @@ export class Fighter {
 
     this.name = name || this.I18N.getFighterName(fighterClass.replace(" ", "_"));
 
-    this.total_health = Math.ceil(500 + 100 * fighter_health) + object_health;
+    this.original_health = Math.ceil(500 + 100 * fighter_health) + object_health;
+    this.total_health = this.original_health;
     this.current_health = this.total_health;
     this.damage = Math.ceil(100 + 25 * fighter_damage) + object_damage;
     this.hit = Math.ceil(50 + 50 * fighter_hit) + object_hit;
     this.defense_pre = 25 + 10 * fighter_defense + object_defense;
     this.defense = calculateDefense(this.defense_pre);
-    this.crit = (0.0 + 0.25 * fighter_crit + object_crit) / 100.0;
+    this.crit_damage = (0.0 + 0.25 * fighter_crit + object_crit) / 100.0;
+    this.crit_chance = 0.1 + object_crit_chance / 100.0;
     this.dodge = Math.ceil(50.0 + 50.0 * fighter_dodge) + object_dodge;
+    this.lifesteal = object_lifesteal;
+    this.multistrike = object_multistrike;
+    this.thorns = object_thorns;
+    this.regen = object_regen;
+    this.healing = object_healing;
 
     this.hit_counter = 0;
-    
-    // 新增属性
+
     this.isDuplicate = isDuplicate;
     this.base = base;
     this.equippedItemId = equippedItemId;

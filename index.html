@@ -17,15 +17,11 @@
         <div style="display: flex; align-items: center;">
             <h1 data-i18n="header" style="margin-right: 20px;">
                 Queslar Rewritten Dungeon Simulator
-                <span style="
-                            color: #ff4444;
-                            font-size: 0.6em;
-                            vertical-align: super;
-                        ">BETA</span>
             </h1>
-            <div class="main-tabs">
+            <div class="main-tabs" style="display: flex; align-items: center;">
                 <button class="main-tab-button active" data-tab="dungeon" data-i18n="dungeon_tab">Dungeon</button>
                 <button class="main-tab-button" data-tab="caves" data-i18n="caves_tab">Caves</button>
+                <span tabindex="0" data-tooltip="experimental_implicits" class="warning-icon">⚠️</span>
             </div>
         </div>
         <div class="language-switcher">
@@ -66,19 +62,22 @@
                 <div class="form-grid">
                     <div class="card">
                         <label class="label" data-i18n="dungeon_level">Dungeon level</label>
-                        <input id="mobLevel" type="number" value="200" min="1" step="1" style="width: 150px" />
+                        <input id="mobLevel" type="number" value="200" min="1" step="1" style="width: 150px"
+                            autocomplete="off" />
                     </div>
                     <div class="card">
                         <label class="label" data-i18n="dungeon_per_minute">Attempts per minute</label>
-                        <input id="dungeonsPerMinute" type="number" value="5" min="1" step="any" style="width: 150px" />
+                        <input id="dungeonsPerMinute" type="number" value="5" min="1" step="any" style="width: 150px"
+                            autocomplete="off" />
                     </div>
                     <div class="card">
                         <label class="label" data-i18n="number_of_battles">Number of battles<span class="info-icon"
                                 tabindex="0" data-tooltip="number_of_battles_tooltip"></span></label>
                         <div class="row" style="gap: 0.8em; align-items: center">
-                            <input id="numBattles" type="number" value="1" min="1" step="1" style="width: 100px" />
+                            <input id="numBattles" type="number" value="1" min="1" step="1" style="width: 100px"
+                                autocomplete="off" />
                             <label class="row" style="gap: 0.4em">
-                                <input id="verbose" type="checkbox" />
+                                <input id="verbose" type="checkbox" autocomplete="off" />
                                 <span data-i18n="verbose">Verbose</span>
                             </label>
                         </div>
@@ -91,7 +90,7 @@
                     </label>
                     <div class="row" style="gap: 0.8em; align-items: center">
                         <input id="apiKey" type="text" placeholder="Enter your Queslar API key"
-                            data-i18n-placeholder="api_key_placeholder" style="flex: 1" />
+                            data-i18n-placeholder="api_key_placeholder" style="flex: 1" autocomplete="off" />
                         <button id="importBtn" class="btn" data-i18n="import_button">
                             Import
                         </button>
@@ -106,7 +105,8 @@
                     <div class="row" style="gap: 0.8em; align-items: center">
                         <input id="snapshotOutputField" type="text"
                             placeholder="Generated snapshot code will appear here"
-                            data-i18n-placeholder="snapshot_code_placeholder" style="flex: 1; cursor: text" />
+                            data-i18n-placeholder="snapshot_code_placeholder" style="flex: 1; cursor: text"
+                            autocomplete="off" />
                         <button id="createSnapshotBtn" class="btn secondary" data-i18n="create_snapshot_button">
                             Create Snapshot
                         </button>
@@ -204,13 +204,14 @@
                 <div class="form-grid">
                     <div class="card" style="min-width: 340px">
                         <label class="label" data-i18n="caves_mob_level">Mob level</label>
-                        <input id="mobLevel-caves" type="number" value="200" min="1" step="1" style="width: 200px" />
+                        <input id="mobLevel-caves" type="number" value="200" min="1" step="1" style="width: 200px"
+                            autocomplete="off" />
                     </div>
                     <div class="card" style="min-width: 340px">
                         <label class="label" data-i18n="caves_number_of_mob_encounters">Number of mob encounters</label>
                         <div class="row" style="gap: 0.8em; align-items: center">
-                            <input id="numBattles-caves" type="number" value="1" min="1" step="1"
-                                style="width: 200px" />
+                            <input id="numBattles-caves" type="number" value="1" min="1" step="1" style="width: 200px"
+                                autocomplete="off" />
                         </div>
                     </div>
                 </div>
@@ -221,7 +222,7 @@
                     </label>
                     <div class="row" style="gap: 0.8em; align-items: center">
                         <input id="apiKey-caves" type="text" placeholder="Enter your Queslar API key"
-                            data-i18n-placeholder="api_key_placeholder" style="flex: 1" />
+                            data-i18n-placeholder="api_key_placeholder" style="flex: 1" autocomplete="off" />
                         <button id="importBtn-caves" class="btn" data-i18n="import_button">
                             Import
                         </button>
@@ -236,7 +237,8 @@
                     <div class="row" style="gap: 0.8em; align-items: center">
                         <input id="snapshotOutputField-caves" type="text"
                             placeholder="Generated snapshot code will appear here"
-                            data-i18n-placeholder="snapshot_code_placeholder" style="flex: 1; cursor: text" />
+                            data-i18n-placeholder="snapshot_code_placeholder" style="flex: 1; cursor: text"
+                            autocomplete="off" />
                         <button id="createSnapshotBtn-caves" class="btn secondary" data-i18n="create_snapshot_button">
                             Create Snapshot
                         </button>
@@ -394,7 +396,21 @@
                     <label data-i18n="item_defense">Item Defense</label>
                     <input id="object_defense" type="number" value="0" step="1" /><br />
                     <label data-i18n="item_crit">Item Crit (%)</label>
-                    <input id="object_crit" type="number" value="0" step="0.01" min="0" />
+                    <input id="object_crit" type="number" value="0" step="0.01" min="0" /><br />
+                </div>
+                <div>
+                    <label data-i18n="item_lifesteal">Implicit Lifesteal (%)</label>
+                    <input id="object_lifesteal" type="number" value="0" step="0.01" min="0" /><br />
+                    <label data-i18n="item_crit_chance">Implicit Crit Chance (%)</label>
+                    <input id="object_crit_chance" type="number" value="0" step="0.01" min="0" /><br />
+                    <label data-i18n="item_multistrike">Implicit Multistrike (%)</label>
+                    <input id="object_multistrike" type="number" value="0" step="0.01" min="0" /><br />
+                    <label data-i18n="item_thorns">Implicit Thorns (%)</label>
+                    <input id="object_thorns" type="number" value="0" step="0.01" min="0" /><br />
+                    <label data-i18n="item_regen">Implicit Regen (%)</label>
+                    <input id="object_regen" type="number" value="0" step="0.01" min="0" /><br />
+                    <label data-i18n="item_healing">Implicit Healing</label>
+                    <input id="object_healing" type="number" value="0" step="1" min="0" /><br />
                     <div id="modifiedFighterCost" class="label" style="margin-top: 1em"
                         data-i18n="modified_fighter_gold"></div>
                 </div>
@@ -562,6 +578,27 @@
                 <button id="saveItem" class="btn" data-i18n="save_button">
                     Save
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- April Fools Modals -->
+    <div id="prankBackdrop" class="modal-backdrop">
+        <div id="prankModal1" class="modal" style="max-width: 550px; text-align: center;">
+            <div style="font-size: 1.05em; line-height: 1.5;">
+                <p id="prankText1"></p>
+            </div>
+            <div class="row" style="margin-top: 2em; justify-content: center">
+                <button id="prankBtn1" class="btn primary">I understand</button>
+            </div>
+        </div>
+        <div id="prankModal2" class="modal" style="display: none; max-width: 500px; text-align: center;">
+            <div style="font-size: 1.1em; line-height: 1.5; margin-bottom: 2em;">
+                <p>April fools 😛 <br><br>It is free and always will be. <br>Donations are always welcome,
+                    though.<br><br>Happy playing!</p>
+            </div>
+            <div class="row" style="margin-top: 1em; justify-content: center">
+                <button id="prankBtn2" class="btn primary">OK</button>
             </div>
         </div>
     </div>
