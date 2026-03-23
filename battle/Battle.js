@@ -248,7 +248,7 @@ export class Battle {
           if (this.verbose >= 1)
             this._draw_table_head(this.I18N.getBattleMsg("SP_BR_DOUBLE"), true);
           this._do_standard_attack(attacker, target);
-          
+
           if (attacker.multistrike > 0) {
             const rng_multistrike_brawler = Math.random();
             if (rng_multistrike_brawler < multistrike) {
@@ -407,7 +407,7 @@ export class Battle {
           }
           if (selectedFighter) {
 
-            healing_amount = f.healing;
+            let healing_amount = f.healing;
             if (f.fighter_class === FighterClasses.CRUSADER) {
               this.update_dead_fighters();
               healing_amount = Math.round((1 + 0.2 * this.dead_fighters.length) * healing_amount);
