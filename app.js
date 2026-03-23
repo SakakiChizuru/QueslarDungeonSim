@@ -1377,7 +1377,7 @@ class DungeonSim {
             this.importBtn.textContent = I18N.getUIElement("IMPORTING");
 
             const response = await fetch(
-                "https://http.test.v2.queslar.com/api/character/fighter/presets",
+                "https://http.v2.queslar.com/api/character/fighter/presets",
                 { headers: { "QUESLAR-API-KEY": apiKey } },
             );
 
