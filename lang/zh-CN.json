@@ -1,6 +1,6 @@
 {
   "page_title": "Queslar 重制版地下城模拟器",
-  "header": "Queslar 重制版地下城模拟器 <span style=\"color: #ff4444; font-size: 0.6em; vertical-align: super;\">测试版</span>",
+  "header": "Queslar 重制版地下城模拟器",
   "bench": "替补",
   "bench_description": "在替补席和战斗槽之间拖拽佣兵",
   "add_fighter": "+ 添加佣兵",
@@ -67,6 +67,7 @@
   "language_cn": "中文",
   "dungeon_tab": "地下城",
   "caves_tab": "洞穴",
+  "experimental_implicits": "佣兵附加属性是一项尚未经过广泛测试的实验性功能。请仔细核对游戏内日志，并与模拟器日志进行对比。如果您发现任何错误或差异，请告知 anfneub。",
   "armory": "兵工厂",
   "armory_description": "点击物品进行编辑。拖拽到佣兵身上进行装备。",
   "add_fighter_item": "+ 添加佣兵物品",

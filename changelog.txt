@@ -1,7 +1,10 @@
-2025-02-03
+2026-03-23
+- Released Fighter Gear Implicits. These are very experimental, so expect wrong values, especially for complex interactions, like crusader, bastion, priest, etc.
+
+2026-02-03
 - Fighter items are no longer capped after iLvl 9, as per patch 1.1.0.4
 
-2025-01-06
+2026-01-06
 - Added "Dungeon Attempts per Minute" field and updated probability check for different times (10, 30, 60 minutes)
 
 2025-12-26

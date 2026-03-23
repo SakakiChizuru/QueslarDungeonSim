@@ -1,6 +1,6 @@
 {
   "page_title": "Queslar Rewritten Dungeon Simulator",
-  "header": "Queslar Rewritten Dungeon Simulator\n                <span style=\"color: #ff4444; font-size: 0.6em; vertical-align: super;\">BETA</span>",
+  "header": "Queslar Rewritten Dungeon Simulator",
   "bench": "Bench",
   "bench_description": "Drag fighters between bench and battle slots",
   "add_fighter": "+ Add Fighter",
@@ -67,6 +67,7 @@
   "language_cn": "CN",
   "dungeon_tab": "Dungeon",
   "caves_tab": "Caves",
+  "experimental_implicits": "Fighter implicits are an experimental feature that has not yet been extensively tested. Please double check with the ingame log and compare with the simulator log. If you see errors or differences, please let anfneub know.",
   "armory": "Armory",
   "armory_description": "Click on items to edit. Drag on fighter to equip.",
   "add_fighter_item": "+ Add Fighter Item",

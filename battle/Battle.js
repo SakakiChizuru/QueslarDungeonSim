@@ -151,7 +151,7 @@ export class Battle {
 
       // update dead fighters, for crusader
       this.update_dead_fighters();
-      this.update_crusader_total_health();
+      // this.update_crusader_total_health();
 
       // roll for multistrike
       if (attacker instanceof Fighter && attacker.multistrike > 0) {
@@ -378,17 +378,20 @@ export class Battle {
         const f = this.fighters.all_fighters[i][j];
 
         // regen
-        if (f && f.regen > 0) {
-          let heal_amount = Math.round(f.regen * f.total_health / 100.0);
+        if (f && f.regen > 0.0 && f.current_health > 0.0) {
+          let regen_amount = Math.round(f.regen * f.total_health / 100.0);
 
-          // TODO: if fighter is crusader, increase regen
+          if (f.fighter_class === FighterClasses.CRUSADER) {
+            this.update_dead_fighters();
+            regen_amount = Math.round((1 + 0.2 * this.dead_fighters.length) * regen_amount);
+          }
 
-          f.current_health = Math.min(f.current_health + heal_amount, f.total_health);
-          if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("REGEN"), f.fighter_class, heal_amount)) };
+          f.current_health = Math.min(f.current_health + regen_amount, f.total_health);
+          if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("REGEN"), f.fighter_class, regen_amount)) };
         }
 
         // healing
-        if (f && f.healing > 0) {
+        if (f && f.healing > 0.0 && f.current_health > 0.0) {
 
           let selectedFighter = null;
           let smallestHealthPercent = Infinity;
@@ -403,8 +406,15 @@ export class Battle {
             }
           }
           if (selectedFighter) {
-            selectedFighter.current_health = Math.min(selectedFighter.current_health + f.healing, selectedFighter.total_health);
-            if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), f.fighter_class, selectedFighter.fighter_class, f.healing)) };
+
+            healing_amount = f.healing;
+            if (f.fighter_class === FighterClasses.CRUSADER) {
+              this.update_dead_fighters();
+              healing_amount = Math.round((1 + 0.2 * this.dead_fighters.length) * healing_amount);
+            }
+
+            selectedFighter.current_health = Math.min(selectedFighter.current_health + healing_amount, selectedFighter.total_health);
+            if (this.verbose >= 1) { this._draw_table_head(formatString(this.I18N.getBattleMsg("HEALING"), f.fighter_class, selectedFighter.fighter_class, healing_amount)) };
           }
         }
       }
